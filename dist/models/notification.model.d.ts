@@ -1,0 +1,2 @@
+export {};
+//# sourceMappingURL=notification.model.d.ts.map

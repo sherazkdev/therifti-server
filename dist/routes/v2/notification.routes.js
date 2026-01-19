@@ -1,0 +1,10 @@
+import express from "express";
+/** Middlewares */
+/** Controllers */
+import NotificationController from "../../controllers/notification.controllers";
+const NotificationRouter = express.Router();
+/** Secure routes */
+NotificationController.
+;
+export default NotificationRouter;
+//# sourceMappingURL=notification.routes.js.map
