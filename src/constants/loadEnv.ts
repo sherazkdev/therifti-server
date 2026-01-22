@@ -29,6 +29,8 @@ interface EnvironmentVariables {
     ACCESS_TOKEN_EXPIRY:string,
     ACCESS_TOKEN_SECRET:string,
     REFRESH_TOKEN_EXPIRY:string,
+    MAILER_APP_EMAIL:string,
+    MAILER_APP_PASSWORD:string,
     REFRESH_TOKEN_SECRET:string
 }
 const env:EnvironmentVariables = {
@@ -44,6 +46,8 @@ const env:EnvironmentVariables = {
     ACCESS_TOKEN_EXPIRY:requireEnv("ACCESS_TOKEN_EXPIRY"),
     ACCESS_TOKEN_SECRET:requireEnv("ACCESS_TOKEN_SECRET"),
     REFRESH_TOKEN_EXPIRY:requireEnv("REFRESH_TOKEN_EXPIRY"),
-    REFRESH_TOKEN_SECRET:requireEnv("REFRESH_TOKEN_SECRET")
+    REFRESH_TOKEN_SECRET:requireEnv("REFRESH_TOKEN_SECRET"),
+    MAILER_APP_EMAIL:requireEnv("MAILER_APP_EMAIL"),
+    MAILER_APP_PASSWORD:requireEnv("MAILER_APP_PASSWORD")
 }
 export default env;

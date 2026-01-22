@@ -2,7 +2,7 @@ import mongoose,{Types} from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 /** Types */
-import type {UserDocument} from "../interfaces/user.interfaces";
+import {UserGender, type UserDocument} from "../interfaces/user.interfaces";
 import type { JsonWebTokenError } from "jsonwebtoken";
 import env from "../constants/loadEnv";
 
@@ -29,7 +29,16 @@ const UserSchema = new mongoose.Schema<UserDocument>({
         unique:true,
         required:true
     },
+    username:{
+        type:String,
+        unique:true,    
+        default:null
+    },
     avatar:{
+        type:String,
+        default:null
+    },
+    about:{
         type:String,
         default:null
     },
@@ -58,6 +67,15 @@ const UserSchema = new mongoose.Schema<UserDocument>({
             }
         }
     },
+    dob:{
+        type:Date,
+        default:null
+    },
+    gender:{
+        type:String,
+        enum:Object.values(UserGender),
+        default:null
+    },
     lastSeen:{
         type:Date,
         default:Date.now()
@@ -65,6 +83,18 @@ const UserSchema = new mongoose.Schema<UserDocument>({
     password:{
         type:String,
         default:null
+    },
+    otp:{
+        type:String,
+        default:null
+    },
+    otpExpiry:{
+        type:Date,
+        default:null
+    },
+    isVerfied:{
+        type:Boolean,
+        required:true
     },
     refreshToken:{
         type:String,

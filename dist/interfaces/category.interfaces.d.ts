@@ -1,8 +1,8 @@
-import { Document, ObjectId } from "mongoose";
+import { Document, Types } from "mongoose";
 /** Category Interface */
 export interface CategoryInterface {
-    owner: ObjectId;
-    parent?: ObjectId;
+    owner: Types.ObjectId;
+    parent?: Types.ObjectId;
     title: string;
     status?: string;
 }

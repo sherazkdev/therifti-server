@@ -1,4 +1,4 @@
-import { Document, ObjectId } from "mongoose";
+import { Document, Types } from "mongoose";
 ;
 /** Category Status */
 export var CategoryStatus;

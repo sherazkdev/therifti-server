@@ -98,7 +98,8 @@ export enum ProductSize {
 export enum ProductStatus {
     DRAFT = "DRAFT",
     PUBLISHED = "PUBLISHED",
-    DELETED = "DELETED"
+    DELETED = "DELETED",
+    SOLD = "SOLD"
 }
 
 export interface ProductInterface {

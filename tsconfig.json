@@ -33,7 +33,7 @@
 
     // Recommended Options
     "strict": true,
-    "moduleResolution":"node",
+    "moduleResolution":"nodenext",
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,

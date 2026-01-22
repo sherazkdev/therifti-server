@@ -30,5 +30,5 @@ class MongooseConnection {
         }
     }
 }
-export default MongooseConnection;
+export default new MongooseConnection();
 //# sourceMappingURL=Connection.js.map

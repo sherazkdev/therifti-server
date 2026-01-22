@@ -9,5 +9,6 @@ declare class MongooseConnection {
     /** Disconnect Mongoose */
     Disconnect(): Promise<void>;
 }
-export default MongooseConnection;
+declare const _default: MongooseConnection;
+export default _default;
 //# sourceMappingURL=Connection.d.ts.map
