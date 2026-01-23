@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { OTP_PURPOSE } from "../interfaces/user.interfaces.js";
 
 /** Note: Validate Register User Account. */
 export const VALIDATE_REGISTER_USER_ACCOUNT = z.object({
@@ -34,6 +35,13 @@ export const VALIDATE_UPDATE_USER_PROFILE = z.object({
         country: z.string().optional()
     },
     gender:z.string().optional()
+})
+
+/** Note: Validate Forgot password */
+export const VALIDATE_FORGOT_PASSWORD = z.object({
+    email: z.email().optional(),
+    userId: z.string().optional(),
+    purpose: z.enum(OTP_PURPOSE)
 })
 
 /** Note: Validate Verify Otp */

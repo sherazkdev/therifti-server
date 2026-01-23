@@ -9,6 +9,14 @@ interface UserMethods {
     GenerateAccessToken():Promise<string>,
     GenerateRefreshToken():Promise<string>,
 }
+export enum UserStatusEnum {
+    ACTIVATED = "ACTIVATED",
+    DEACTIVATE = "DEACTIVATE"
+}
+export enum UserTypesEnum {
+    ADMIN = "ADMIN",
+    USER = "USER"
+}
 export interface UserInterface {
     googleId?:string | null,
     facebookeId?:string | null,
@@ -33,9 +41,11 @@ export interface UserInterface {
     },
     refreshToken?:string | null,
     isVerfied?:Boolean,
-    lastSeen?:Date
+    lastSeen?:Date,
+    type?:UserTypesEnum
+    status?:UserStatusEnum
 };
-export interface UserDocument extends UserInterface, UserMethods, Document {};
+export interface UserDocument extends Document<Types.ObjectId,any,UserInterface>, UserInterface, UserMethods {};
 
 /** Sevices intefaces */
 export interface UpdateUserProfileInterface extends Partial<Pick<UserInterface, 
@@ -92,19 +102,22 @@ export interface ChangeAccountEmailInterface {
     email:string
 }
 /** Note: GetUserAccountSort */
-export enum GetUserAccountSortInterface {
-    PRICE_HIGH_TO_LOW = "PRICE_HIGH_TO_LOW",
-    PRICE_LOW_TO_HIGHT = "PRICE_LOW_TO_HIGH",
-    NEWEST_FIRST = "NEWEST_FIRST",
-    RELEVANCE = "RELEVANCE"
-}
+export const USER_SORT = [
+  "PRICE_HIGH_TO_LOW",
+  "PRICE_LOW_TO_HIGH",
+  "NEWEST_FIRST",
+  "RELEVANCE",
+] as const;
+
+export type UserSort = typeof USER_SORT[number];
+
 /** Note: GetUserAccountProfile */
 export interface GetUserProfileInterface {
-    page?:number,
-    limit?:number,
+    page?:number | undefined,
+    limit?:number | undefined,
     userId:string,
-    categoryId?:string | null,
-    sort:"PRICE_HIGH_TO_LOW" | "NEWEST_FIRST" | "PRICE_LOW_TO_HIGH" | "RELEVANCE",
+    categoryId?:string | undefined,
+    sort?:UserSort | undefined,
 }
 /** ChangeAccountEmailVerifyOtpInterface */
 export interface ChangeAccountEmailVerifyOtpInterface {
@@ -112,17 +125,20 @@ export interface ChangeAccountEmailVerifyOtpInterface {
     email:string
 }
 /** Note: Send otp Purpose */
-export enum OtpPurposeEnum {
-    CHANGE_PASSWORD = "CHANGE_PASSWORD",
-    CHANGE_EMAIL = "CHANGE_EMAIL",
-    REGISTER_ACCOUNT = "REGISTER_ACCOUNT",
-    FORGOT_ACCOUNT = "FORGOT_ACCOUNT"      
-}
+export const OTP_PURPOSE = [
+  "CHANGE_PASSWORD",
+  "CHANGE_EMAIL",
+  "REGISTER_ACCOUNT",
+  "FORGOT_ACCOUNT",
+] as const;
+
+export type OtpPurpose = typeof OTP_PURPOSE[number];
 
 /** Send Otp Inteface */
 export interface SendOtpInterface {
-    purpose: OtpPurposeEnum,
-    userId:string,
+    purpose: OtpPurpose,
+    userId?:string | undefined,
+    email?:string | undefined
 }
 /** Note: Otp email content. */
 export interface OtpEmaiLContentInterface {
@@ -130,7 +146,7 @@ export interface OtpEmaiLContentInterface {
     description:string,
 }
 
-export const OTP_EMAIL_CONTENT:Record<OtpPurposeEnum,OtpEmaiLContentInterface> = {
+export const OTP_EMAIL_CONTENT:Record<OtpPurpose,OtpEmaiLContentInterface> = {
     CHANGE_EMAIL : {    
         title: 'Verify Your Email',
         description: 'email verification for your account',

@@ -4,7 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 /** Response Constants */
 import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
-import { OTP_EMAIL_CONTENT, OtpPurposeEnum, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type SendOtpInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VerifyOtpInterface } from "../interfaces/user.interfaces.js";
+import { OTP_EMAIL_CONTENT, OtpPurposeEnum, UserStatusEnum, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type SendOtpInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VerifyOtpInterface } from "../interfaces/user.interfaces.js";
 import mongoose from "mongoose";
 import bcrypt, { genSalt } from "bcrypt";
 import Mailer from "../configs/nodemailer/mailer.js";
@@ -12,6 +12,7 @@ import path from "node:path";
 import hbs from "handlebars"
 import { fileURLToPath } from 'node:url';
 import fs from "fs";
+import ProductModel from "../models/product.model.js";
 
 /**
  * Note: Service Methods.
@@ -317,9 +318,9 @@ class UserServices {
         /** Note: Send otp on email using with nodemailer */
         const otpObject = {
             userId:user._id.toString(),
-            purpose:OtpPurposeEnum.
+            purpose:OtpPurposeEnum.FORGOT_ACCOUNT
         }
-        const send_mail = await this.SendOtp()
+        const send_mail = await this.SendOtp(otpObject)
         return;
     }
 
@@ -542,9 +543,14 @@ class UserServices {
      * @param otpObject - userId
     */
     public async SendOtp(otpObject:SendOtpInterface):Promise<void> {
-        const {purpose,userId} = otpObject;
+        const {purpose,userId,email} = otpObject;
         /** Note: Check user is exist. */
-        const user:UserDocument | null = await UserModel.findById(new mongoose.Types.ObjectId(userId));
+        let user:UserDocument | null;
+        if(userId){
+            user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
+        }else if(email){
+            user = await UserModel.findOne({email:email});
+        }
         if(!user){
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
         }
@@ -590,6 +596,59 @@ class UserServices {
         return;
     }
 
+    /**
+     * Note: Logout User Account Remove access and refreshToken.
+     * @param userObject - userId.
+     * @update userDocument refreshToken.
+     * @return null. 
+    */
+    public async LogoutUserAccount(userObject:{userId:string}):Promise<void> {
+        const {userId} = userObject;
+        const user = await this.GetUserById(userId);
+        /** Note: Assign the user object refreshToken is null. */
+        user.refreshToken = null;
+        user.lastSeen = new Date();
+        await user.save({validateBeforeSave:false});
+    }
+
+    /**
+     * Note: Deactivate user account.
+     * @param userObject - userId
+     * @update userDocument status.
+     * @return null.
+    */
+    public async DeactivateUserAccount(userObject:{userId:string}):Promise<void> {
+        const {userId} = userObject;
+        const user = await this.GetUserById(userId);
+        /** Note: First of all currently user products is live, if live do not deactivate account. */
+        const check_user_products_exist = await ProductModel.find({
+            owner: new mongoose.Types.ObjectId(userId)
+        });
+        if(check_user_products_exist.length > 0){
+            throw new ApiError(STATUS_CODES.METHOD_NOT_ALLOWED,ERROR_MESSAGES.USER.ACCOUNT_DEACTIVATE_LIVE_PRODUCTS);
+        }
+        /** Note: Deactive UserAccount Status now. */
+        user.status = UserStatusEnum.DEACTIVATE;
+        user.lastSeen = new Date();
+        await user.save();
+        return;
+    }
+
+    /**
+     * Note: Activate user account.
+     * @param userObject - userId
+     * @update userDocument status.
+     * @return null.
+    */
+   public async ActivateUserAccount(userObject:{userId:string}):Promise<void> {
+        const {userId} = userObject;
+        const user = await this.GetUserById(userId);
+        /** Note: Active UserAccount Status now. */
+        user.status = UserStatusEnum.ACTIVATED;
+        user.lastSeen = new Date();
+        await user.save();
+        return;
+   }
 }
 
 export default UserServices;

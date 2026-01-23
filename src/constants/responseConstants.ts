@@ -126,7 +126,9 @@ export const ERROR_MESSAGES = {
 
     USER: {
         NOT_FOUND: "User not found",
-        UPDATE_FAILED: "Failed to update user profile"
+        UPDATE_FAILED: "Failed to update user profile",
+        USERID_OR_EMAIL_IS_REQUIRED:"userId or email is required",
+        ACCOUNT_DEACTIVATE_LIVE_PRODUCTS :"You can’t deactivate your fucking account while your products are still live. Remove them first."
     },
     EMAIL: {
       EMAIL_TEMPLATE_NOT_FOUND : "Email template not found"

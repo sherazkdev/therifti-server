@@ -2,9 +2,10 @@ import mongoose,{Types} from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 /** Types */
-import {UserGender, type UserDocument} from "../interfaces/user.interfaces";
+import {UserGender, UserTypesEnum, type UserDocument} from "../interfaces/user.interfaces.js";
 import type { JsonWebTokenError } from "jsonwebtoken";
-import env from "../constants/loadEnv";
+import env from "../constants/loadEnv.js";
+import { UserStatusEnum } from "../interfaces/user.interfaces.js";
 
 /** UserSchema */
 const UserSchema = new mongoose.Schema<UserDocument>({
@@ -99,6 +100,16 @@ const UserSchema = new mongoose.Schema<UserDocument>({
     refreshToken:{
         type:String,
         default:null
+    },
+    status:{
+        type:String,
+        enum:Object.values(UserStatusEnum),
+        default:UserStatusEnum.ACTIVATED
+    },
+    type:{
+        type:String,
+        enum:Object.values(UserTypesEnum),
+        default:UserTypesEnum.USER
     }
 },{timestamps:true});
 
