@@ -98,6 +98,7 @@ export var ProductStatus;
     ProductStatus["DRAFT"] = "DRAFT";
     ProductStatus["PUBLISHED"] = "PUBLISHED";
     ProductStatus["DELETED"] = "DELETED";
+    ProductStatus["SOLD"] = "SOLD";
 })(ProductStatus || (ProductStatus = {}));
 ;
 ;

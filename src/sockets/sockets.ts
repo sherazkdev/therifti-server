@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import http from "http";
-import env from "../constants/loadEnv";
+import env from "../constants/loadEnv.js";
 
 /** Online users list */
 const onlineUsers: Map<string, string> = new Map();

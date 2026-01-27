@@ -1,13 +1,12 @@
 import * as z from "zod";
-import { OTP_PURPOSE } from "../interfaces/user.interfaces.js";
 
 /** Note: Validate Register User Account. */
 export const VALIDATE_REGISTER_USER_ACCOUNT = z.object({
     email: z.email(),
-    fullname: z.string().length(3,"Error: fullname at least 3 character"),
-    username: z.string().length(3,"Error: username at least 3 character"),
-    password: z.string().length(8,"Error: password at least 9 character"),
-    zipCode: z.string().optional()
+    fullname: z.string().min(3,"Error: fullname at least 3 character"),
+    username: z.string().min(3,"Error: username at least 3 character"),
+    password: z.string().min(8,"Error: password at least 9 character"),
+    zipCode: z.number().optional()
 });
 
 /** Note: Validate Login User Account. */
@@ -40,8 +39,11 @@ export const VALIDATE_UPDATE_USER_PROFILE = z.object({
 /** Note: Validate Forgot password */
 export const VALIDATE_FORGOT_PASSWORD = z.object({
     email: z.email().optional(),
-    userId: z.string().optional(),
-    purpose: z.enum(OTP_PURPOSE)
+    userId: z.string().optional()
 })
 
-/** Note: Validate Verify Otp */
+/** Note: Validate Verify Registeration Otp. */
+export const VALIDATE_VERIFY_REGISTERATION_OTP = z.object({
+    userId: z.string().length(24,"Error: Object id at least 24 character"),
+    otp: z.string().min(4,"Min or max otp required 4 character.")
+})

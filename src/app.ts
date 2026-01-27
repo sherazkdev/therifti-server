@@ -2,6 +2,8 @@ import express,{} from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "node:path";
+import ErrorHandler from "./middlewares/errorHandler.middlewares.js";
+
 /** types */
 import type {Application} from "express";
 
@@ -22,5 +24,8 @@ app.use(cookieParser());
 app.use(express.static(path.resolve( process.cwd() + "public")));
 
 /** Routes */
+import UserRouter from "./routes/v2/user.routes.js";
 
+app.use("/api/v1/users",UserRouter);
+app.use(ErrorHandler);
 export default app;

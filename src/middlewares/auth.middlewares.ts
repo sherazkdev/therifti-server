@@ -1,7 +1,7 @@
 
 import cookie from "cookie";
 /** Envorments variables */
-import env from "../constants/loadEnv";
+import env from "../constants/loadEnv.js";
 /** Types */
 import type { Socket } from "socket.io";
 import type { NextFunction } from "express";

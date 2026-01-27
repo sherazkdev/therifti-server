@@ -1,4 +1,5 @@
 import type {Types,Document} from "mongoose";
+import type { OtpPurpose } from "./otp.interfaces.js";
 /** User Gender */
 export enum UserGender {
     MALE = "MALE",
@@ -31,14 +32,8 @@ export interface UserInterface {
         countryCode:string | null,
         nationalNumber:string | null
     },
-    otp?:string | null,
-    otpExpiry?: Date | null
     dob?:Date | null
     gender?:UserGender | null,
-    location?:{
-        city:string | null,
-        country:string | null
-    },
     refreshToken?:string | null,
     isVerfied?:Boolean,
     lastSeen?:Date,
@@ -47,16 +42,19 @@ export interface UserInterface {
 };
 export interface UserDocument extends Document<Types.ObjectId,any,UserInterface>, UserInterface, UserMethods {};
 
-/** Sevices intefaces */
-export interface UpdateUserProfileInterface extends Partial<Pick<UserInterface, 
-    | "about"
-    | "avatar"
-    | "dob"
-    | "location"
-    | "fullname"
-    | "gender"
->> {};
-
+/** Note: Update User Profiel.*/
+export interface UpdateUserProfileInterface {
+    about?:string,
+    avatar?:string,
+    dob?:Date,
+    location?:{
+        city:string | null,
+        country:string | null
+    },
+    fullname?:string,
+    gender?:string
+    
+}
 /** Update user password */
 export interface UpdateUserPasswordInterface {
     userId:string,
@@ -68,7 +66,7 @@ export interface RegisterUserAccountMenuallyInterface {
     password:string,
     username:string,
     fullname:string,
-    zipCode?:number
+    zipCode?:number | undefined
 }
 /** Refresh and accessToken Generate */
 export interface RefreshAndAccessTokenGeneraterInterface {
@@ -81,11 +79,7 @@ export interface SendMailInterface {
     subject:string,
     body:string
 }
-/** VerifyOtp */
-export interface VerifyOtpInterface {
-    otp:string,
-    userId:string
-}
+
 /** Note: LoginUserAccount interface */
 export interface LoginUserAccountInterface {
     email:string,
@@ -124,43 +118,11 @@ export interface ChangeAccountEmailVerifyOtpInterface {
     userId:string,
     email:string
 }
-/** Note: Send otp Purpose */
-export const OTP_PURPOSE = [
-  "CHANGE_PASSWORD",
-  "CHANGE_EMAIL",
-  "REGISTER_ACCOUNT",
-  "FORGOT_ACCOUNT",
-] as const;
 
-export type OtpPurpose = typeof OTP_PURPOSE[number];
-
-/** Send Otp Inteface */
-export interface SendOtpInterface {
-    purpose: OtpPurpose,
-    userId?:string | undefined,
-    email?:string | undefined
-}
-/** Note: Otp email content. */
-export interface OtpEmaiLContentInterface {
-    title:string,
-    description:string,
-}
-
-export const OTP_EMAIL_CONTENT:Record<OtpPurpose,OtpEmaiLContentInterface> = {
-    CHANGE_EMAIL : {    
-        title: 'Verify Your Email',
-        description: 'email verification for your account',
-    },
-    CHANGE_PASSWORD : {
-        title: 'Change Password Confirmation',
-        description: 'password change verification',
-    },
-    FORGOT_ACCOUNT : {
-        title: 'Reset Your Password',
-        description: 'password reset request',
-    },
-    REGISTER_ACCOUNT : {
-        description : "register account request",
-        title : "Register Your Account"
+export interface AuthResponseInterface {
+    user:UserInterface,
+    tokens:{
+        refreshToken:string,
+        accessToken:string
     }
 }

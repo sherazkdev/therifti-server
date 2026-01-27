@@ -4,6 +4,7 @@ export interface CategoryInterface {
     owner: Types.ObjectId;
     parent?: Types.ObjectId;
     title: string;
+    image: string;
     status?: string;
 }
 /** Category Document */

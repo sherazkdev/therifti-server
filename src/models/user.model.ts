@@ -56,18 +56,6 @@ const UserSchema = new mongoose.Schema<UserDocument>({
         },
         default:{}
     },
-    location:{
-        type:{    
-            city:{
-                type:String,
-                default:null
-            },
-            country:{
-                type:String,
-                defualt:null
-            }
-        }
-    },
     dob:{
         type:Date,
         default:null
@@ -83,14 +71,6 @@ const UserSchema = new mongoose.Schema<UserDocument>({
     },
     password:{
         type:String,
-        default:null
-    },
-    otp:{
-        type:String,
-        default:null
-    },
-    otpExpiry:{
-        type:Date,
         default:null
     },
     isVerfied:{

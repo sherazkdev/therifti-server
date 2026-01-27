@@ -1,18 +1,15 @@
 import UserModel from "../models/user.model.js";
 /** Note: UserModel Services */
 import ApiError from "../utils/ApiError.js";
-import ApiResponse from "../utils/ApiResponse.js";
 /** Response Constants */
-import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
-import { OTP_EMAIL_CONTENT, OtpPurposeEnum, UserStatusEnum, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type SendOtpInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VerifyOtpInterface } from "../interfaces/user.interfaces.js";
+import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
+import {UserStatusEnum, type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface } from "../interfaces/user.interfaces.js";
 import mongoose from "mongoose";
 import bcrypt, { genSalt } from "bcrypt";
 import Mailer from "../configs/nodemailer/mailer.js";
-import path from "node:path";
-import hbs from "handlebars"
-import { fileURLToPath } from 'node:url';
-import fs from "fs";
 import ProductModel from "../models/product.model.js";
+import OtpServices from "./otp.services.js";
+import type { SendOtpInterface, VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 
 /**
  * Note: Service Methods.
@@ -39,6 +36,7 @@ import ProductModel from "../models/product.model.js";
 */
 
 class UserServices {
+    private otpServices = new OtpServices();
 
     /**
      * Note: Retrieves user details by user ID.
@@ -47,7 +45,7 @@ class UserServices {
      * @throw if not exist user throw error. 
     */
     public async GetUserById(userId:string):Promise<UserDocument> {
-        const user = await UserModel.findById(new mongoose.Types.ObjectId(userId)).select("-password -refreshtoken");
+        const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         if(!user){
             throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
         }
@@ -88,7 +86,7 @@ class UserServices {
      * @param userObject - required fields is email, password, zipCode is optionl, userName, 
      * @throw if emails exist.
     */
-    public async RegisterUserAccountAndSendOtp(userObject:RegisterUserAccountMenuallyInterface):Promise<UserDocument> {
+    public async RegisterUserAccount(userObject:RegisterUserAccountMenuallyInterface):Promise<UserDocument> {
         const {email, fullname, password, username, zipCode} = userObject;
         const checkUserAccountEmailExist = await UserModel.findOne({
             $or : [
@@ -97,107 +95,78 @@ class UserServices {
             ]
         });
         if(checkUserAccountEmailExist?.email === email){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.EMAIL_EXISTS)
+            if(checkUserAccountEmailExist.isVerfied === true){
+                throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.EMAIL_EXISTS);
+            }
+            /** Note: if user is not verified send otp. */
+            const sendOtpPayload:SendOtpInterface = {
+                purpose:"REGISTER_ACCOUNT",
+                email:email,
+                userId:checkUserAccountEmailExist._id.toString()
+            } 
+            const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);
+            return checkUserAccountEmailExist;
         } if(checkUserAccountEmailExist?.username === username){
             throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.USERNAME_EXISTS)
         }
-        /** Note: Generate new otp for email verification. */
-        const generated_otp = await this.GenerateOtp();
-        /** Note: Generate normal dcryot otp to hashed otp */
-        const salt_rounds:number = 10;
-        const gen_salt = await bcrypt.genSalt(salt_rounds);
-        const hashed_otp = await bcrypt.hash(generated_otp,gen_salt);
         /** Note: end otp hashing section. */
         const UserDocument:UserInterface = {
             email:email,
             fullname:fullname,
             password:password,
             username:username,
-            isVerfied:false,
-            otp:hashed_otp,
-            otpExpiry: new Date(Date.now() + 10 * 60 * 1000)
+            isVerfied:false
         };
+
         const created_user = await UserModel.create(UserDocument);
-        /** Note: Send otp using nodemailer. */
-        const mail_options = {
-            to:email,
-            subject:`Therifti Verifiction Code`,
-            body:`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        font-family: Arial, sans-serif;
-                        background-color: #f4f4f4;
-                    }
-                    .email-container {
-                        max-width: 600px;
-                        margin: auto;
-                        background: #ffffff;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-                        overflow: hidden;
-                    }
-                    .header {
-                        background: #ff9800;
-                        color: white;
-                        text-align: center;
-                        padding: 20px;
-                        font-size: 24px;
-                    }
-                    .body {
-                        padding: 20px;
-                        color: #333333;
-                        line-height: 1.6;
-                    }
-                    .footer {
-                        text-align: center;
-                        background: #eeeeee;
-                        padding: 10px;
-                        font-size: 12px;
-                        color: #777777;
-                    }
-                    </style>
-                </head>
-                <body>
-                    <div class="email-container">
-                    <div class="header">
-                        Welcome to Therfti App!
-                    </div>
-                    <div class="body">
-                        <p>Hi ${fullname}</p>
-                        <p>Thank you for signing up for our service. We're excited to have you onboard!</p>
-                        <p> Your Verification Code is <b> ${generated_otp} </b> </p>
-                        <p>Feel free to reach out if you have any questions.</p>
-                    </div>
-                    <div class="footer">
-                        © 2026 Therfti App. All Rights Reserved.
-                    </div>
-                    </div>
-                </body>
-                </html>
-            `
+        /** Note: Generate new otp for email verification. */
+        const sendOtpPayload:SendOtpInterface = {
+            purpose:"REGISTER_ACCOUNT",
+            email:email,
+            userId:created_user._id.toString()
         };
-        const mailer = new Mailer();
-        const sendMail = await   mailer.Send(mail_options);
+        const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);        
         
         /** Send response */
         return created_user;
     }
 
     /**
-     * Note: Account registration and change change email otp generater.
-     * @param NULL.
-     * @returns Generated otp.
+     * Note: Sended verification otp verifier.
+     * @param otpObject - userId.
+     * @param otpObject - otp.
+     * @update userDocument update isVerified status.
+     * @returns Boolean. 
     */
-    protected async GenerateOtp():Promise<string> {
-        let otp = Math.floor(1000 + Math.random() * 9000);
-        return otp.toString();
-    }
+    public async VerifyRegistrationOtp(otpObject:VerifyOtpInterface):Promise<AuthResponseInterface> {
+        const {userId} = otpObject;
+        /** Verify Registration Otp */
+        const verifyOtp:Boolean = await this.otpServices.VerifyOtp(otpObject);
+        const user = await this.GetUserById(userId);
     
+        /** Note: Generate access and refresh token. */
+        const {accessToken,refreshToken} = await this.GenerateRefreshAndAccessToken(userId);
+        
+        /** Note: Update user document and asign the refreshToken etc.*/
+        user.refreshToken = refreshToken;
+        user.lastSeen = new Date();
+        user.isVerfied = true;
+        console.log(user)
+        await user.save();
+
+        user.toObject();
+        delete user.password;
+        delete user.refreshToken;
+
+        return {
+            user:user,
+            tokens:{
+                accessToken:accessToken,
+                refreshToken:refreshToken
+            }
+        };
+    }
+
     /**
      * Note: Account access and refresh token generater.
      * @param userDocument - with Document.
@@ -212,49 +181,6 @@ class UserServices {
         user.refreshToken = refreshToken;
         await user.save({validateBeforeSave:false});
         return {accessToken,refreshToken};
-    }
-
-    /**
-     * Note: Verify sended otp
-     * @param userObject - otp and userId
-     * @check hashed otp match to dcrypt otp.
-     * @update userDocument isVerfied status.
-     * @returns void. 
-    */
-    public async VerifyOtp(userObject:VerifyOtpInterface):Promise<void> {
-        const {otp, userId} = userObject;
-        const user = await this.GetUserById(userId);
-        /** Note: Compare otp. */
-        const hashed_otp = user.otp;
-        if(!hashed_otp){
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.OTP_NOT_FOUND)
-        }
-        /** Check otp expiry. */
-        if(user?.otpExpiry){
-            const now = new Date();
-            if(user.otpExpiry < now){
-                throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.OTP_EXPIRED);
-            }
-            /** Note: Comparing hashed otp. */
-            const hashed_otp = user.otp;
-            if(!hashed_otp){
-                throw new ApiError(STATUS_CODES.INTERNAL_SERVER_ERROR,ERROR_MESSAGES.AUTH.OTP_NOT_FOUND);
-            }
-            const compare_otp = await bcrypt.compare(otp,hashed_otp);
-            if(!compare_otp){
-                throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.INVALID_OTP);
-            }
-            /** Note: after matched otp update user isVerified status and generate cookies */
-            user.isVerfied = true;
-            user.otp = null;
-            user.otpExpiry = null;
-            await user.save();
-            
-            return;
-        }else {
-            throw new ApiError(STATUS_CODES.INTERNAL_SERVER_ERROR,ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        
     }
 
     /**
@@ -303,24 +229,13 @@ class UserServices {
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
         }
         /** Note: if account is exist generate a new otp and with email. */
-        // -------------------------------------------------------------------
-        /** Note: Generate new otp for email verification. */
-        const generated_otp = await this.GenerateOtp();
-        /** Note: Generate normal dcryot otp to hashed otp */
-        const salt_rounds:number = 10;
-        const gen_salt = await bcrypt.genSalt(salt_rounds);
-        const hashed_otp = await bcrypt.hash(generated_otp,gen_salt);
-        /** Note: Asign the otp to otp */
-        const now = Date.now();
-        user.otp = hashed_otp;
-        user.otpExpiry = new Date(now + (10 * 60 * 1000));        
-        await user.save();
         /** Note: Send otp on email using with nodemailer */
-        const otpObject = {
+        const sendOtpPayload:SendOtpInterface = {
             userId:user._id.toString(),
-            purpose:OtpPurposeEnum.FORGOT_ACCOUNT
+            purpose:"FORGOT_ACCOUNT"
         }
-        const send_mail = await this.SendOtp(otpObject)
+        const sendOtp = await this.otpServices.SendOtp(sendOtpPayload);
+
         return;
     }
 
@@ -536,64 +451,6 @@ class UserServices {
     */
     public async ChangeAccountEmailVerifyOtp(userObject:ChangeAccountEmailVerifyOtpInterface):Promise<void> {
 
-    }
-
-    /**
-     * Note: Send Otp otp puporse allowed only CHANGE_PASSWORD, FORGOT_PASSWORD, REGISTER_ACCOUNT, CHANGE_EMAIL
-     * @param otpObject - userId
-    */
-    public async SendOtp(otpObject:SendOtpInterface):Promise<void> {
-        const {purpose,userId,email} = otpObject;
-        /** Note: Check user is exist. */
-        let user:UserDocument | null;
-        if(userId){
-            user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
-        }else if(email){
-            user = await UserModel.findOne({email:email});
-        }
-        if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
-        }
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = path.dirname(__filename);
-        /** Note: Get email Tesmplate. */
-        const templatePath = path.join(
-            __dirname,
-            "../configs/nodemailer/templates",
-            "otp.email.hbs"
-        );
-        /** Note: check file exist. */
-        if(!templatePath || !fs.existsSync(templatePath)){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.EMAIL.EMAIL_TEMPLATE_NOT_FOUND)
-        }
-        const source = fs.readFileSync(templatePath,"utf-8");
-        const html = hbs.compile(source);
-        const otp = await this.GenerateOtp();
-        
-        /** Note: HashOtp and save otp in UserDocument */
-        const salt_rounds = 10;
-        const gen_salt = await bcrypt.genSalt(salt_rounds);
-        const hashed_otp = await bcrypt.hash(otp,gen_salt);
-        user.otp = hashed_otp;
-        user.otpExpiry = new Date(Date.now() + ( 10 * 60 * 1000 ));
-        await user.save();
-        /** Note: After save user send otp on the email service. */
-        const body = OTP_EMAIL_CONTENT[purpose];
-        const template = html({
-            purposeDescription:body.description,
-            purposeTitle:body.title,
-            fullname: user?.fullname || user?.username
-        });
-        /** Note: Mail Options */
-        /** Note: Send otp using nodemailer. */
-        const mail_options = {
-            to:user.email,
-            subject:`Therifti Verifiction Code`,
-            body:template
-        };
-        const mailer = new Mailer();
-        const send_mail = mailer.Send(mail_options);
-        return;
     }
 
     /**

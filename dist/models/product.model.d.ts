@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 /** Import Types */
-import type { ProductDocument } from "../interfaces/product.interfaces";
+import type { ProductDocument } from "../interfaces/product.interfaces.js";
 declare const ProductModel: mongoose.Model<ProductDocument, {}, {}, {}, mongoose.Document<unknown, {}, ProductDocument, {}, mongoose.DefaultSchemaOptions> & ProductDocument & Required<{
     _id: mongoose.Types.ObjectId;
 }> & {

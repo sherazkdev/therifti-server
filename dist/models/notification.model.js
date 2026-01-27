@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 /** Types */
-import { NotificationType, NotifcationStatus } from "../interfaces/notification.interface";
+import { NotificationType, NotifcationStatus } from "../interfaces/notification.interface.js";
 /** NotificationSchema */
 const NotificationSchema = new mongoose.Schema({
     recipient_id: {

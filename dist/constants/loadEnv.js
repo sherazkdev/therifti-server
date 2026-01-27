@@ -25,7 +25,9 @@ const env = {
     ACCESS_TOKEN_EXPIRY: requireEnv("ACCESS_TOKEN_EXPIRY"),
     ACCESS_TOKEN_SECRET: requireEnv("ACCESS_TOKEN_SECRET"),
     REFRESH_TOKEN_EXPIRY: requireEnv("REFRESH_TOKEN_EXPIRY"),
-    REFRESH_TOKEN_SECRET: requireEnv("REFRESH_TOKEN_SECRET")
+    REFRESH_TOKEN_SECRET: requireEnv("REFRESH_TOKEN_SECRET"),
+    MAILER_APP_EMAIL: requireEnv("MAILER_APP_EMAIL"),
+    MAILER_APP_PASSWORD: requireEnv("MAILER_APP_PASSWORD")
 };
 export default env;
 //# sourceMappingURL=loadEnv.js.map

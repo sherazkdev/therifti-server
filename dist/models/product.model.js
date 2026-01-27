@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ProductColor, ProductCondition, ProductMaterial, ProductSize, ProductStatus } from "../interfaces/product.interfaces";
+import { ProductColor, ProductCondition, ProductMaterial, ProductSize, ProductStatus } from "../interfaces/product.interfaces.js";
 const ProductSchema = new mongoose.Schema({
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,

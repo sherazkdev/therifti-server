@@ -1,7 +1,10 @@
 import mongoose, { Types } from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import env from "../constants/loadEnv";
+/** Types */
+import { UserGender, UserTypesEnum } from "../interfaces/user.interfaces.js";
+import env from "../constants/loadEnv.js";
+import { UserStatusEnum } from "../interfaces/user.interfaces.js";
 /** UserSchema */
 const UserSchema = new mongoose.Schema({
     googleId: {
@@ -25,7 +28,16 @@ const UserSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
+    username: {
+        type: String,
+        unique: true,
+        default: null
+    },
     avatar: {
+        type: String,
+        default: null
+    },
+    about: {
         type: String,
         default: null
     },
@@ -42,17 +54,14 @@ const UserSchema = new mongoose.Schema({
         },
         default: {}
     },
-    location: {
-        type: {
-            city: {
-                type: String,
-                default: null
-            },
-            country: {
-                type: String,
-                defualt: null
-            }
-        }
+    dob: {
+        type: Date,
+        default: null
+    },
+    gender: {
+        type: String,
+        enum: Object.values(UserGender),
+        default: null
     },
     lastSeen: {
         type: Date,
@@ -62,9 +71,23 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    isVerfied: {
+        type: Boolean,
+        required: true
+    },
     refreshToken: {
         type: String,
         default: null
+    },
+    status: {
+        type: String,
+        enum: Object.values(UserStatusEnum),
+        default: UserStatusEnum.ACTIVATED
+    },
+    type: {
+        type: String,
+        enum: Object.values(UserTypesEnum),
+        default: UserTypesEnum.USER
     }
 }, { timestamps: true });
 /** Note: User create after call this function */

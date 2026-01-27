@@ -6,10 +6,11 @@ import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/respo
 /** Note: imported UserServices. */
 import UserServices from "../services/user.services.js";
 /** Note: imports types */
-import type {Request,Response} from "express";
+import type {CookieOptions, Request,Response} from "express";
 /** Note: Validate Handler using zod. */
-import {VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE} from "../validaters/user.validaters.js";
-import { OTP_PURPOSE } from "../interfaces/user.interfaces.js";
+import {VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
+import { type RegisterUserAccountMenuallyInterface } from "../interfaces/user.interfaces.js";
+import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 
 /**
  * Note: User Controllers.
@@ -24,68 +25,58 @@ import { OTP_PURPOSE } from "../interfaces/user.interfaces.js";
  * 10: HandleVerifyOtp
 */
 class UserControllers {
-    private userServices:UserServices;
+    private userServices = new UserServices();
 
-    /** Note: Super call is must. */
-    constructor(){
-        this.userServices = new UserServices();
-    }
-
-    /**
-     * Note: HandleGetUserProfile to get all details by userId.
-     * @param Request - userId.
-     * @param Response.
-     * @returns userProfileDocument. 
-    */
-    public async HandleGetUserProfile(req:Request,res:Response):Promise<Response> {
-        const result = VALIDATE_GET_USER_PROFILE.safeParse(req.query);
-        /** Note: Check Successfully Handler getted data is valid. */
+    public HandleRegisterUserAccount = async (req:Request,res:Response):Promise<Response> => {
+        /** Note: Validate User Details. */
+        console.log(req.body)
+        const result = await VALIDATE_REGISTER_USER_ACCOUNT.safeParse(req.body);
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
-        /** Note: Create a payload for get profile.*/
-        const user_payload = result.data;
-        const profile = await this.userServices.GetUserAccountProfile(user_payload);
-        /** Note: Send Response Object */
-        return res.status(STATUS_CODES.OK).json(
-            new ApiResponse(profile,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
+        /** Note: Register User Payload. */
+        const {email,fullname,password,username,zipCode} = result.data;
+        const registerUserPayload:RegisterUserAccountMenuallyInterface = result.data;
+        const registerUser = await this.userServices.RegisterUserAccount(registerUserPayload);
+        return res.status(200).json(
+            new ApiResponse(registerUser,SUCCESS_MESSAGES.AUTH.REGISTER + ", And verify otp.",true,200)
         )
     }
 
     /**
-     * Note: HandleGetCurrentUser logged in user details.
-     * @param Request - userObject.
-     * @param Response.
-     * @returns loggedInUserObject
+     * Note: Registration Otp Verifier.
+     * @param otpObject - userId.
+     * @param otpObject - otp.
+     * @update userDocument isVerified and refreshToken.
+     * @returns UserDocument.
     */
-    public async HandleGetCurrentUser(req:Request,res:Response):Promise<Response> {
-        const user = req.user;
-        /** Note: Return userObject */
-        return res.status(STATUS_CODES.OK).json(
-            new ApiResponse(user,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
-        )
-    }
-
-    /**
-     * Note: HandleForgotPassword. 
-     * @param Request - userObject.
-     * @param Response.
-     * @returns null.
-    */
-    public async HandleForgotPassword(req:Request,res:Response):Promise<Response> {
-        /** Note: Validate Forgot account details. */
-        const result = VALIDATE_FORGOT_PASSWORD.safeParse(req.body);
-        /** Note: Check Successfully Handler getted data is valid. */
+    public HandleRegisterationOtpVerifier = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_VERIFY_REGISTERATION_OTP.safeParse(req.body);
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
-        /** Note: UserId or email is required only one. */
-        if(!result.data.email || !result.data.userId){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.USERID_OR_EMAIL_IS_REQUIRED);
-        }else if(!Object.values(OTP_PURPOSE).includes(result.data.purpose)){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.COMMON.FORBIDDEN)
-        }
-        const forgotPasswordPayload = result.data;
-        const otpRespose = await this.userServices.SendOtp(forgotPasswordPayload);
+        const {otp,userId} = result.data;
+        const otpObject:VerifyOtpInterface = {
+            otp:otp,
+            userId:userId,
+            purpose:"REGISTER_ACCOUNT"
+        };
+        const {tokens,user} = await this.userServices.VerifyRegistrationOtp(otpObject);
+
+        /** Note: Cookies Options. */
+        const cookieOptions:CookieOptions = {
+            httpOnly:true,
+            sameSite:"lax",
+            secure:true
+        };
+        
+        return res.status(STATUS_CODES.OK)
+        .cookie("accessToken",tokens.accessToken,cookieOptions)
+        .cookie("refreshToken",tokens.refreshToken,cookieOptions)
+        .json(
+            new ApiResponse(user,"User logged in successfully.",true,200)
+        )
     }
 }
+
+export default new UserControllers;

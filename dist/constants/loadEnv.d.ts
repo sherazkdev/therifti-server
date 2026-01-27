@@ -12,6 +12,8 @@ interface EnvironmentVariables {
     ACCESS_TOKEN_EXPIRY: string;
     ACCESS_TOKEN_SECRET: string;
     REFRESH_TOKEN_EXPIRY: string;
+    MAILER_APP_EMAIL: string;
+    MAILER_APP_PASSWORD: string;
     REFRESH_TOKEN_SECRET: string;
 }
 declare const env: EnvironmentVariables;

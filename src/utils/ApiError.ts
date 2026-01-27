@@ -1,8 +1,8 @@
 class ApiError extends Error {
     
-    protected statusCode: number;
+    public statusCode: number;
     public message: string;
-    protected errors?: any[] | null;
+    public errors?: any[] | null;
     
 
     constructor( statusCode:number, message:string, errors?:any[] | null, stack?: string){

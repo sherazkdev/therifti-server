@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 /** Environment variables */
-import env from "../../constants/loadEnv";
+import env from "../../constants/loadEnv.js";
 /** Types */
 import type {Connection,MongooseError} from "mongoose";
 

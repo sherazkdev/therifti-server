@@ -1,6 +1,6 @@
 import mongoose, { Types } from "mongoose";
 /** Types */
-import type { UserDocument } from "../interfaces/user.interfaces";
+import { type UserDocument } from "../interfaces/user.interfaces.js";
 /** UserModel */
 declare const UserModel: mongoose.Model<UserDocument, {}, {}, {}, mongoose.Document<unknown, {}, UserDocument, {}, mongoose.DefaultSchemaOptions> & UserDocument & Required<{
     _id: Types.ObjectId;

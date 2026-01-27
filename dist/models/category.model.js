@@ -17,6 +17,10 @@ const CategorySchema = new mongoose.Schema({
         minLength: 3,
         required: true
     },
+    image: {
+        type: String,
+        required: true
+    },
     status: {
         type: String,
         enum: Object.values(CategoryStatus),

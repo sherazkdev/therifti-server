@@ -1,11 +1,11 @@
-import express from "express";
+// import express from "express";
 
-/** Middlewares */
+// /** Middlewares */
 
-/** Controllers */
-import NotificationController from "../../controllers/notification.controllers";
-const NotificationRouter = express.Router();
+// /** Controllers */
+// import NotificationController from "../../controllers/notification.controllers.js";
+// const NotificationRouter = express.Router();
 
-/** Secure routes */
+// /** Secure routes */
 
-export default NotificationRouter;
+// export default NotificationRouter;

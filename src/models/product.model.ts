@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 /** Import Types */
-import type {ProductDocument} from "../interfaces/product.interfaces";
-import { ProductColor, ProductCondition, ProductMaterial, ProductSize, ProductStatus } from "../interfaces/product.interfaces";
+import type {ProductDocument} from "../interfaces/product.interfaces.js";
+import { ProductColor, ProductCondition, ProductMaterial, ProductSize, ProductStatus } from "../interfaces/product.interfaces.js";
 
 const ProductSchema = new mongoose.Schema<ProductDocument>({
     categoryId:{

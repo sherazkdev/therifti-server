@@ -92,7 +92,8 @@ export declare enum ProductSize {
 export declare enum ProductStatus {
     DRAFT = "DRAFT",
     PUBLISHED = "PUBLISHED",
-    DELETED = "DELETED"
+    DELETED = "DELETED",
+    SOLD = "SOLD"
 }
 export interface ProductInterface {
     categoryId: Types.ObjectId;

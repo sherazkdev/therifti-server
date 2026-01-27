@@ -15,6 +15,6 @@ MongooseConnection.Connect()
     /** Listen the server */
     server.listen(env.PORT, () => console.log(`\x1b[32m%s\x1b[0m`, `Ready on http://localhost:${env.PORT}`));
 })
-    .catch((e) => console.log(e));
+    .catch((e) => app);
 export default app;
 //# sourceMappingURL=index.js.map
