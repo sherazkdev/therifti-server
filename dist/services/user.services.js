@@ -197,7 +197,16 @@ class UserServices {
         user.refreshToken = refreshToken;
         user.lastSeen = new Date();
         await user.save();
-        return { accessToken, refreshToken };
+        user.toObject();
+        delete user.password;
+        delete user.refreshToken;
+        return {
+            user,
+            tokens: {
+                refreshToken,
+                accessToken
+            }
+        };
     }
     /**
      * Note: Forgot account password
@@ -244,15 +253,46 @@ class UserServices {
      * Note: Change account primary email.
      * @param userObject - userId and email is required.
      * @check email is exist.
-     * @update update userDocument primary email
+     * @update userDocument otp and send otp on email.
      * @returns userDocument.
     */
     async ChangeAccountEmail(userObject) {
         const { email, userId } = userObject;
         const user = await this.GetUserById(userId);
-        /** Note: Assign the UserDocument email to params email. */
+        /** Note: if user is not verified send otp. */
+        const sendOtpPayload = {
+            purpose: "CHANGE_EMAIL",
+            email: email,
+            userId: userId
+        };
+        const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);
+        return true;
+    }
+    /**
+     * Note: Verify Update email otp.
+     * @param userObject - otp.
+     * @param userObject - email.
+     * @param userObject - userId.
+     * @update Document email.
+     * @return new Document.
+    */
+    async VerifyOtpAndChangeEmail(userObject) {
+        const { email, otp, userId } = userObject;
+        const user = await this.GetUserById(userId);
+        /** Note: Verify Otp Payload. */
+        const verifyOtpPayload = {
+            otp: otp,
+            purpose: "CHANGE_EMAIL",
+            userId: userId
+        };
+        const otpVerificationProccess = await this.otpServices.VerifyOtp(verifyOtpPayload);
+        /** If Successfully Verify otp. */
         user.email = email;
         await user.save();
+        /** Delete Refresh and password from user document */
+        user.toObject();
+        delete user.password;
+        delete user.refreshToken;
         return user;
     }
     /**

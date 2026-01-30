@@ -23,6 +23,27 @@ declare class UserControllers {
      * @returns UserDocument.
     */
     HandleRegisterationOtpVerifier: (req: Request, res: Response) => Promise<Response>;
+    /**
+     * Note: Login user account.
+     * @param req.
+     * @param res.
+     * @returns userDocument.
+    */
+    HandleLoginUserAccount: (req: Request, res: Response) => Promise<Response>;
+    /**
+     * Note: Change email and send otp.
+     * @param req.
+     * @param res.
+     * @returns Null.
+    */
+    HandleChangeEmail: (req: Request, res: Response) => Promise<Response>;
+    /**
+     * Note: Verify otp and change email.
+     * @param req.
+     * @param res.
+     * @returns userDocument.
+    */
+    HandleVerifyOtpAndChangeEmail: (req: Request, res: Response) => Promise<Response>;
 }
 declare const _default: UserControllers;
 export default _default;

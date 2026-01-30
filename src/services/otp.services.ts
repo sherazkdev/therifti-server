@@ -90,11 +90,16 @@ class OtpServices {
      * @param otpObject - purpose.
     */
     public async SendOtp(otpObject:SendOtpInterface):Promise<void> {
-        const {purpose,userId} = otpObject;
+        const {purpose,userId,email} = otpObject;
         const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         if(!user){
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
         }
+        /** Note: Check old otp is exist */
+        const oldOtpDocument = await OtpModel.findOne({
+            purpose:purpose,
+            userId:userId
+        });
         const templatePath = await this.GetTemplatePath({filename:"otp.email.hbs"});
         const source = fs.readFileSync(templatePath,"utf-8");
         const html = hbs.compile(source);
@@ -104,14 +109,20 @@ class OtpServices {
         const salt_rounds = 10;
         const gen_salt = await bcrypt.genSalt(salt_rounds);
         const hashed_otp = await bcrypt.hash(otp,gen_salt);
-        /** Note: Save hashed otp save in otpModel. */
-        const created_otp = await OtpModel.create({
-            userId:new mongoose.Types.ObjectId(userId),
-            otp:hashed_otp,
-            otpExpiry:new Date( Date.now() + ( 10 * 60 * 1000)),
-            purpose:purpose
-        });
-
+        if(oldOtpDocument){
+            /** Note: using another method. */
+            oldOtpDocument.otp = hashed_otp;
+            oldOtpDocument.otpExpiry = new Date( Date.now() + ( 10 * 60 * 1000));
+            await oldOtpDocument.save();
+        }else {
+            /** Note: Save hashed otp save in otpModel. */
+            const created_otp = await OtpModel.create({
+                userId:new mongoose.Types.ObjectId(userId),
+                otp:hashed_otp,
+                otpExpiry:new Date( Date.now() + ( 10 * 60 * 1000)),
+                purpose:purpose
+            });
+        }
         /** Note: After save user send otp on the email service. */
         const body = OTP_EMAIL_CONTENT[purpose];
         const template = html({
@@ -123,7 +134,7 @@ class OtpServices {
         /** Note: Mail Options */
         /** Note: Send otp using nodemailer. */
         const mail_options = {
-            to:user.email,
+            to:email,
             subject:`Therifti Verifiction Code`,
             body:template
         };

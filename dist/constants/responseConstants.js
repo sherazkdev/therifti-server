@@ -39,6 +39,7 @@ export const SUCCESS_MESSAGES = {
     USER: {
         FETCH: "User fetched successfully",
         UPDATE: "User profile updated successfully",
+        OTP_SUCCESSFULLY_SENDED: "Otp successfully submit",
         DELETE: "User deleted successfully"
     },
     PRODUCT: {

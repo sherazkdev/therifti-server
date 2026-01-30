@@ -126,3 +126,14 @@ export interface AuthResponseInterface {
         accessToken:string
     }
 }
+
+export interface VeriftUpdateEmailOtpInterface {
+    userId:string,
+    email:string,
+    otp:string
+}
+
+export interface VerifyForgotAccountOtpInterface {
+    email:string,
+    otp:string
+}

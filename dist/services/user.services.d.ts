@@ -1,4 +1,4 @@
-import { type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument } from "../interfaces/user.interfaces.js";
+import { type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type VeriftUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 /**
  * Note: Service Methods.
@@ -74,7 +74,7 @@ declare class UserServices {
      * @update userDocument refreshToken and lastSeen.
      * @returns access and refresh token.
     */
-    LoginUserAccount(userObject: LoginUserAccountInterface): Promise<RefreshAndAccessTokenGeneraterInterface>;
+    LoginUserAccount(userObject: LoginUserAccountInterface): Promise<AuthResponseInterface>;
     /**
      * Note: Forgot account password
      * @param forgotAccoutDetails - email is hardly required.
@@ -97,10 +97,19 @@ declare class UserServices {
      * Note: Change account primary email.
      * @param userObject - userId and email is required.
      * @check email is exist.
-     * @update update userDocument primary email
+     * @update userDocument otp and send otp on email.
      * @returns userDocument.
     */
-    ChangeAccountEmail(userObject: ChangeAccountEmailInterface): Promise<UserDocument>;
+    ChangeAccountEmail(userObject: ChangeAccountEmailInterface): Promise<boolean>;
+    /**
+     * Note: Verify Update email otp.
+     * @param userObject - otp.
+     * @param userObject - email.
+     * @param userObject - userId.
+     * @update Document email.
+     * @return new Document.
+    */
+    VerifyOtpAndChangeEmail(userObject: VeriftUpdateEmailOtpInterface): Promise<UserDocument>;
     /**
      * Note: Get User Profile with products and followers following list.
      * @param userObject - userId, page, limit.

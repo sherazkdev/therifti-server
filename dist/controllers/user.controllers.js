@@ -5,7 +5,7 @@ import { ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES } from "../constants/res
 /** Note: imported UserServices. */
 import UserServices from "../services/user.services.js";
 /** Note: Validate Handler using zod. */
-import { VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_VERIFY_REGISTERATION_OTP } from "../validaters/user.validaters.js";
+import { VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP } from "../validaters/user.validaters.js";
 import {} from "../interfaces/user.interfaces.js";
 /**
  * Note: User Controllers.
@@ -23,7 +23,6 @@ class UserControllers {
     userServices = new UserServices();
     HandleRegisterUserAccount = async (req, res) => {
         /** Note: Validate User Details. */
-        console.log(req.body);
         const result = await VALIDATE_REGISTER_USER_ACCOUNT.safeParse(req.body);
         if (!result.success) {
             throw new ApiError(STATUS_CODES.BAD_REQUEST, result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
@@ -63,6 +62,73 @@ class UserControllers {
             .cookie("accessToken", tokens.accessToken, cookieOptions)
             .cookie("refreshToken", tokens.refreshToken, cookieOptions)
             .json(new ApiResponse(user, "User logged in successfully.", true, 200));
+    };
+    /**
+     * Note: Login user account.
+     * @param req.
+     * @param res.
+     * @returns userDocument.
+    */
+    HandleLoginUserAccount = async (req, res) => {
+        const result = VALIDATE_LOGIN_USER_ACCOUNT.safeParse(req.body);
+        if (!result.success) {
+            throw new ApiError(STATUS_CODES.BAD_REQUEST, result.error.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: verifyUser credinals payload. */
+        const verifyUserPayload = result.data;
+        const { user, tokens } = await this.userServices.LoginUserAccount(verifyUserPayload);
+        /** Note: Cookies Options. */
+        const cookieOptions = {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: true
+        };
+        return res.status(STATUS_CODES.OK)
+            .cookie("accessToken", tokens.accessToken, cookieOptions)
+            .cookie("refreshToken", tokens.refreshToken, cookieOptions)
+            .json(new ApiResponse(user, "User logged in successfully.", true, 200));
+    };
+    /**
+     * Note: Change email and send otp.
+     * @param req.
+     * @param res.
+     * @returns Null.
+    */
+    HandleChangeEmail = async (req, res) => {
+        const result = VALIDATE_CHANGE_EMAIL.safeParse(req.body);
+        if (!result.success) {
+            throw new ApiError(STATUS_CODES.NOT_FOUND, result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        const { email } = result.data;
+        /** Note: Chnage emai payload. */
+        const changeEmailPayload = {
+            email: email,
+            userId: req.user._id
+        };
+        /** Note: send verification code. */
+        const sendVerificationStatus = await this.userServices.ChangeAccountEmail(changeEmailPayload);
+        return res.status(STATUS_CODES.OK).json(new ApiResponse([], SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED, true, STATUS_CODES.OK));
+    };
+    /**
+     * Note: Verify otp and change email.
+     * @param req.
+     * @param res.
+     * @returns userDocument.
+    */
+    HandleVerifyOtpAndChangeEmail = async (req, res) => {
+        const result = VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL.safeParse(req.body);
+        if (!result.success) {
+            throw new ApiError(STATUS_CODES.NOT_FOUND, result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        const { email, otp } = result.data;
+        /** Note: verify email otp payload. */
+        const verifyOtpPayload = {
+            email: email,
+            otp: otp,
+            userId: req.user._id
+        };
+        const verifyOtpProccess = await this.userServices.VerifyOtpAndChangeEmail(verifyOtpPayload);
+        return res.status(STATUS_CODES.OK).json(new ApiResponse(verifyOtpProccess, SUCCESS_MESSAGES.USER.UPDATE, true, STATUS_CODES.OK));
     };
 }
 export default new UserControllers;

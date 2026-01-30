@@ -8,8 +8,8 @@ import UserServices from "../services/user.services.js";
 /** Note: imports types */
 import type {CookieOptions, Request,Response} from "express";
 /** Note: Validate Handler using zod. */
-import {VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
-import { type RegisterUserAccountMenuallyInterface } from "../interfaces/user.interfaces.js";
+import {VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
+import { type ChangeAccountEmailInterface, type RegisterUserAccountMenuallyInterface, type VeriftUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 
 /**
@@ -29,7 +29,6 @@ class UserControllers {
 
     public HandleRegisterUserAccount = async (req:Request,res:Response):Promise<Response> => {
         /** Note: Validate User Details. */
-        console.log(req.body)
         const result = await VALIDATE_REGISTER_USER_ACCOUNT.safeParse(req.body);
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
@@ -77,6 +76,121 @@ class UserControllers {
             new ApiResponse(user,"User logged in successfully.",true,200)
         )
     }
+
+    /**
+     * Note: Login user account.
+     * @param req.
+     * @param res.
+     * @returns userDocument.
+    */
+    public HandleLoginUserAccount = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_LOGIN_USER_ACCOUNT.safeParse(req.body);
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: verifyUser credinals payload. */
+        const verifyUserPayload = result.data;
+        const {user,tokens} = await this.userServices.LoginUserAccount(verifyUserPayload);
+        /** Note: Cookies Options. */
+        const cookieOptions:CookieOptions = {
+            httpOnly:true,
+            sameSite:"lax",
+            secure:true
+        };
+        
+        return res.status(STATUS_CODES.OK)
+        .cookie("accessToken",tokens.accessToken,cookieOptions)
+        .cookie("refreshToken",tokens.refreshToken,cookieOptions)
+        .json(
+            new ApiResponse(user,"User logged in successfully.",true,200)
+        )
+    }
+
+    /**
+     * Note: Change email and send otp.
+     * @param req.
+     * @param res.
+     * @returns Null. 
+    */
+    public HandleChangeEmail = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_CHANGE_EMAIL.safeParse(req.body);
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        const {email} = result.data;
+        /** Note: Chnage emai payload. */
+        const changeEmailPayload:ChangeAccountEmailInterface = {
+            email:email,
+            userId:req.user._id as string
+        };
+        /** Note: send verification code. */
+        const sendVerificationStatus = await this.userServices.ChangeAccountEmail(changeEmailPayload);
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse([],SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
+        )
+    };
+
+    /**
+     * Note: Verify otp and change email.
+     * @param req.
+     * @param res.
+     * @returns userDocument.
+    */
+    public HandleVerifyOtpAndChangeEmail = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL.safeParse(req.body);
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        const {email,otp} = result.data;
+        /** Note: verify email otp payload. */
+        const verifyOtpPayload:VeriftUpdateEmailOtpInterface = {
+            email:email,
+            otp:otp,
+            userId:req.user._id as string
+        };
+        const verifyOtpProccess = await this.userServices.VerifyOtpAndChangeEmail(verifyOtpPayload);
+        
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse(verifyOtpProccess,SUCCESS_MESSAGES.USER.UPDATE,true,STATUS_CODES.OK)
+        )
+    };
+
+    /**
+     * Note: Forgot account password.
+     * @param req.
+     * @param res.
+     * @returns null. 
+    */
+    public HandleForgotAccountPassword = async (req:Request,res:Response):Promise<Response> => {
+        const result = await VALIDATE_FORGOT_ACCOUNT_PASSWORD.safeParse(req.body);
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        const {email} = result.data;
+        /** Note: Forgot password payload.*/
+        const forgotPasswordPayload = {
+            email:email
+        };
+        const sendOtpProccessing = await this.userServices.ForgotAccountPassword(forgotPasswordPayload);
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse([],SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
+        )
+    };
+
+    /**
+     * Note: Verify Forgot account otp.
+     * @param req.
+     * @param res.
+     * @returns null.
+    */
+    public HandleVerifyForgotAccountOtp = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP.safeParse(req.body);
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: Verify forgot account otp. */
+        const verifyForgotAccountOtpPayload = 
+    };
 }
 
 export default new UserControllers;

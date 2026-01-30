@@ -115,5 +115,10 @@ export interface AuthResponseInterface {
         accessToken: string;
     };
 }
+export interface VeriftUpdateEmailOtpInterface {
+    userId: string;
+    email: string;
+    otp: string;
+}
 export {};
 //# sourceMappingURL=user.interfaces.d.ts.map

@@ -3,13 +3,14 @@ import UserModel from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
 import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
-import {UserStatusEnum, type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface } from "../interfaces/user.interfaces.js";
+import {UserStatusEnum, type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VeriftUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface } from "../interfaces/user.interfaces.js";
 import mongoose from "mongoose";
 import bcrypt, { genSalt } from "bcrypt";
 import Mailer from "../configs/nodemailer/mailer.js";
 import ProductModel from "../models/product.model.js";
 import OtpServices from "./otp.services.js";
 import type { SendOtpInterface, VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
+import { object } from "zod";
 
 /**
  * Note: Service Methods.
@@ -190,7 +191,7 @@ class UserServices {
      * @update userDocument refreshToken and lastSeen.
      * @returns access and refresh token. 
     */
-    public async LoginUserAccount(userObject:LoginUserAccountInterface):Promise<RefreshAndAccessTokenGeneraterInterface> {
+    public async LoginUserAccount(userObject:LoginUserAccountInterface):Promise<AuthResponseInterface> {
         const {email, password} = userObject;
         const user = await UserModel.findOne({email:email,isVerfied:true});
         if(!user){
@@ -212,7 +213,17 @@ class UserServices {
         user.refreshToken = refreshToken;
         user.lastSeen = new Date();
         await user.save();
-        return {accessToken,refreshToken};
+        user.toObject();
+        delete user.password;
+        delete user.refreshToken;
+
+        return {
+            user,
+            tokens:{
+                refreshToken,
+                accessToken
+            }
+        };
     }
 
     /**
@@ -222,7 +233,7 @@ class UserServices {
      * @update user document otp and otp expiry.
      * @returns NULL.
     */
-    public async ForgotAccount(forgotAccoutDetails:{email:string}):Promise<void> {
+    public async ForgotAccountPassword(forgotAccoutDetails:{email:string}):Promise<void> {
         const {email} = forgotAccoutDetails;
         const user = await UserModel.findOne({email:email,isVerifed:true});
         if(!user){
@@ -232,10 +243,10 @@ class UserServices {
         /** Note: Send otp on email using with nodemailer */
         const sendOtpPayload:SendOtpInterface = {
             userId:user._id.toString(),
-            purpose:"FORGOT_ACCOUNT"
+            purpose:"FORGOT_ACCOUNT",
+            email:email
         }
         const sendOtp = await this.otpServices.SendOtp(sendOtpPayload);
-
         return;
     }
 
@@ -263,15 +274,47 @@ class UserServices {
      * Note: Change account primary email.
      * @param userObject - userId and email is required.
      * @check email is exist.
-     * @update update userDocument primary email
+     * @update userDocument otp and send otp on email.
      * @returns userDocument.
     */
-    public async ChangeAccountEmail(userObject:ChangeAccountEmailInterface):Promise<UserDocument> {
+    public async ChangeAccountEmail(userObject:ChangeAccountEmailInterface):Promise<boolean> {
         const {email,userId} = userObject;
         const user = await this.GetUserById(userId);
-        /** Note: Assign the UserDocument email to params email. */
+        /** Note: if user is not verified send otp. */
+        const sendOtpPayload:SendOtpInterface = {
+            purpose:"CHANGE_EMAIL",
+            email:email,
+            userId:userId
+        } 
+        const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);
+        return true;
+    }
+
+    /**
+     * Note: Verify Update email otp.
+     * @param userObject - otp.
+     * @param userObject - email.
+     * @param userObject - userId.
+     * @update Document email.
+     * @return new Document.
+    */
+    public async VerifyOtpAndChangeEmail(userObject:VeriftUpdateEmailOtpInterface):Promise<UserDocument> {
+        const {email,otp,userId} = userObject;
+        const user = await this.GetUserById(userId);
+        /** Note: Verify Otp Payload. */
+        const verifyOtpPayload:VerifyOtpInterface = {
+            otp:otp,
+            purpose:"CHANGE_EMAIL",
+            userId:userId
+        }
+        const otpVerificationProccess = await this.otpServices.VerifyOtp(verifyOtpPayload);
+        /** If Successfully Verify otp. */
         user.email = email;
         await user.save();
+        /** Delete Refresh and password from user document */
+        user.toObject();
+        delete user.password;
+        delete user.refreshToken;
         return user;
     }
 
@@ -497,7 +540,7 @@ class UserServices {
      * @update userDocument status.
      * @return null.
     */
-   public async ActivateUserAccount(userObject:{userId:string}):Promise<void> {
+    public async ActivateUserAccount(userObject:{userId:string}):Promise<void> {
         const {userId} = userObject;
         const user = await this.GetUserById(userId);
         /** Note: Active UserAccount Status now. */
@@ -505,7 +548,30 @@ class UserServices {
         user.lastSeen = new Date();
         await user.save();
         return;
-   }
+    }
+
+    /**
+     * Note: Verify Forgot account otp.
+    */
+    public async VerifyForgotAccountOtp(otpObject:VerifyForgotAccountOtpInterface):Promise<void> {
+        const {email,otp} = otpObject;
+        const user = await UserModel.findOne({
+            email: email
+        });
+        /** Note: Check email is exist. */
+        if(!user){
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
+        }
+        /** Note: otp verify payload. */
+        const OtpVerifyPayload:VerifyOtpInterface = {
+            otp:otp,
+            purpose:"FORGOT_ACCOUNT",
+            userId: user._id.toString()
+        };
+        const verifyOtp = await this.otpServices.VerifyOtp(OtpVerifyPayload);
+
+        return;
+    }
 }
 
 export default UserServices;

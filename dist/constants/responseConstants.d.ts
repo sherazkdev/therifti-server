@@ -34,6 +34,7 @@ export declare const SUCCESS_MESSAGES: {
     USER: {
         FETCH: string;
         UPDATE: string;
+        OTP_SUCCESSFULLY_SENDED: string;
         DELETE: string;
     };
     PRODUCT: {

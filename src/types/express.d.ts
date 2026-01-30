@@ -1,4 +1,5 @@
 import UserModel from "../models/user.model.ts";
+import "express";
 
 declare global {
     namespace Express {

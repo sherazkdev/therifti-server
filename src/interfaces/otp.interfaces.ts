@@ -13,8 +13,8 @@ export type OtpPurpose = typeof OTP_PURPOSE[number];
 /** Send Otp Inteface */
 export interface SendOtpInterface {
     purpose: OtpPurpose,
-    userId?:string | undefined,
-    email?:string | undefined
+    userId:string,
+    email:string 
 }
 /** Note: Otp email content. */
 export interface OtpEmaiLContentInterface {
