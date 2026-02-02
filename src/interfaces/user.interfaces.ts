@@ -105,6 +105,10 @@ export const USER_SORT = [
 
 export type UserSort = typeof USER_SORT[number];
 
+export interface ChangeAccountEmailResponseInterface {
+    resetToken: string
+}
+
 /** Note: GetUserAccountProfile */
 export interface GetUserProfileInterface {
     page?:number | undefined,
@@ -116,7 +120,8 @@ export interface GetUserProfileInterface {
 /** ChangeAccountEmailVerifyOtpInterface */
 export interface ChangeAccountEmailVerifyOtpInterface {
     userId:string,
-    email:string
+    email:string,
+    resetToken:string
 }
 
 export interface AuthResponseInterface {
@@ -127,8 +132,9 @@ export interface AuthResponseInterface {
     }
 }
 
-export interface VeriftUpdateEmailOtpInterface {
+export interface VerifyUpdateEmailOtpInterface {
     userId:string,
+    resetToken:string,
     email:string,
     otp:string
 }
@@ -136,4 +142,10 @@ export interface VeriftUpdateEmailOtpInterface {
 export interface VerifyForgotAccountOtpInterface {
     email:string,
     otp:string
+}
+
+export interface resetPasswordWithTokenInterface {
+    resetToken:string,
+    email:string,
+    password:string
 }

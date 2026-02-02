@@ -3,14 +3,14 @@ import UserModel from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
 import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
-import {UserStatusEnum, type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VeriftUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface } from "../interfaces/user.interfaces.js";
+import {UserStatusEnum, type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailResponseInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VerifyUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface, type resetPasswordWithTokenInterface } from "../interfaces/user.interfaces.js";
 import mongoose from "mongoose";
 import bcrypt, { genSalt } from "bcrypt";
-import Mailer from "../configs/nodemailer/mailer.js";
 import ProductModel from "../models/product.model.js";
 import OtpServices from "./otp.services.js";
 import type { SendOtpInterface, VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
-import { object } from "zod";
+import TokenServices from "./token.services.js";
+import { TokenTypes, type CreateTokenInterface, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
 
 /**
  * Note: Service Methods.
@@ -38,6 +38,7 @@ import { object } from "zod";
 
 class UserServices {
     private otpServices = new OtpServices();
+    private tokenServices = new TokenServices();
 
     /**
      * Note: Retrieves user details by user ID.
@@ -152,7 +153,6 @@ class UserServices {
         user.refreshToken = refreshToken;
         user.lastSeen = new Date();
         user.isVerfied = true;
-        console.log(user)
         await user.save();
 
         user.toObject();
@@ -235,7 +235,9 @@ class UserServices {
     */
     public async ForgotAccountPassword(forgotAccoutDetails:{email:string}):Promise<void> {
         const {email} = forgotAccoutDetails;
-        const user = await UserModel.findOne({email:email,isVerifed:true});
+        console.log(forgotAccoutDetails)
+        const user = await UserModel.findOne({email:email,isVerfied:true});
+        console.log(user);
         if(!user){
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
         }
@@ -277,8 +279,18 @@ class UserServices {
      * @update userDocument otp and send otp on email.
      * @returns userDocument.
     */
-    public async ChangeAccountEmail(userObject:ChangeAccountEmailInterface):Promise<boolean> {
+    public async ChangeAccountEmail(userObject:ChangeAccountEmailInterface):Promise<ChangeAccountEmailResponseInterface> {
         const {email,userId} = userObject;
+        /**
+         * Note: Check Email is already exist in anoterher
+         * is exist throw error. 
+        */
+        const checking_email_is_already_exist = await UserModel.findOne({
+            email:email
+        });
+        if(checking_email_is_already_exist){
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.AUTH.EMAIL_EXISTS);
+        }
         const user = await this.GetUserById(userId);
         /** Note: if user is not verified send otp. */
         const sendOtpPayload:SendOtpInterface = {
@@ -287,7 +299,15 @@ class UserServices {
             userId:userId
         } 
         const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);
-        return true;
+        /** Note: Create Reset token. */
+        const resetTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.EMAIL_VERIFY,
+            userId:userId
+        };
+        const { rawToken } = await this.tokenServices.CreateToken(resetTokenPayload);
+        return { 
+            resetToken: rawToken
+        };
     }
 
     /**
@@ -298,9 +318,16 @@ class UserServices {
      * @update Document email.
      * @return new Document.
     */
-    public async VerifyOtpAndChangeEmail(userObject:VeriftUpdateEmailOtpInterface):Promise<UserDocument> {
-        const {email,otp,userId} = userObject;
+    public async VerifyOtpAndChangeEmail(userObject:VerifyUpdateEmailOtpInterface):Promise<UserDocument> {
+        const {email,otp,userId,resetToken} = userObject;
         const user = await this.GetUserById(userId);
+        /** Note: Before otp verify check resetToken is valid */
+        const resetTokenPayload:VerifyResetTokenInterface = {
+            rawToken:resetToken,
+            type:TokenTypes.EMAIL_VERIFY,
+            userId:userId
+        }
+        const proccessingResetToken = await this.tokenServices.VerifyResetToken(resetTokenPayload);
         /** Note: Verify Otp Payload. */
         const verifyOtpPayload:VerifyOtpInterface = {
             otp:otp,
@@ -552,8 +579,11 @@ class UserServices {
 
     /**
      * Note: Verify Forgot account otp.
+     * @param otpObject - email.
+     * @param otpObject - otp.
+     * @returns null.
     */
-    public async VerifyForgotAccountOtp(otpObject:VerifyForgotAccountOtpInterface):Promise<void> {
+    public async VerifyForgotAccountOtp(otpObject:VerifyForgotAccountOtpInterface):Promise<{resetToken:string}> {
         const {email,otp} = otpObject;
         const user = await UserModel.findOne({
             email: email
@@ -568,10 +598,43 @@ class UserServices {
             purpose:"FORGOT_ACCOUNT",
             userId: user._id.toString()
         };
-        const verifyOtp = await this.otpServices.VerifyOtp(OtpVerifyPayload);
+        const {} = await this.otpServices.VerifyOtp(OtpVerifyPayload);
+        /** Note: Create Reset token. for non authenticated. */
+        const resetTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.RESET_PASSWORD,
+            userId:user._id.toString(),
+        };
+        const { rawToken } = await this.tokenServices.CreateToken(resetTokenPayload);
 
-        return;
+        return { resetToken:rawToken };
     }
+    
+    /**
+     * Note: Reset password with resetToken based verification is only for un authencticated. 
+     * @param resetObject - resetToken.
+     * @param resetObject - email.
+     * @update userDocument - password.
+     * @return null.
+    */
+    public async resetPasswordWithToken(resetObject:resetPasswordWithTokenInterface):Promise<void> {
+        const {email,resetToken,password} = resetObject;
+        /** Note: Check user exist. */
+        const user = await UserModel.findOne({email:email});
+        if(!user){
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
+        }
+        /** Note: verify reset token now. */
+        const verifyResetTokenPayload:VerifyResetTokenInterface = {
+            rawToken:resetToken,
+            type:TokenTypes.RESET_PASSWORD,
+            userId:user._id.toString()
+        };
+        const tokenVerification = await this.tokenServices.VerifyResetToken(verifyResetTokenPayload);
+        /** Note: after reset token verification assign the user document password to password and automatecly saved in db hashed password. */
+        user.password = password;
+        await user.save();
+        return;
+    };
 }
 
 export default UserServices;

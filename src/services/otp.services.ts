@@ -2,26 +2,22 @@ import UserModel from "../models/user.model.js";
 import OtpModel from "../models/otp.model.js";
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
-import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
+import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import path from "node:path";
 import hbs from "handlebars"
-import {fileURLToPath} from 'node:url';
 import fs from "fs";
 
 /** Otp Interfaces */
-import {OTP_EMAIL_CONTENT, type OtpDocument, type VerifyOtpInterface, type SendOtpInterface} from "../interfaces/otp.interfaces.js";
-import type {UserDocument} from "../interfaces/user.interfaces.js";
+import {OTP_EMAIL_CONTENT, type VerifyOtpInterface, type SendOtpInterface} from "../interfaces/otp.interfaces.js";
 /** Note: Mail Services. */
 import MailServices from "./mail.services.js";
-import UserServices from "./user.services.js";
 
 /** Note: Path Identifier. */
 import { __dirname } from "../utils/path.js";
+
 class OtpServices {
-    private __dirname:any;
-    private __filename:any;
     private mailServices = new MailServices();
 
     /**
@@ -55,7 +51,7 @@ class OtpServices {
         /** Check otp expiry. */
         const now = Date.now();
         if(hashed_user_otp_object.otpExpiry.getTime() < now){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.OTP_EXPIRED);
+            // throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.OTP_EXPIRED);
         }
         const compare_otp = await bcrypt.compare(otp,hashed_otp);
         if(!compare_otp){
@@ -100,6 +96,7 @@ class OtpServices {
             purpose:purpose,
             userId:userId
         });
+        console.log(oldOtpDocument)
         const templatePath = await this.GetTemplatePath({filename:"otp.email.hbs"});
         const source = fs.readFileSync(templatePath,"utf-8");
         const html = hbs.compile(source);
@@ -110,6 +107,7 @@ class OtpServices {
         const gen_salt = await bcrypt.genSalt(salt_rounds);
         const hashed_otp = await bcrypt.hash(otp,gen_salt);
         if(oldOtpDocument){
+            console.log("old otp is exist");
             /** Note: using another method. */
             oldOtpDocument.otp = hashed_otp;
             oldOtpDocument.otpExpiry = new Date( Date.now() + ( 10 * 60 * 1000));

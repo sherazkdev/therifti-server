@@ -56,7 +56,8 @@ export const VALIDATE_CHANGE_EMAIL = z.object({
 /** Note: Validate Verify Otp and Change email. */
 export const VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL = z.object({
     email: z.email(),
-    otp: z.string()
+    otp: z.string(),
+    resetToken: z.string()
 })
 
 /** Note: Validate Forgot Account Password. */
@@ -68,4 +69,11 @@ export const VALIDATE_FORGOT_ACCOUNT_PASSWORD = z.object({
 export const VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP = z.object({
     email: z.email(),
     otp: z.string()
+});
+
+/** Note: Validate Reset Password. */
+export const VALIDATE_RESET_PASSWORD = z.object({
+    password: z.string().min(8,"Error: password at least 9 character"),
+    email: z.email(),
+    resetToken: z.string()
 })

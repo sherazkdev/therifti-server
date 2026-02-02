@@ -120,6 +120,8 @@ export const ERROR_MESSAGES = {
         OTP_NOT_FOUND: "Otp not found",
         INVALID_OTP: "Invalid otp",
         EMAIL_NOT_FOUND: "Email not found",
+        TOKEN_NOT_FOUND: "Token not found",
+        TOKEN_IS_USED: "Token is used already",
         OTP_EXPIRED: "Otp Expired",
         ACCESS_TOKEN_NOT_FOUND: "Access token is not found",
         TOKEN_INVALID: "Invalid authentication token"

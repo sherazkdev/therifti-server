@@ -8,8 +8,8 @@ import UserServices from "../services/user.services.js";
 /** Note: imports types */
 import type {CookieOptions, Request,Response} from "express";
 /** Note: Validate Handler using zod. */
-import {VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
-import { type ChangeAccountEmailInterface, type RegisterUserAccountMenuallyInterface, type VeriftUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
+import {VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
+import { type ChangeAccountEmailInterface, type RegisterUserAccountMenuallyInterface, type resetPasswordWithTokenInterface, type VerifyForgotAccountOtpInterface, type VerifyUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 
 /**
@@ -124,9 +124,9 @@ class UserControllers {
             userId:req.user._id as string
         };
         /** Note: send verification code. */
-        const sendVerificationStatus = await this.userServices.ChangeAccountEmail(changeEmailPayload);
+        const {resetToken} = await this.userServices.ChangeAccountEmail(changeEmailPayload);
         return res.status(STATUS_CODES.OK).json(
-            new ApiResponse([],SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
+            new ApiResponse({resetToken},SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
         )
     };
 
@@ -141,11 +141,12 @@ class UserControllers {
         if(!result.success){
             throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
-        const {email,otp} = result.data;
+        const {email,otp,resetToken} = result.data;
         /** Note: verify email otp payload. */
-        const verifyOtpPayload:VeriftUpdateEmailOtpInterface = {
+        const verifyOtpPayload:VerifyUpdateEmailOtpInterface = {
             email:email,
             otp:otp,
+            resetToken:resetToken,
             userId:req.user._id as string
         };
         const verifyOtpProccess = await this.userServices.VerifyOtpAndChangeEmail(verifyOtpPayload);
@@ -188,8 +189,37 @@ class UserControllers {
         if(!result.success){
             throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
+        const {email,otp} = result.data;
         /** Note: Verify forgot account otp. */
-        const verifyForgotAccountOtpPayload = 
+        const verifyForgotAccountOtpPayload:VerifyForgotAccountOtpInterface = {
+            email:email,
+            otp:otp
+        };
+        const {resetToken} = await this.userServices.VerifyForgotAccountOtp(verifyForgotAccountOtpPayload);
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse({resetToken},SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
+        )
+    };
+
+    /**
+     * Note: Change password with resetToken.
+     * @param req.
+     * @param res.
+     * @returns Response. 
+    */
+    public HandleResetPassword = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_RESET_PASSWORD.safeParse(req.body);
+        /** Note: Check if any error in result. */
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: Reset password payload. */
+        const resetPasswordPayload:resetPasswordWithTokenInterface = result.data;
+
+        const resetPasswordService = await this.userServices.resetPasswordWithToken(resetPasswordPayload);
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse([],SUCCESS_MESSAGES.USER.UPDATE,true,STATUS_CODES.OK)
+        )
     };
 }
 

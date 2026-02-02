@@ -8,10 +8,18 @@ const UserRouter:Router = express.Router();
 
 /** Imports Middlewares */
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
+import TokenModel from "../../models/token.model.js";
+import OtpModel from "../../models/otp.model.js";
+import UserModel from "../../models/user.model.js";
 
 UserRouter.route("/register").post(AsyncHandler(UserControllers.HandleRegisterUserAccount));
 UserRouter.route("/registeration-otp-verifier").patch(AsyncHandler(UserControllers.HandleRegisterationOtpVerifier));
 UserRouter.route("/login").post(AsyncHandler(UserControllers.HandleLoginUserAccount));
+
+/** Note: Reset Password routes. */
+UserRouter.route("/forgot-password").post(AsyncHandler(UserControllers.HandleForgotAccountPassword));
+UserRouter.route("/verify-forgot-otp").post(AsyncHandler(UserControllers.HandleVerifyForgotAccountOtp));
+UserRouter.route("/reset-password").post(AsyncHandler(UserControllers.HandleResetPassword));
 
 /** Secure Routes */
 UserRouter.route("/update-email").post(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.HandleChangeEmail));
