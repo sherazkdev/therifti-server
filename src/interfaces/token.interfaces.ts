@@ -40,5 +40,6 @@ export interface CreateTokenResponseInterface {
 
 export interface FindValidTokenInterface {
     userId:string,
-    type:TokenTypes
+    type:TokenTypes,
+    token:string
 }

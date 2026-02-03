@@ -89,6 +89,9 @@ export const SUCCESS_MESSAGES = {
   BUNDLE: {
     CREATED: "Bundle created successfully"
   },
+  REVIEW:{
+    REVIEWS_FETCHED: "Reviews fetched successfully"
+  },
 
   DONATION: {
     SUCCESS: "Donation completed successfully",

@@ -80,3 +80,7 @@ export const VALIDATE_RESET_PASSWORD = z.object({
     email: z.email(),
     resetToken: z.string()
 })
+/** Note: Get user reviews. */
+export const VALIDATE_GET_USER_REVIEWS = z.object({
+    userId: z.string()
+})

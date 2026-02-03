@@ -39,6 +39,7 @@ const env:EnvironmentVariables = {
     FACEBOOK_APP_ID:requireEnv("FACEBOOK_APP_ID"),
     GOOGLE_APP_PASSWORD:requireEnv("GOOGLE_APP_PASSWORD"),
     GOOGLE_APP_ID:requireEnv("GOOGLE_APP_ID"),
+    GOOGLE_CALLBACK_URL:requireEnv("GOOGLE_CALLBACK_URL"),
     CORS_ORIGIN:requireEnv("CORS_ORIGIN"),
     PORT:requireEnv("PORT"),
     NODE_ENV:requireEnv("NODE_ENV"),

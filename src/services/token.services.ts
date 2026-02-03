@@ -15,50 +15,40 @@ class TokenServices {
      * @param null.
      * @returns ResetTokenResultInterface.
     */
-    public async GenerateResetToken():Promise<GenerateTokenResultInterface> {
-        const rawToken = crypto.randomBytes(32).toString("hex");
-        const hashedToken = crypto.createHash("sha256")
-        .update(rawToken)
-        .digest("hex");
+    private async GenerateResetToken():Promise<GenerateTokenResultInterface> {
+        const rawToken = crypto.randomBytes(48).toString("hex");
+        const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
         return {rawToken,hashedToken};
     }
 
     /**
-     * 
+     * Note: Token verifier and mark isUsed.
      * @param resetTokenObject - hashedToken. 
      * @param resetTokenObject - rawToken. 
      * @returns Boolean. 
     */
     public async VerifyResetToken(resetTokenObject:VerifyResetTokenInterface):Promise<Boolean> {
         const {rawToken,userId,type} = resetTokenObject;
-        /** Note: Check token is exist and if is not used token. */
+        /** Note: find token */
         const token = await TokenModel.findOne({
-            userId: new mongoose.Types.ObjectId(userId),
-            type:type
+            type:type,
+            userId:userId
         });
-        if(!token){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_NOT_FOUND);
-        }
-        if(token.isUsed){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.AUTH.TOKEN_IS_USED);
-        }
+        /** Note: Current date miliseconds. */
         const now = Date.now();
-        if(token.expiresAt.getTime() < now){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.TOKEN_EXPIRED);
+        if(!token) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_NOT_FOUND);
+        if(token.isUsed) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_IS_USED);
+        if(token.expiresAt.getTime() < now) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_EXPIRED);
+        /** Note: Compare hashed token. */
+        const hashedInput = crypto.createHash("sha256").update(rawToken).digest();
+        const tokenBuffer = Buffer.from(token.token,"hex");
+        /** Note: Token Compare */
+        if(!crypto.timingSafeEqual(hashedInput,tokenBuffer)){
+            throw new ApiError(STATUS_CODES.UNAUTHORIZED, ERROR_MESSAGES.AUTH.TOKEN_INVALID);
         }
-        /** Sha256 Algorithem */
-        const compareToken = crypto.createHash("sha256")
-        .update(rawToken)
-        .digest("hex");
-
-        /** Comparing */
-        if(token.token !== compareToken){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.TOKEN_INVALID);
-        }
-        /** Note: Update token document field isUsed true. */
+        /** Note: mark is used */
         token.isUsed = true;
         await token.save();
-        
         return true;
     }
 
@@ -73,13 +63,14 @@ class TokenServices {
         /** Create Token */
         const {rawToken,hashedToken} = await this.GenerateResetToken();
         const now = Date.now();
+        const expiresAt = new Date( now + ( 10 * 60 * 1000 ));
         /** Note: Save token in model. */
         const token = await TokenModel.create({
             userId: new mongoose.Types.ObjectId(userId),
             token: hashedToken,
             type: type,
             isUsed: false,
-            expiresAt: new Date( now + ( 10 * 60 * 1000 ))
+            expiresAt
         });
         return {rawToken:rawToken};
     }
@@ -91,16 +82,20 @@ class TokenServices {
      * @returns tokenDocument. 
     */
     public async FindValidToken(tokenObject:FindValidTokenInterface):Promise<TokenDocument> {
-        const {type,userId} = tokenObject;
-        const token = await TokenModel.findOne({
+        const {type,userId,token} = tokenObject;
+        /** Note: Sha256 Algorithem*/
+        const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+        const checkToken = await TokenModel.findOne({
             userId: new mongoose.Types.ObjectId(userId),
-            type: type
+            type: type,
+            token: hashedToken
         });
         /** if not token exist throw error */
-        if(!token){
+        if(!checkToken){
             throw new ApiError(STATUS_CODES.OK,ERROR_MESSAGES.AUTH.TOKEN_INVALID);
         }
-        return token;
+        return checkToken;
     }
 }
 

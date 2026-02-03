@@ -8,7 +8,6 @@ export enum UserGender {
 }
 interface UserMethods {
     GenerateAccessToken():Promise<string>,
-    GenerateRefreshToken():Promise<string>,
 }
 export enum UserStatusEnum {
     ACTIVATED = "ACTIVATED",
@@ -34,7 +33,6 @@ export interface UserInterface {
     },
     dob?:Date | null
     gender?:UserGender | null,
-    refreshToken?:string | null,
     isVerfied?:Boolean,
     lastSeen?:Date,
     type?:UserTypesEnum
@@ -71,7 +69,6 @@ export interface RegisterUserAccountMenuallyInterface {
 }
 /** Refresh and accessToken Generate */
 export interface RefreshAndAccessTokenGeneraterInterface {
-    refreshToken:string,
     accessToken:string
 }
 /** Send Mail */
@@ -149,4 +146,9 @@ export interface resetPasswordWithTokenInterface {
     resetToken:string,
     email:string,
     password:string
+}
+
+export interface LogoutUserAccountInterface {
+    refreshToken:string,
+    userId:string
 }

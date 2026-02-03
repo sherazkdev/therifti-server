@@ -8,8 +8,8 @@ import UserServices from "../services/user.services.js";
 /** Note: imports types */
 import type {CookieOptions, Request,Response} from "express";
 /** Note: Validate Handler using zod. */
-import {VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_UPDATE_USER_PROFILE, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
-import { type ChangeAccountEmailInterface, type GetUserProfileInterface, type RegisterUserAccountMenuallyInterface, type resetPasswordWithTokenInterface, type UpdateUserProfileInterface, type VerifyForgotAccountOtpInterface, type VerifyUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
+import {VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_GET_USER_REVIEWS, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_UPDATE_USER_PROFILE, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
+import { type ChangeAccountEmailInterface, type GetUserProfileInterface, type LogoutUserAccountInterface, type RegisterUserAccountMenuallyInterface, type resetPasswordWithTokenInterface, type UpdateUserProfileInterface, type VerifyForgotAccountOtpInterface, type VerifyUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 
 /**
@@ -251,7 +251,6 @@ class UserControllers {
     */
     public HandleGetUserProfile = async (req:Request,res:Response):Promise<Response> => {
         const result = VALIDATE_GET_USER_PROFILE.safeParse(req.query);
-        console.log(result.data,req.query);
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
@@ -262,7 +261,57 @@ class UserControllers {
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(userProfile,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
         )
-    }; 
+    };
+    
+    /**
+     * Note: Logout user account.
+     * @param req.
+     * @param res.
+     * @returns Response.
+    */
+    public LogoutUserAccount = async (req:Request,res:Response):Promise<Response> => {
+        const refreshToken = req.cookies?.refreshToken;
+        /** Note: Logout account payload. */
+        const logoutAccountPayload:LogoutUserAccountInterface = {
+            refreshToken:refreshToken,
+            userId:req.user._id
+        };
+
+        const logoutAccount = await this.userServices.LogoutUserAccount(logoutAccountPayload);
+        /** Note: clear access and refersh token from cookies */
+        /** Note: Cookies Options. */
+        const cookieOptions:CookieOptions = {
+            httpOnly:true,
+            sameSite:"lax",
+            secure:true
+        };
+        
+        return res.status(STATUS_CODES.OK)
+        .clearCookie("refreshToken",cookieOptions)
+        .clearCookie("accessToken",cookieOptions)
+        .json(
+            new ApiResponse([],SUCCESS_MESSAGES.AUTH.LOGOUT,true,STATUS_CODES.OK)
+        )
+    };
+
+    /**
+     * Note: Get user reviews.
+     * @param req.
+     * @param res.
+     * @returns Response.
+    */
+    public HandleGetUserReviews = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_GET_USER_REVIEWS.safeParse(req.query);
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: User reviews payload. */
+        const userReviewsPayload = result.data;
+        const userReviews = await this.userServices.GetUserReviews(userReviewsPayload);
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse(userReviews,SUCCESS_MESSAGES.REVIEW.REVIEWS_FETCHED,true,STATUS_CODES.OK)
+        )
+    };
 }
 
 export default new UserControllers;

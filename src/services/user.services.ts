@@ -3,14 +3,17 @@ import UserModel from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
 import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
-import {UserStatusEnum, type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailResponseInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VerifyUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface, type resetPasswordWithTokenInterface } from "../interfaces/user.interfaces.js";
+import {UserStatusEnum, type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailResponseInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type UserInterface, type VerifyUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface, type resetPasswordWithTokenInterface, type LogoutUserAccountInterface } from "../interfaces/user.interfaces.js";
 import mongoose from "mongoose";
 import bcrypt, { genSalt } from "bcrypt";
 import ProductModel from "../models/product.model.js";
 import OtpServices from "./otp.services.js";
 import type { SendOtpInterface, VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 import TokenServices from "./token.services.js";
-import { TokenTypes, type CreateTokenInterface, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
+import { TokenTypes, type CreateTokenInterface, type FindValidTokenInterface, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
+import type { Profile as GoogleProfile } from "passport-google-oauth20";
+import type { Profile as FacebookProfile } from "passport-facebook";
+import { nullable } from "zod";
 
 /**
  * Note: Service Methods.
@@ -162,23 +165,24 @@ class UserServices {
         const user = await this.GetUserById(userId);
     
         /** Note: Generate access and refresh token. */
-        const {accessToken,refreshToken} = await this.GenerateRefreshAndAccessToken(userId);
+        const {accessToken} = await this.GenerateRefreshAndAccessToken(userId);
         
         /** Note: Update user document and asign the refreshToken etc.*/
-        user.refreshToken = refreshToken;
-        user.lastSeen = new Date();
-        user.isVerfied = true;
-        await user.save();
+        /** Note: Create a token for a refreshToken etc.*/
+        const createTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.REFRESH,
+            userId:user._id.toString()
+        }
+        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
 
-        user.toObject();
-        delete user.password;
-        delete user.refreshToken;
+        const returnedUser = user.toObject();
+        delete returnedUser.password;
 
         return {
-            user:user,
+            user:returnedUser,
             tokens:{
                 accessToken:accessToken,
-                refreshToken:refreshToken
+                refreshToken:rawToken
             }
         };
     }
@@ -192,11 +196,8 @@ class UserServices {
     protected async GenerateRefreshAndAccessToken(userId:string):Promise<RefreshAndAccessTokenGeneraterInterface> {
         const user = await this.GetUserById(userId);
         const accessToken = await user.GenerateAccessToken();
-        const refreshToken = await user.GenerateRefreshToken();
-        /** Note: asign the user.refreshToken to refrshtoken and return access and refresh */
-        user.refreshToken = refreshToken;
-        await user.save({validateBeforeSave:false});
-        return {accessToken,refreshToken};
+
+        return {accessToken};
     }
 
     /**
@@ -223,19 +224,20 @@ class UserServices {
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
         }
         /** Note: Generate access and refresh token. */
-        const {accessToken,refreshToken} = await this.GenerateRefreshAndAccessToken(user._id.toString());
-        /** Note: Update user document and asign the refreshToken etc.*/
-        user.refreshToken = refreshToken;
-        user.lastSeen = new Date();
-        await user.save();
-        user.toObject();
-        delete user.password;
-        delete user.refreshToken;
+        const {accessToken} = await this.GenerateRefreshAndAccessToken(user._id.toString());
+        /** Note: Create a token for a refreshToken etc.*/
+        const createTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.REFRESH,
+            userId:user._id.toString()
+        }
+        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        const returnedUser = user.toObject();
+        delete returnedUser.password;
 
         return {
-            user,
+            user:returnedUser,
             tokens:{
-                refreshToken,
+                refreshToken:rawToken,
                 accessToken
             }
         };
@@ -333,7 +335,7 @@ class UserServices {
      * @update Document email.
      * @return new Document.
     */
-    public async VerifyOtpAndChangeEmail(userObject:VerifyUpdateEmailOtpInterface):Promise<UserDocument> {
+    public async VerifyOtpAndChangeEmail(userObject:VerifyUpdateEmailOtpInterface):Promise<object> {
         const {email,otp,userId,resetToken} = userObject;
         const user = await this.GetUserById(userId);
         /** Note: Before otp verify check resetToken is valid */
@@ -354,10 +356,10 @@ class UserServices {
         user.email = email;
         await user.save();
         /** Delete Refresh and password from user document */
-        user.toObject();
-        delete user.password;
-        delete user.refreshToken;
-        return user;
+        const returnedUser = user.toObject();
+        delete returnedUser.password;
+
+        return returnedUser;
     }
 
     /**
@@ -547,13 +549,18 @@ class UserServices {
      * @update userDocument refreshToken.
      * @return null. 
     */
-    public async LogoutUserAccount(userObject:{userId:string}):Promise<void> {
-        const {userId} = userObject;
+    public async LogoutUserAccount(userObject:LogoutUserAccountInterface):Promise<Boolean> {
+        const {userId,refreshToken} = userObject;
         const user = await this.GetUserById(userId);
-        /** Note: Assign the user object refreshToken is null. */
-        user.refreshToken = null;
-        user.lastSeen = new Date();
-        await user.save({validateBeforeSave:false});
+        /** Note: Delete RefreshToken */
+        const findRefreshTokenPayload:FindValidTokenInterface = {
+            token:refreshToken,
+            type:TokenTypes.REFRESH,
+            userId:userId
+        } 
+        const token = await this.tokenServices.FindValidToken(findRefreshTokenPayload);
+        await token.deleteOne();
+        return true;
     }
 
     /**
@@ -653,6 +660,70 @@ class UserServices {
         await user.save();
         return;
     };
+
+    /**
+     * Note: Auth Login with google.
+     * @param GoogleProfile.
+     * @returns UserDocument.
+    */
+    public async LoginWithGoogle(profile:GoogleProfile):Promise<UserDocument> {
+        const {name,emails,photos,id} = profile;
+        /** note: Check user is exist. */
+        let user = await UserModel.findOne({
+            googleId:id
+        });
+        if(!user){
+            const emailSafe = emails || [];
+            const photosSafe = photos || [];
+            const removeNullFileds:Partial<Record<any,any>> = {
+                googleId:id,
+                email:emailSafe[0]?.value ?? null,
+                avatar:photosSafe[0]?.value ?? null,
+                fullname:(name?.givenName && name?.familyName) ? name.givenName + " " + name.familyName : null,
+                username:emailSafe[0]?.value.split("@")[0] ?? null,
+                isVerfied:true
+            };
+            /** Note: Filter User */
+            const filterdUser = await this.RemoveNullAndUndefinedValues(removeNullFileds);
+            /** Note: Create new account */
+            user = await UserModel.create(filterdUser);
+        }
+        return user;
+    };
+    
+    /**
+     * Note: Auth Login with facebook.
+     * @param FacebookProfile.
+     * @returns UserDocument.
+    */
+    public async LoginWithFacebook(profile:FacebookProfile):Promise<UserDocument> {
+        const {birthday,name,photos,emails,id,gender,} = profile;
+        /** Note: Check User exist using facebookId. */
+        let user = await UserModel.findOne({
+            facebookeId:id
+        });
+        if(!user){
+            let emailsSafe = emails || [];
+            let photosSafe = photos || [];
+
+            /** Note: this object creating for remove a nulleble fields. */
+            const removeNullFields:Partial<Record<any,any>> = {
+                email:emailsSafe[0]?.value ?? null,
+                facebookId:id,
+                avatar:photosSafe[0]?.value ?? null,
+                dob:birthday ? new Date(birthday) : null,
+                fullname:(name?.givenName && name?.givenName) ? `${name?.givenName} ${name?.familyName}` : nullable,
+                username:emailsSafe[0]?.value?.split("@")[0] ?? null,
+                gender:gender ?? null,
+                isVerfied:true
+            };
+            /** Note: Removinf nulleble fields. */
+            const filterdUser = await this.RemoveNullAndUndefinedValues(removeNullFields);
+            /** Note: Create Document in Mongodb */
+            user = await UserModel.create(filterdUser);
+        }
+        return user;
+    }
 }
 
 export default UserServices;
