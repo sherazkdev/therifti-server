@@ -8,8 +8,8 @@ import UserServices from "../services/user.services.js";
 /** Note: imports types */
 import type {CookieOptions, Request,Response} from "express";
 /** Note: Validate Handler using zod. */
-import {VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
-import { type ChangeAccountEmailInterface, type RegisterUserAccountMenuallyInterface, type resetPasswordWithTokenInterface, type VerifyForgotAccountOtpInterface, type VerifyUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
+import {VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_UPDATE_USER_PROFILE, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
+import { type ChangeAccountEmailInterface, type GetUserProfileInterface, type RegisterUserAccountMenuallyInterface, type resetPasswordWithTokenInterface, type UpdateUserProfileInterface, type VerifyForgotAccountOtpInterface, type VerifyUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 
 /**
@@ -221,6 +221,48 @@ class UserControllers {
             new ApiResponse([],SUCCESS_MESSAGES.USER.UPDATE,true,STATUS_CODES.OK)
         )
     };
+
+    /**
+     * Note: Update user profile.
+     * @param req.
+     * @param res.
+     * @return Response. 
+    */
+    public HandleUpdateProfile = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_UPDATE_USER_PROFILE.safeParse(req.body);
+        /** Note: Check if any error in result. */
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: Update user profile payload. */
+        const updateProfilePayload:UpdateUserProfileInterface = result.data;
+        const updatedProfile = await this.userServices.UpdateUserProfileById(req.user._id as string,updateProfilePayload);
+        
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse(updatedProfile,SUCCESS_MESSAGES.USER.UPDATE,true,STATUS_CODES.OK)
+        )
+    };
+
+    /**
+     * Note: Get User Profile.
+     * @param req.
+     * @param res.
+     * @returns Response.
+    */
+    public HandleGetUserProfile = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_GET_USER_PROFILE.safeParse(req.query);
+        console.log(result.data,req.query);
+        if(!result.success){
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: Get user profile payload. */
+        const userProfilePayload:GetUserProfileInterface = result.data;
+        const userProfile = await this.userServices.GetUserAccountProfile(userProfilePayload);
+        /** Return Response. */
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse(userProfile,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
+        )
+    }; 
 }
 
 export default new UserControllers;

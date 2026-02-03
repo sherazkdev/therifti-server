@@ -44,17 +44,18 @@ export interface UserDocument extends Document<Types.ObjectId,any,UserInterface>
 
 /** Note: Update User Profiel.*/
 export interface UpdateUserProfileInterface {
-    about?:string,
-    avatar?:string,
-    dob?:Date,
-    location?:{
-        city:string | null,
-        country:string | null
-    },
-    fullname?:string,
-    gender?:string
-    
+  about?: string | null | undefined;
+  avatar?: string | null | undefined;
+  fullname?: string | null | undefined;
+  dob?: Date | null | undefined;
+  username?: string | null | undefined;
+  gender?: string | null | undefined;
+  location?: {
+    city?: string | null | undefined;
+    country?: string | null | undefined;
+  } | null | undefined;
 }
+
 /** Update user password */
 export interface UpdateUserPasswordInterface {
     userId:string,
@@ -111,11 +112,11 @@ export interface ChangeAccountEmailResponseInterface {
 
 /** Note: GetUserAccountProfile */
 export interface GetUserProfileInterface {
-    page?:number | undefined,
-    limit?:number | undefined,
+    page?:number | null | undefined,
+    limit?:number | null | undefined,
     userId:string,
-    categoryId?:string | undefined,
-    sort?:UserSort | undefined,
+    categoryId?:string | null | undefined,
+    sort?:UserSort | null | undefined,
 }
 /** ChangeAccountEmailVerifyOtpInterface */
 export interface ChangeAccountEmailVerifyOtpInterface {

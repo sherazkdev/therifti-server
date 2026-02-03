@@ -62,11 +62,26 @@ class UserServices {
     */
     public async UpdateUserProfileById(userId:string, userObject:UpdateUserProfileInterface):Promise<UserDocument> {
         const {} = userObject;
-        const updateUserProfile = await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(userId), userObject,{new:true});
+        /** Note: Filtered Product Data. */
+        const filteredProduct = await this.RemoveNullAndUndefinedValues(userObject);
+        console.log(filteredProduct,userObject)
+        const updateUserProfile = await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(userId), {$set:filteredProduct},{new:true}).select("-password");
         if(!updateUserProfile){
             throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
         }
+        /** Note: Remove Password and refreshToken. */
         return updateUserProfile;
+    }
+
+    /**
+     * Note: Remove undifind and null values from object
+     * @param object
+     * @return object 
+    */
+    public RemoveNullAndUndefinedValues<T extends Record<string, any>>(object:T):Partial<T> {
+        return Object.fromEntries(
+            Object.entries(object).filter( (_y,item) => item !== undefined && item !== null )
+        ) as Partial<T>
     }
 
     /**
@@ -355,10 +370,13 @@ class UserServices {
         const {userId, limit, page,sort,categoryId} = userObject;
         /** Note: Product Sorting. */
         let productSort:Record<string, -1 | 1> = {createdAt: -1};
-        if(sort === "NEWEST_FIRST") productSort = {createdAt: -1};
-        if(sort === "PRICE_HIGH_TO_LOW") productSort = {price: -1};
-        if(sort === "PRICE_LOW_TO_HIGH") productSort = {price: 1};
-        if(sort === "RELEVANCE") productSort = {createdAt: -1};
+        console.log(userObject)
+        if(sort){
+            if(sort === "NEWEST_FIRST") productSort = {createdAt: -1};
+            if(sort === "PRICE_HIGH_TO_LOW") productSort = {price: -1};
+            if(sort === "PRICE_LOW_TO_HIGH") productSort = {price: 1};
+            if(sort === "RELEVANCE") productSort = {createdAt: -1};
+        }
         /** Note: Pagination and limits. */
         const limitNumber = limit || 10;
         const pageNumber = page || 1;
@@ -400,7 +418,7 @@ class UserServices {
                     from: "follows",
                     localField: "_id",
                     foreignField: "followerId",
-                    as: "following"
+                    as: "followings"
                 }
             },
             {
@@ -414,7 +432,7 @@ class UserServices {
             {
                 $lookup : {
                     from: "products",
-                    let:{ower:"$_id"},
+                    let:{owner:"$_id"},
                     pipeline:[
                         {
                             $match : productQuery

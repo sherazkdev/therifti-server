@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { USER_SORT } from "../interfaces/user.interfaces.js";
 
 /** Note: Validate Register User Account. */
 export const VALIDATE_REGISTER_USER_ACCOUNT = z.object({
@@ -17,24 +18,26 @@ export const VALIDATE_LOGIN_USER_ACCOUNT = z.object({
 
 /** Note: Validate Get User Profile */
 export const VALIDATE_GET_USER_PROFILE = z.object({
-    userId: z.string().length(24,"Error: Object id at least 24 character"),
-    page: z.number().optional(),
-    limit: z.number().optional()
+    userId: z.string().min(24,"Error: Object id at least 24 character"),
+    page: z.number().optional().nullable(),
+    limit: z.number().optional().nullable(),
+    categoryId: z.string().nullable().optional(),
+    sort: z.enum(USER_SORT).nullable().optional()
 });
 
 /** Note: Validate Update User Profile */
 export const VALIDATE_UPDATE_USER_PROFILE = z.object({
-    about: z.string().optional(),
-    avatar: z.string().optional(),
-    fullname: z.string().optional(),
-    dob : z.date().optional(),
-    username: z.string().optional(),
-    location: {
-        city: z.string().optional(),
-        country: z.string().optional()
-    },
-    gender:z.string().optional()
-})
+    about: z.string().optional().nullable(),
+    avatar: z.string().optional().nullable(),
+    fullname: z.string().optional().nullable(),
+    dob: z.date().optional().nullable(),
+    username: z.string().optional().nullable(),
+    location: z.object({
+        city: z.string().optional().nullable(),
+        country: z.string().optional().nullable()
+    }).optional().nullable(),
+    gender: z.string().optional().nullable()
+});
 
 /** Note: Validate Forgot password */
 export const VALIDATE_FORGOT_PASSWORD = z.object({

@@ -15,6 +15,7 @@ import UserModel from "../../models/user.model.js";
 UserRouter.route("/register").post(AsyncHandler(UserControllers.HandleRegisterUserAccount));
 UserRouter.route("/registeration-otp-verifier").patch(AsyncHandler(UserControllers.HandleRegisterationOtpVerifier));
 UserRouter.route("/login").post(AsyncHandler(UserControllers.HandleLoginUserAccount));
+UserRouter.route("/profile").get(AsyncHandler(UserControllers.HandleGetUserProfile))
 
 /** Note: Reset Password routes. */
 UserRouter.route("/forgot-password").post(AsyncHandler(UserControllers.HandleForgotAccountPassword));
@@ -23,6 +24,7 @@ UserRouter.route("/reset-password").post(AsyncHandler(UserControllers.HandleRese
 
 /** Secure Routes */
 UserRouter.route("/update-email").post(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.HandleChangeEmail));
+UserRouter.route("/update-profile").patch(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.HandleUpdateProfile));
 UserRouter.route("/verify-otp-and-change-email").post(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.HandleVerifyOtpAndChangeEmail));
 
 export default UserRouter;

@@ -1,0 +1,1 @@
+{"version":3,"file":"wishlist.interfaces.d.ts","sourceRoot":"","sources":["../../src/interfaces/wishlist.interfaces.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAC,KAAK,EAAC,QAAQ,EAAC,MAAM,UAAU,CAAC;AAE7C,yBAAyB;AACzB,MAAM,WAAW,iBAAiB;IAC9B,SAAS,EAAC,KAAK,CAAC,QAAQ,CAAC;IACzB,KAAK,EAAC,KAAK,CAAC,QAAQ,CAAA;CACvB;AAED,MAAM,WAAW,gBAAiB,SAAQ,iBAAiB,EAAE,QAAQ;CAAG"}
