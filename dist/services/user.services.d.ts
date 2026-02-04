@@ -1,4 +1,4 @@
-import { type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailResponseInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type VerifyUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface, type resetPasswordWithTokenInterface } from "../interfaces/user.interfaces.js";
+import { type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailResponseInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type VerifyUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface, type resetPasswordWithTokenInterface, type LogoutUserAccountInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 /**
  * Note: Service Methods.
@@ -116,7 +116,7 @@ declare class UserServices {
      * @update Document email.
      * @return new Document.
     */
-    VerifyOtpAndChangeEmail(userObject: VerifyUpdateEmailOtpInterface): Promise<UserDocument>;
+    VerifyOtpAndChangeEmail(userObject: VerifyUpdateEmailOtpInterface): Promise<object>;
     /**
      * Note: Get User Profile with products and followers following list.
      * @param userObject - userId, page, limit.
@@ -146,9 +146,7 @@ declare class UserServices {
      * @update userDocument refreshToken.
      * @return null.
     */
-    LogoutUserAccount(userObject: {
-        userId: string;
-    }): Promise<void>;
+    LogoutUserAccount(userObject: LogoutUserAccountInterface): Promise<Boolean>;
     /**
      * Note: Deactivate user account.
      * @param userObject - userId

@@ -34,5 +34,6 @@ export interface CreateTokenResponseInterface {
 export interface FindValidTokenInterface {
     userId: string;
     type: TokenTypes;
+    token: string;
 }
 //# sourceMappingURL=token.interfaces.d.ts.map

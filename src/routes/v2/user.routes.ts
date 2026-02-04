@@ -4,27 +4,21 @@ import type { Router } from "express";
 /* Note: UserControllers imports **/
 import UserControllers from "../../controllers/user.controllers.js";
 import AsyncHandler from "../../utils/AsyncHandler.js";
-const UserRouter:Router = express.Router();
 
 /** Imports Middlewares */
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
-UserRouter.route("/register").post(AsyncHandler(UserControllers.HandleRegisterUserAccount));
-UserRouter.route("/registeration-otp-verifier").patch(AsyncHandler(UserControllers.HandleRegisterationOtpVerifier));
-UserRouter.route("/login").post(AsyncHandler(UserControllers.HandleLoginUserAccount));
-UserRouter.route("/profile").get(AsyncHandler(UserControllers.HandleGetUserProfile));
-UserRouter.route("/user-reviews").get(AsyncHandler(UserControllers.HandleGetUserReviews));
+const UserRouter:Router = express.Router();
+const userControllers = new UserControllers();
+const authMiddlewares = new AuthMiddlewares();
 
+UserRouter.route("/profile").get(AsyncHandler(userControllers.HandleGetUserProfile));
+UserRouter.route("/user-reviews").get(AsyncHandler(userControllers.HandleGetUserReviews));
 
-/** Note: Reset Password routes. */
-UserRouter.route("/forgot-password").post(AsyncHandler(UserControllers.HandleForgotAccountPassword));
-UserRouter.route("/verify-forgot-otp").post(AsyncHandler(UserControllers.HandleVerifyForgotAccountOtp));
-UserRouter.route("/reset-password").post(AsyncHandler(UserControllers.HandleResetPassword));
 
 /** Secure Routes */
-UserRouter.route("/update-email").post(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.HandleChangeEmail));
-UserRouter.route("/logout").patch(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.LogoutUserAccount));
-UserRouter.route("/update-profile").patch(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.HandleUpdateProfile));
-UserRouter.route("/verify-otp-and-change-email").post(AuthMiddlewares.AuthenticateJwtCookie,AsyncHandler(UserControllers.HandleVerifyOtpAndChangeEmail));
+UserRouter.route("/update-email").post(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(userControllers.HandleChangeEmail));
+UserRouter.route("/update-profile").patch(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(userControllers.HandleUpdateProfile));
+UserRouter.route("/verify-otp-and-change-email").post(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(userControllers.HandleVerifyOtpAndChangeEmail));
 
 export default UserRouter;

@@ -1,35 +1,7 @@
 /** Note: imports types */
 import type { Request, Response } from "express";
-/**
- * Note: User Controllers.
- * 01: HandleGetUserProfile
- * 02: HandleGetCurrentUser
- * 03: HandleUpdateUserProfile
- * 04: HandleRegisterUser
- * 05: HandleLoginUser
- * 06: HandleForgotUserPassword
- * 07: HandleChangeUserPassword
- * 09: HandleChangeUserEmail
- * 10: HandleVerifyOtp
-*/
 declare class UserControllers {
     private userServices;
-    HandleRegisterUserAccount: (req: Request, res: Response) => Promise<Response>;
-    /**
-     * Note: Registration Otp Verifier.
-     * @param otpObject - userId.
-     * @param otpObject - otp.
-     * @update userDocument isVerified and refreshToken.
-     * @returns UserDocument.
-    */
-    HandleRegisterationOtpVerifier: (req: Request, res: Response) => Promise<Response>;
-    /**
-     * Note: Login user account.
-     * @param req.
-     * @param res.
-     * @returns userDocument.
-    */
-    HandleLoginUserAccount: (req: Request, res: Response) => Promise<Response>;
     /**
      * Note: Change email and send otp.
      * @param req.
@@ -45,34 +17,26 @@ declare class UserControllers {
     */
     HandleVerifyOtpAndChangeEmail: (req: Request, res: Response) => Promise<Response>;
     /**
-     * Note: Forgot account password.
-     * @param req.
-     * @param res.
-     * @returns null.
-    */
-    HandleForgotAccountPassword: (req: Request, res: Response) => Promise<Response>;
-    /**
-     * Note: Verify Forgot account otp.
-     * @param req.
-     * @param res.
-     * @returns null.
-    */
-    HandleVerifyForgotAccountOtp: (req: Request, res: Response) => Promise<Response>;
-    /**
-     * Note: Change password with resetToken.
-     * @param req.
-     * @param res.
-     * @returns Response.
-    */
-    HandleResetPassword: (req: Request, res: Response) => Promise<Response>;
-    /**
      * Note: Update user profile.
      * @param req.
      * @param res.
      * @return Response.
     */
     HandleUpdateProfile: (req: Request, res: Response) => Promise<Response>;
+    /**
+     * Note: Get User Profile.
+     * @param req.
+     * @param res.
+     * @returns Response.
+    */
+    HandleGetUserProfile: (req: Request, res: Response) => Promise<Response>;
+    /**
+     * Note: Get user reviews.
+     * @param req.
+     * @param res.
+     * @returns Response.
+    */
+    HandleGetUserReviews: (req: Request, res: Response) => Promise<Response>;
 }
-declare const _default: UserControllers;
-export default _default;
+export default UserControllers;
 //# sourceMappingURL=user.controllers.d.ts.map

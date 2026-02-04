@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { USER_SORT } from "../interfaces/user.interfaces.js";
 /** Note: Validate Register User Account. */
 export const VALIDATE_REGISTER_USER_ACCOUNT = z.object({
     email: z.email(),
@@ -14,9 +15,11 @@ export const VALIDATE_LOGIN_USER_ACCOUNT = z.object({
 });
 /** Note: Validate Get User Profile */
 export const VALIDATE_GET_USER_PROFILE = z.object({
-    userId: z.string().length(24, "Error: Object id at least 24 character"),
-    page: z.number().optional(),
-    limit: z.number().optional()
+    userId: z.string().min(24, "Error: Object id at least 24 character"),
+    page: z.number().optional().nullable(),
+    limit: z.number().optional().nullable(),
+    categoryId: z.string().nullable().optional(),
+    sort: z.enum(USER_SORT).nullable().optional()
 });
 /** Note: Validate Update User Profile */
 export const VALIDATE_UPDATE_USER_PROFILE = z.object({
@@ -65,5 +68,9 @@ export const VALIDATE_RESET_PASSWORD = z.object({
     password: z.string().min(8, "Error: password at least 9 character"),
     email: z.email(),
     resetToken: z.string()
+});
+/** Note: Get user reviews. */
+export const VALIDATE_GET_USER_REVIEWS = z.object({
+    userId: z.string()
 });
 //# sourceMappingURL=user.validaters.js.map

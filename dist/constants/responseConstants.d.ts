@@ -71,6 +71,9 @@ export declare const SUCCESS_MESSAGES: {
     BUNDLE: {
         CREATED: string;
     };
+    REVIEW: {
+        REVIEWS_FETCHED: string;
+    };
     DONATION: {
         SUCCESS: string;
         SUBSCRIPTION_STARTED: string;

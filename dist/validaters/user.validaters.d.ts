@@ -15,8 +15,15 @@ export declare const VALIDATE_LOGIN_USER_ACCOUNT: z.ZodObject<{
 /** Note: Validate Get User Profile */
 export declare const VALIDATE_GET_USER_PROFILE: z.ZodObject<{
     userId: z.ZodString;
-    page: z.ZodOptional<z.ZodNumber>;
-    limit: z.ZodOptional<z.ZodNumber>;
+    page: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    limit: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
+    categoryId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    sort: z.ZodOptional<z.ZodNullable<z.ZodEnum<{
+        PRICE_HIGH_TO_LOW: "PRICE_HIGH_TO_LOW";
+        PRICE_LOW_TO_HIGH: "PRICE_LOW_TO_HIGH";
+        NEWEST_FIRST: "NEWEST_FIRST";
+        RELEVANCE: "RELEVANCE";
+    }>>>;
 }, z.core.$strip>;
 /** Note: Validate Update User Profile */
 export declare const VALIDATE_UPDATE_USER_PROFILE: z.ZodObject<{
@@ -65,5 +72,9 @@ export declare const VALIDATE_RESET_PASSWORD: z.ZodObject<{
     password: z.ZodString;
     email: z.ZodEmail;
     resetToken: z.ZodString;
+}, z.core.$strip>;
+/** Note: Get user reviews. */
+export declare const VALIDATE_GET_USER_REVIEWS: z.ZodObject<{
+    userId: z.ZodString;
 }, z.core.$strip>;
 //# sourceMappingURL=user.validaters.d.ts.map

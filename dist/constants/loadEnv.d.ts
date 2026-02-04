@@ -10,6 +10,8 @@ interface EnvironmentVariables {
     NODE_ENV: string;
     CLOUDINARY_APP_PASSWORD: string;
     ACCESS_TOKEN_EXPIRY: string;
+    GOOGLE_CALLBACK_URL: string;
+    FACEBOOK_CALLBACK_URL: string;
     ACCESS_TOKEN_SECRET: string;
     REFRESH_TOKEN_EXPIRY: string;
     MAILER_APP_EMAIL: string;

@@ -3,10 +3,10 @@ import cookie from "cookie";
 import env from "../constants/loadEnv.js";
 import UserServices from "../services/user.services.js";
 import ApiError from "../utils/ApiError.js";
-import jwt from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 import UserModel from "../models/user.model.js";
-import mongoose from "mongoose";
+import mongoose, { MongooseError } from "mongoose";
 class AuthMiddlewares {
     userServices = new UserServices();
     /**
@@ -25,24 +25,32 @@ class AuthMiddlewares {
             ;
         }
         catch (e) {
-            throw new Error(e);
+            next(e);
         }
     }
     AuthenticateJwtCookie = async (req, res, next) => {
-        const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[0];
-        if (!accessToken) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.COMMON.UNAUTHORIZED);
+        try {
+            const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[0];
+            if (!accessToken) {
+                throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.COMMON.UNAUTHORIZED);
+            }
+            /** Note: Jwt dcrypting and verify user. */
+            const decoded = await jwt.verify(accessToken, env.ACCESS_TOKEN_SECRET);
+            if (!decoded) {
+                throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.TOKEN_INVALID);
+            }
+            /** Note: Get user by userId. */
+            const user = await UserModel.findById(new mongoose.Types.ObjectId(decoded._id)).select("-password -refreshToken");
+            if (!user) {
+                throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND);
+            }
+            req.user = user;
+            next();
         }
-        /** Note: Jwt dcrypting and verify user. */
-        const decoded = await jwt.verify(accessToken, env.ACCESS_TOKEN_SECRET);
-        if (!decoded) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.TOKEN_INVALID);
+        catch (e) {
+            next(e);
         }
-        /** Note: Get user by userId. */
-        const user = await UserModel.findById(new mongoose.Types.ObjectId(decoded._id)).select("-password -refreshToken");
-        req.user = user;
-        next();
     };
 }
-export default new AuthMiddlewares;
+export default AuthMiddlewares;
 //# sourceMappingURL=auth.middlewares.js.map

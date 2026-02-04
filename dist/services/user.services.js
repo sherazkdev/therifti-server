@@ -59,13 +59,12 @@ class UserServices {
         const {} = userObject;
         /** Note: Filtered Product Data. */
         const filteredProduct = await this.RemoveNullAndUndefinedValues(userObject);
-        const updateUserProfile = await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(userId), { $set: filteredProduct }, { new: true });
+        console.log(filteredProduct, userObject);
+        const updateUserProfile = await UserModel.findByIdAndUpdate(new mongoose.Types.ObjectId(userId), { $set: filteredProduct }, { new: true }).select("-password");
         if (!updateUserProfile) {
             throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
         }
         /** Note: Remove Password and refreshToken. */
-        updateUserProfile.toObject();
-        delete updateUserProfile.password;
         return updateUserProfile;
     }
     /**
@@ -74,7 +73,7 @@ class UserServices {
      * @return object
     */
     RemoveNullAndUndefinedValues(object) {
-        return Object.fromEntries(Object.entries(Object).filter((_y, item) => item !== undefined && item !== null));
+        return Object.fromEntries(Object.entries(object).filter((_y, item) => item !== undefined && item !== null));
     }
     /**
      * Note: Update user account password.
@@ -150,20 +149,21 @@ class UserServices {
         const verifyOtp = await this.otpServices.VerifyOtp(otpObject);
         const user = await this.GetUserById(userId);
         /** Note: Generate access and refresh token. */
-        const { accessToken, refreshToken } = await this.GenerateRefreshAndAccessToken(userId);
+        const { accessToken } = await this.GenerateRefreshAndAccessToken(userId);
         /** Note: Update user document and asign the refreshToken etc.*/
-        user.refreshToken = refreshToken;
-        user.lastSeen = new Date();
-        user.isVerfied = true;
-        await user.save();
-        user.toObject();
-        delete user.password;
-        delete user.refreshToken;
+        /** Note: Create a token for a refreshToken etc.*/
+        const createTokenPayload = {
+            type: TokenTypes.REFRESH,
+            userId: user._id.toString()
+        };
+        const { rawToken } = await this.tokenServices.CreateToken(createTokenPayload);
+        const returnedUser = user.toObject();
+        delete returnedUser.password;
         return {
-            user: user,
+            user: returnedUser,
             tokens: {
                 accessToken: accessToken,
-                refreshToken: refreshToken
+                refreshToken: rawToken
             }
         };
     }
@@ -176,11 +176,7 @@ class UserServices {
     async GenerateRefreshAndAccessToken(userId) {
         const user = await this.GetUserById(userId);
         const accessToken = await user.GenerateAccessToken();
-        const refreshToken = await user.GenerateRefreshToken();
-        /** Note: asign the user.refreshToken to refrshtoken and return access and refresh */
-        user.refreshToken = refreshToken;
-        await user.save({ validateBeforeSave: false });
-        return { accessToken, refreshToken };
+        return { accessToken };
     }
     /**
      * Note: Login user with email and password
@@ -206,18 +202,19 @@ class UserServices {
             throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
         }
         /** Note: Generate access and refresh token. */
-        const { accessToken, refreshToken } = await this.GenerateRefreshAndAccessToken(user._id.toString());
-        /** Note: Update user document and asign the refreshToken etc.*/
-        user.refreshToken = refreshToken;
-        user.lastSeen = new Date();
-        await user.save();
-        user.toObject();
-        delete user.password;
-        delete user.refreshToken;
+        const { accessToken } = await this.GenerateRefreshAndAccessToken(user._id.toString());
+        /** Note: Create a token for a refreshToken etc.*/
+        const createTokenPayload = {
+            type: TokenTypes.REFRESH,
+            userId: user._id.toString()
+        };
+        const { rawToken } = await this.tokenServices.CreateToken(createTokenPayload);
+        const returnedUser = user.toObject();
+        delete returnedUser.password;
         return {
-            user,
+            user: returnedUser,
             tokens: {
-                refreshToken,
+                refreshToken: rawToken,
                 accessToken
             }
         };
@@ -332,10 +329,9 @@ class UserServices {
         user.email = email;
         await user.save();
         /** Delete Refresh and password from user document */
-        user.toObject();
-        delete user.password;
-        delete user.refreshToken;
-        return user;
+        const returnedUser = user.toObject();
+        delete returnedUser.password;
+        return returnedUser;
     }
     /**
      * Note: Get User Profile with products and followers following list.
@@ -347,14 +343,17 @@ class UserServices {
         const { userId, limit, page, sort, categoryId } = userObject;
         /** Note: Product Sorting. */
         let productSort = { createdAt: -1 };
-        if (sort === "NEWEST_FIRST")
-            productSort = { createdAt: -1 };
-        if (sort === "PRICE_HIGH_TO_LOW")
-            productSort = { price: -1 };
-        if (sort === "PRICE_LOW_TO_HIGH")
-            productSort = { price: 1 };
-        if (sort === "RELEVANCE")
-            productSort = { createdAt: -1 };
+        console.log(userObject);
+        if (sort) {
+            if (sort === "NEWEST_FIRST")
+                productSort = { createdAt: -1 };
+            if (sort === "PRICE_HIGH_TO_LOW")
+                productSort = { price: -1 };
+            if (sort === "PRICE_LOW_TO_HIGH")
+                productSort = { price: 1 };
+            if (sort === "RELEVANCE")
+                productSort = { createdAt: -1 };
+        }
         /** Note: Pagination and limits. */
         const limitNumber = limit || 10;
         const pageNumber = page || 1;
@@ -394,7 +393,7 @@ class UserServices {
                     from: "follows",
                     localField: "_id",
                     foreignField: "followerId",
-                    as: "following"
+                    as: "followings"
                 }
             },
             {
@@ -408,7 +407,7 @@ class UserServices {
             {
                 $lookup: {
                     from: "products",
-                    let: { ower: "$_id" },
+                    let: { owner: "$_id" },
                     pipeline: [
                         {
                             $match: productQuery
@@ -519,12 +518,17 @@ class UserServices {
      * @return null.
     */
     async LogoutUserAccount(userObject) {
-        const { userId } = userObject;
+        const { userId, refreshToken } = userObject;
         const user = await this.GetUserById(userId);
-        /** Note: Assign the user object refreshToken is null. */
-        user.refreshToken = null;
-        user.lastSeen = new Date();
-        await user.save({ validateBeforeSave: false });
+        /** Note: Delete RefreshToken */
+        const findRefreshTokenPayload = {
+            token: refreshToken,
+            type: TokenTypes.REFRESH,
+            userId: userId
+        };
+        const token = await this.tokenServices.FindValidToken(findRefreshTokenPayload);
+        await token.deleteOne();
+        return true;
     }
     /**
      * Note: Deactivate user account.

@@ -7,7 +7,6 @@ export declare enum UserGender {
 }
 interface UserMethods {
     GenerateAccessToken(): Promise<string>;
-    GenerateRefreshToken(): Promise<string>;
 }
 export declare enum UserStatusEnum {
     ACTIVATED = "ACTIVATED",
@@ -33,7 +32,6 @@ export interface UserInterface {
     };
     dob?: Date | null;
     gender?: UserGender | null;
-    refreshToken?: string | null;
     isVerfied?: Boolean;
     lastSeen?: Date;
     type?: UserTypesEnum;
@@ -69,7 +67,6 @@ export interface RegisterUserAccountMenuallyInterface {
 }
 /** Refresh and accessToken Generate */
 export interface RefreshAndAccessTokenGeneraterInterface {
-    refreshToken: string;
     accessToken: string;
 }
 /** Send Mail */
@@ -101,11 +98,11 @@ export interface ChangeAccountEmailResponseInterface {
 }
 /** Note: GetUserAccountProfile */
 export interface GetUserProfileInterface {
-    page?: number | undefined;
-    limit?: number | undefined;
+    page?: number | null | undefined;
+    limit?: number | null | undefined;
     userId: string;
-    categoryId?: string | undefined;
-    sort?: UserSort | undefined;
+    categoryId?: string | null | undefined;
+    sort?: UserSort | null | undefined;
 }
 /** ChangeAccountEmailVerifyOtpInterface */
 export interface ChangeAccountEmailVerifyOtpInterface {
@@ -134,6 +131,10 @@ export interface resetPasswordWithTokenInterface {
     resetToken: string;
     email: string;
     password: string;
+}
+export interface LogoutUserAccountInterface {
+    refreshToken: string;
+    userId: string;
 }
 export {};
 //# sourceMappingURL=user.interfaces.d.ts.map

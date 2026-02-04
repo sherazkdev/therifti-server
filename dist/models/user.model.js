@@ -75,10 +75,6 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         required: true
     },
-    refreshToken: {
-        type: String,
-        default: null
-    },
     status: {
         type: String,
         enum: Object.values(UserStatusEnum),
@@ -123,30 +119,6 @@ UserSchema.methods.GenerateAccessToken = async function () {
             ? parseInt(ACCESS_TOKEN_EXPIRY, 10)
             : ACCESS_TOKEN_EXPIRY;
         const jwt_token = await jwt.sign(access_toke_payload, ACCESS_TOKEN_SECRET, {
-            expiresIn: expireIn
-        });
-        return jwt_token;
-    }
-    catch (e) {
-        throw new Error(e);
-    }
-};
-/** Note: Generating refresh token for authentication */
-UserSchema.methods.GenerateRefreshToken = async function () {
-    try {
-        const refresh_toke_payload = {
-            _id: this._id
-        };
-        /** Credentials */
-        const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET;
-        const REFRESH_TOKEN_EXPIRY = env.REFRESH_TOKEN_EXPIRY || "15d";
-        if (!REFRESH_TOKEN_SECRET || !REFRESH_TOKEN_EXPIRY) {
-            throw new Error(`Error: ACCESS_TOKEN_EXPIRY or ACCESS_TOKEN_EXPIRY is missing.`);
-        }
-        const expireIn = /^\d+$/.test(REFRESH_TOKEN_EXPIRY)
-            ? parseInt(REFRESH_TOKEN_EXPIRY, 10)
-            : REFRESH_TOKEN_EXPIRY;
-        const jwt_token = await jwt.sign(refresh_toke_payload, REFRESH_TOKEN_SECRET, {
             expiresIn: expireIn
         });
         return jwt_token;

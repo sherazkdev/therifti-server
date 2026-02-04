@@ -1,13 +1,13 @@
-import { type CreateTokenInterface, type CreateTokenResponseInterface, type FindValidTokenInterface, type GenerateTokenResultInterface, type TokenDocument, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
+import { type CreateTokenInterface, type CreateTokenResponseInterface, type FindValidTokenInterface, type TokenDocument, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
 declare class TokenServices {
     /**
      * Note: Generating raw and hashed token.
      * @param null.
      * @returns ResetTokenResultInterface.
     */
-    GenerateResetToken(): Promise<GenerateTokenResultInterface>;
+    private GenerateResetToken;
     /**
-     *
+     * Note: Token verifier and mark isUsed.
      * @param resetTokenObject - hashedToken.
      * @param resetTokenObject - rawToken.
      * @returns Boolean.

@@ -5,89 +5,9 @@ import { ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES } from "../constants/res
 /** Note: imported UserServices. */
 import UserServices from "../services/user.services.js";
 /** Note: Validate Handler using zod. */
-import { VALIDATE_CHANGE_EMAIL, VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_FORGOT_PASSWORD, VALIDATE_GET_USER_PROFILE, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_UPDATE_USER_PROFILE, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL, VALIDATE_VERIFY_REGISTERATION_OTP } from "../validaters/user.validaters.js";
-import {} from "../interfaces/user.interfaces.js";
-/**
- * Note: User Controllers.
- * 01: HandleGetUserProfile
- * 02: HandleGetCurrentUser
- * 03: HandleUpdateUserProfile
- * 04: HandleRegisterUser
- * 05: HandleLoginUser
- * 06: HandleForgotUserPassword
- * 07: HandleChangeUserPassword
- * 09: HandleChangeUserEmail
- * 10: HandleVerifyOtp
-*/
+import { VALIDATE_CHANGE_EMAIL, VALIDATE_GET_USER_PROFILE, VALIDATE_GET_USER_REVIEWS, VALIDATE_UPDATE_USER_PROFILE, VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL } from "../validaters/user.validaters.js";
 class UserControllers {
     userServices = new UserServices();
-    HandleRegisterUserAccount = async (req, res) => {
-        /** Note: Validate User Details. */
-        const result = await VALIDATE_REGISTER_USER_ACCOUNT.safeParse(req.body);
-        if (!result.success) {
-            throw new ApiError(STATUS_CODES.BAD_REQUEST, result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        /** Note: Register User Payload. */
-        const { email, fullname, password, username, zipCode } = result.data;
-        const registerUserPayload = result.data;
-        const registerUser = await this.userServices.RegisterUserAccount(registerUserPayload);
-        return res.status(200).json(new ApiResponse(registerUser, SUCCESS_MESSAGES.AUTH.REGISTER + ", And verify otp.", true, 200));
-    };
-    /**
-     * Note: Registration Otp Verifier.
-     * @param otpObject - userId.
-     * @param otpObject - otp.
-     * @update userDocument isVerified and refreshToken.
-     * @returns UserDocument.
-    */
-    HandleRegisterationOtpVerifier = async (req, res) => {
-        const result = VALIDATE_VERIFY_REGISTERATION_OTP.safeParse(req.body);
-        if (!result.success) {
-            throw new ApiError(STATUS_CODES.BAD_REQUEST, result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        const { otp, userId } = result.data;
-        const otpObject = {
-            otp: otp,
-            userId: userId,
-            purpose: "REGISTER_ACCOUNT"
-        };
-        const { tokens, user } = await this.userServices.VerifyRegistrationOtp(otpObject);
-        /** Note: Cookies Options. */
-        const cookieOptions = {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: true
-        };
-        return res.status(STATUS_CODES.OK)
-            .cookie("accessToken", tokens.accessToken, cookieOptions)
-            .cookie("refreshToken", tokens.refreshToken, cookieOptions)
-            .json(new ApiResponse(user, "User logged in successfully.", true, 200));
-    };
-    /**
-     * Note: Login user account.
-     * @param req.
-     * @param res.
-     * @returns userDocument.
-    */
-    HandleLoginUserAccount = async (req, res) => {
-        const result = VALIDATE_LOGIN_USER_ACCOUNT.safeParse(req.body);
-        if (!result.success) {
-            throw new ApiError(STATUS_CODES.BAD_REQUEST, result.error.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        /** Note: verifyUser credinals payload. */
-        const verifyUserPayload = result.data;
-        const { user, tokens } = await this.userServices.LoginUserAccount(verifyUserPayload);
-        /** Note: Cookies Options. */
-        const cookieOptions = {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: true
-        };
-        return res.status(STATUS_CODES.OK)
-            .cookie("accessToken", tokens.accessToken, cookieOptions)
-            .cookie("refreshToken", tokens.refreshToken, cookieOptions)
-            .json(new ApiResponse(user, "User logged in successfully.", true, 200));
-    };
     /**
      * Note: Change email and send otp.
      * @param req.
@@ -103,7 +23,7 @@ class UserControllers {
         /** Note: Chnage emai payload. */
         const changeEmailPayload = {
             email: email,
-            userId: req.user._id
+            userId: req.user._id.toString()
         };
         /** Note: send verification code. */
         const { resetToken } = await this.userServices.ChangeAccountEmail(changeEmailPayload);
@@ -126,66 +46,10 @@ class UserControllers {
             email: email,
             otp: otp,
             resetToken: resetToken,
-            userId: req.user._id
+            userId: req.user._id.toString()
         };
         const verifyOtpProccess = await this.userServices.VerifyOtpAndChangeEmail(verifyOtpPayload);
         return res.status(STATUS_CODES.OK).json(new ApiResponse(verifyOtpProccess, SUCCESS_MESSAGES.USER.UPDATE, true, STATUS_CODES.OK));
-    };
-    /**
-     * Note: Forgot account password.
-     * @param req.
-     * @param res.
-     * @returns null.
-    */
-    HandleForgotAccountPassword = async (req, res) => {
-        const result = await VALIDATE_FORGOT_ACCOUNT_PASSWORD.safeParse(req.body);
-        if (!result.success) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        const { email } = result.data;
-        /** Note: Forgot password payload.*/
-        const forgotPasswordPayload = {
-            email: email
-        };
-        const sendOtpProccessing = await this.userServices.ForgotAccountPassword(forgotPasswordPayload);
-        return res.status(STATUS_CODES.OK).json(new ApiResponse([], SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED, true, STATUS_CODES.OK));
-    };
-    /**
-     * Note: Verify Forgot account otp.
-     * @param req.
-     * @param res.
-     * @returns null.
-    */
-    HandleVerifyForgotAccountOtp = async (req, res) => {
-        const result = VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP.safeParse(req.body);
-        if (!result.success) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        const { email, otp } = result.data;
-        /** Note: Verify forgot account otp. */
-        const verifyForgotAccountOtpPayload = {
-            email: email,
-            otp: otp
-        };
-        const { resetToken } = await this.userServices.VerifyForgotAccountOtp(verifyForgotAccountOtpPayload);
-        return res.status(STATUS_CODES.OK).json(new ApiResponse({ resetToken }, SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED, true, STATUS_CODES.OK));
-    };
-    /**
-     * Note: Change password with resetToken.
-     * @param req.
-     * @param res.
-     * @returns Response.
-    */
-    HandleResetPassword = async (req, res) => {
-        const result = VALIDATE_RESET_PASSWORD.safeParse(req.body);
-        /** Note: Check if any error in result. */
-        if (!result.success) {
-            throw new ApiError(STATUS_CODES.BAD_REQUEST, result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        /** Note: Reset password payload. */
-        const resetPasswordPayload = result.data;
-        const resetPasswordService = await this.userServices.resetPasswordWithToken(resetPasswordPayload);
-        return res.status(STATUS_CODES.OK).json(new ApiResponse([], SUCCESS_MESSAGES.USER.UPDATE, true, STATUS_CODES.OK));
     };
     /**
      * Note: Update user profile.
@@ -201,9 +65,42 @@ class UserControllers {
         }
         /** Note: Update user profile payload. */
         const updateProfilePayload = result.data;
-        const updatedProfile = await this.userServices.UpdateUserProfileById(req.user._id, updateProfilePayload);
+        const updatedProfile = await this.userServices.UpdateUserProfileById(req.user._id.toString(), updateProfilePayload);
         return res.status(STATUS_CODES.OK).json(new ApiResponse(updatedProfile, SUCCESS_MESSAGES.USER.UPDATE, true, STATUS_CODES.OK));
     };
+    /**
+     * Note: Get User Profile.
+     * @param req.
+     * @param res.
+     * @returns Response.
+    */
+    HandleGetUserProfile = async (req, res) => {
+        const result = VALIDATE_GET_USER_PROFILE.safeParse(req.query);
+        if (!result.success) {
+            throw new ApiError(STATUS_CODES.BAD_REQUEST, result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: Get user profile payload. */
+        const userProfilePayload = result.data;
+        const userProfile = await this.userServices.GetUserAccountProfile(userProfilePayload);
+        /** Return Response. */
+        return res.status(STATUS_CODES.OK).json(new ApiResponse(userProfile, SUCCESS_MESSAGES.USER.FETCH, true, STATUS_CODES.OK));
+    };
+    /**
+     * Note: Get user reviews.
+     * @param req.
+     * @param res.
+     * @returns Response.
+    */
+    HandleGetUserReviews = async (req, res) => {
+        const result = VALIDATE_GET_USER_REVIEWS.safeParse(req.query);
+        if (!result.success) {
+            throw new ApiError(STATUS_CODES.BAD_REQUEST, result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+        }
+        /** Note: User reviews payload. */
+        const userReviewsPayload = result.data;
+        const userReviews = await this.userServices.GetUserReviews(userReviewsPayload);
+        return res.status(STATUS_CODES.OK).json(new ApiResponse(userReviews, SUCCESS_MESSAGES.REVIEW.REVIEWS_FETCHED, true, STATUS_CODES.OK));
+    };
 }
-export default new UserControllers;
+export default UserControllers;
 //# sourceMappingURL=user.controllers.js.map

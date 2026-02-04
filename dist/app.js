@@ -1,8 +1,10 @@
+import ErrorHandler from "./middlewares/errorHandler.middlewares.js";
+import cookieParser from "cookie-parser";
+import initPassport from "./configs/auth/passport.js";
+import passport from "passport";
 import express, {} from "express";
 import cors from "cors";
-import cookieParser from "cookie-parser";
 import path from "node:path";
-import ErrorHandler from "./middlewares/errorHandler.middlewares.js";
 /** Environment variables */
 import env from "./constants/loadEnv.js";
 const app = express();
@@ -15,10 +17,15 @@ app.use(cors({
     origin: env.CORS_ORIGIN,
 }));
 app.use(cookieParser());
+app.use(passport.initialize());
 app.use(express.static(path.resolve(process.cwd() + "public")));
+// Register your strategies
+initPassport();
 /** Routes */
 import UserRouter from "./routes/v2/user.routes.js";
+import AuthRouter from "./routes/v2/auth.routes.js";
 app.use("/api/v1/users", UserRouter);
+app.use("/api/v1/auth", AuthRouter);
 app.use(ErrorHandler);
 export default app;
 //# sourceMappingURL=app.js.map

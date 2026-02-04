@@ -11,6 +11,5 @@ declare class AuthMiddlewares {
     AuthenticateSocket(socket: Socket, next: NextFunction): void;
     AuthenticateJwtCookie: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }
-declare const _default: AuthMiddlewares;
-export default _default;
+export default AuthMiddlewares;
 //# sourceMappingURL=auth.middlewares.d.ts.map
