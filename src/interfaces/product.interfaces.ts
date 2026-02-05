@@ -118,3 +118,31 @@ export interface ProductInterface {
 };
 
 export interface ProductDocument extends ProductInterface, Document {};
+
+/** @type Create product Interface */
+export interface CreateProductInterface {
+  categoryId:string,
+  owner:string,
+  title:string,
+  description:string,
+  condition:ProductCondition,
+  brand:Types.ObjectId,
+  coverImage:string,
+  colors:ProductColor[],
+  material:ProductMaterial,
+  size:ProductSize,
+  price:number,
+}
+
+export interface SearchProductInterface {
+  q?:string,
+  categoryId?:string,
+  price?:{
+    min?:number,
+    max?:number
+  },
+  meterial:string[],
+  condition:ProductCondition,
+  page:number,
+  
+}

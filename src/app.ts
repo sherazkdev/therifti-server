@@ -11,7 +11,6 @@ import type {Application} from "express";
 
 /** Environment variables */
 import env from "./constants/loadEnv.js";
-
 const app:Application = express();
 
 /** Middlewares */
@@ -30,11 +29,13 @@ app.use(express.static(path.resolve( process.cwd() + "public")));
 initPassport();
 
 /** Routes */
+import ProductRouter from "./routes/v2/product.routes.js";
 import UserRouter from "./routes/v2/user.routes.js";
 import AuthRouter from "./routes/v2/auth.routes.js";
 
 app.use("/api/v1/users",UserRouter);
 app.use("/api/v1/auth",AuthRouter);
+app.use("/api/v1/products",ProductRouter);
 
 app.use(ErrorHandler);
 export default app;
