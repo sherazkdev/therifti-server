@@ -85,16 +85,24 @@ class ProductServices {
      * @param {string} condition - Product condition
      * @param {string[]} colors - Product Colors
      * @param {string} meterial - Product merterial
+     * @returns {Promise<ProductDocument>} Updated product newaly ducument
     */
     public async UpdateProduct(updateProduct:any):Promise<ProductDocument> {};
 
     /**
      * Note: Get Featured products
      * @constructer
-     * @update
+     * @param {string} categoryId - Sort by category
+     * @param {number} price - Sory by price
+     * @param {string} sortType - Sorting methods
+     * @returns {Promise<ProductDocument[]>}
+     * List of latest products.
     */
+    public async GetFeaturedProducts():Promise<ProductDocument[]> {};
 
-
+    /**
+     * 
+    */
 }
 
 export default ProductServices;

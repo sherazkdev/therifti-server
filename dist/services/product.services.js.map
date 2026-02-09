@@ -1,1 +1,1 @@
-{"version":3,"file":"product.services.js","sourceRoot":"","sources":["../../src/services/product.services.ts"],"names":[],"mappings":""}
+{"version":3,"file":"product.services.js","sourceRoot":"","sources":["../../src/services/product.services.ts"],"names":[],"mappings":"AAAA,OAAO,YAAY,MAAM,4BAA4B,CAAC;AACtD,OAAO,aAAa,MAAM,6BAA6B,CAAC;AACxD,+BAA+B;AAC/B,OAAO,QAAQ,MAAM,sBAAsB,CAAC;AAC5C,yBAAyB;AACzB,OAAO,EAAC,cAAc,EAAE,YAAY,EAAC,MAAM,mCAAmC,CAAC;AAE/E,OAAO,QAAQ,MAAM,UAAU,CAAC;AAEhC,MAAM,eAAe;CAwFpB;AAED,eAAe,eAAe,CAAC"}

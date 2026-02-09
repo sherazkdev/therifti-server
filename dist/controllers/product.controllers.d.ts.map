@@ -1,1 +1,1 @@
-{"version":3,"file":"product.controllers.d.ts","sourceRoot":"","sources":["../../src/controllers/product.controllers.ts"],"names":[],"mappings":""}
+{"version":3,"file":"product.controllers.d.ts","sourceRoot":"","sources":["../../src/controllers/product.controllers.ts"],"names":[],"mappings":"AAOA,cAAM,kBAAkB;IACpB,OAAO,CAAC,eAAe,CAAyB;CAEnD;AAED,eAAe,kBAAkB,CAAC"}

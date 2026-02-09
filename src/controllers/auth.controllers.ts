@@ -3,18 +3,25 @@ import ApiResponse from "../utils/ApiResponse.js";
 
 /** Note: Response Constants. */
 import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
-/** Note: imported UserServices. */
-import UserServices from "../services/user.services.js";
+
 /** Note: imports types */
-import type {CookieOptions, Request,Response} from "express";
+import type {CookieOptions, NextFunction, Request,Response} from "express";
 
 /** Zod Validaters  */
 import {VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT,VALIDATE_RESET_PASSWORD,VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP,VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
 import type { LogoutUserAccountInterface, RegisterUserAccountMenuallyInterface, resetPasswordWithTokenInterface, UserDocument, VerifyForgotAccountOtpInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
+import {TokenTypes, type CreateTokenInterface} from "../interfaces/token.interfaces.js";
+
+import UserServices from "../services/user.services.js";
+import AuthServices from "../services/auth.services.js";
+import TokenServices from "../services/token.services.js";
+import env from "../constants/loadEnv.js";
 
 class AuthControllers {
+    private tokenServices = new TokenServices();
     private userServices = new UserServices();
+    private authServices = new AuthServices();
 
     /**
      * Note: Register User account.
@@ -31,7 +38,7 @@ class AuthControllers {
         /** Note: Register User Payload. */
         const {email,fullname,password,username,zipCode} = result.data;
         const registerUserPayload:RegisterUserAccountMenuallyInterface = result.data;
-        const registerUser = await this.userServices.RegisterUserAccount(registerUserPayload);
+        const registerUser = await this.authServices.RegisterUserAccount(registerUserPayload);
         return res.status(200).json(
             new ApiResponse(registerUser,SUCCESS_MESSAGES.AUTH.REGISTER + ", And verify otp.",true,200)
         )
@@ -55,7 +62,7 @@ class AuthControllers {
             userId:userId,
             purpose:"REGISTER_ACCOUNT"
         };
-        const {tokens,user} = await this.userServices.VerifyRegistrationOtp(otpObject);
+        const {tokens,user} = await this.authServices.VerifyRegistrationOtp(otpObject);
 
         /** Note: Cookies Options. */
         const cookieOptions:CookieOptions = {
@@ -85,7 +92,7 @@ class AuthControllers {
         }
         /** Note: verifyUser credinals payload. */
         const verifyUserPayload = result.data;
-        const {user,tokens} = await this.userServices.LoginUserAccount(verifyUserPayload);
+        const {user,tokens} = await this.authServices.LoginUserAccount(verifyUserPayload);
         /** Note: Cookies Options. */
         const cookieOptions:CookieOptions = {
             httpOnly:true,
@@ -117,7 +124,7 @@ class AuthControllers {
         const forgotPasswordPayload = {
             email:email
         };
-        const sendOtpProccessing = await this.userServices.ForgotAccountPassword(forgotPasswordPayload);
+        const sendOtpProccessing = await this.authServices.ForgotAccount(forgotPasswordPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse([],SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
         )
@@ -140,7 +147,7 @@ class AuthControllers {
             email:email,
             otp:otp
         };
-        const {resetToken} = await this.userServices.VerifyForgotAccountOtp(verifyForgotAccountOtpPayload);
+        const {resetToken} = await this.authServices.VerifyForgotAccountOtp(verifyForgotAccountOtpPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse({resetToken},SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
         )
@@ -161,7 +168,7 @@ class AuthControllers {
         /** Note: Reset password payload. */
         const resetPasswordPayload:resetPasswordWithTokenInterface = result.data;
 
-        const resetPasswordService = await this.userServices.resetPasswordWithToken(resetPasswordPayload);
+        const resetPasswordService = await this.authServices.resetPasswordWithToken(resetPasswordPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse([],SUCCESS_MESSAGES.USER.UPDATE,true,STATUS_CODES.OK)
         )
@@ -173,7 +180,7 @@ class AuthControllers {
      * @param res.
      * @returns Response.
     */
-    public LogoutUserAccount = async (req:Request,res:Response):Promise<Response> => {
+    public HandleLogoutUserAccount = async (req:Request,res:Response):Promise<Response> => {
         const refreshToken = req.cookies?.refreshToken;
         /** Note: Logout account payload. */
         const logoutAccountPayload:LogoutUserAccountInterface = {
@@ -181,7 +188,7 @@ class AuthControllers {
             userId:(req.user as UserDocument)._id.toString()
         };
 
-        const logoutAccount = await this.userServices.LogoutUserAccount(logoutAccountPayload);
+        const logoutAccount = await this.authServices.LogoutUserAccount(logoutAccountPayload);
         /** Note: clear access and refersh token from cookies */
         /** Note: Cookies Options. */
         const cookieOptions:CookieOptions = {
@@ -197,6 +204,76 @@ class AuthControllers {
             new ApiResponse([],SUCCESS_MESSAGES.AUTH.LOGOUT,true,STATUS_CODES.OK)
         )
     };
+
+    /**
+     * Note: Google auth callback handler.
+     * @param {Request} req - Express request object.
+     * @param {Response} res - Express response object.
+     * @param {NextFunction} next - Express next middleware function.
+     * @returns {Promise<void>}
+    */
+    public HandleGoogleAuthCallback = async (req:Request,res:Response,next:NextFunction):Promise<void> => {
+        const user = await this.userServices.GetUserById((req.user as UserDocument)._id.toString());
+        /** Note: Generate AccessToken */
+        const {accessToken} = await this.authServices.GenerateRefreshAndAccessToken(user._id.toString());
+        /** Create Token Payload */
+        const createTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.REFRESH,
+            userId:user._id.toString()
+        };
+        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        /** Note: Cookies Options. */
+        const cookieOptions:CookieOptions = {
+            httpOnly:true,
+            sameSite:"lax",
+            secure:true
+        };
+        /** Remove Password field for the UserDocument. */
+        // const userObject = user.toObject();
+        // delete userObject.password;
+
+        
+        return res.status(STATUS_CODES.OK)
+        .cookie("accessToken",accessToken,cookieOptions)
+        .cookie("refreshToken",rawToken,cookieOptions)
+        .redirect(env.CLIENT_URL);
+    };
+    
+    /**
+     * Note: Facebook auth callback handler.
+     * @param {Request} req - Express request object.
+     * @param {Response} res - Express response object.
+     * @param {NextFunction} next - Express next middleware function.
+     * @returns {Promise<void>}
+    */
+    public HandleFacebookAuthCallback = async (req:Request,res:Response,next:NextFunction):Promise<void> => {
+        const user = await this.userServices.GetUserById((req.user as UserDocument)._id.toString());
+        /** Note: Generate AccessToken */
+        const {accessToken} = await this.authServices.GenerateRefreshAndAccessToken(user._id.toString());
+        /** Create Token Payload */
+        const createTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.REFRESH,
+            userId:user._id.toString()
+        };
+        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        /** Note: Cookies Options. */
+        const cookieOptions:CookieOptions = {
+            httpOnly:true,
+            sameSite:"lax",
+            secure:true
+        };
+        /** Remove Password field for the UserDocument. */
+        // const userObject = user.toObject();
+        // delete userObject.password;
+
+        
+        return res.status(STATUS_CODES.OK)
+        .cookie("accessToken",accessToken,cookieOptions)
+        .cookie("refreshToken",rawToken,cookieOptions)
+        .redirect(env.CLIENT_URL);
+    };
+    
+
 }
 
 export default AuthControllers;

@@ -7,11 +7,11 @@ import type { Socket } from "socket.io";
 import type { NextFunction,Request,Response } from "express";
 import UserServices from "../services/user.services.js";
 import ApiError from "../utils/ApiError.js";
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 import UserModel from "../models/user.model.js";
 import type { JwtPayloadInterface } from "../interfaces/auth.interfaces.js";
-import mongoose, { MongooseError } from "mongoose";
+import mongoose from "mongoose";
 import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class AuthMiddlewares {

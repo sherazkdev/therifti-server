@@ -1,7 +1,8 @@
 /** Note: imports types */
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 declare class AuthControllers {
     private userServices;
+    private authServices;
     /**
      * Note: Register User account.
      * @param req.
@@ -51,7 +52,23 @@ declare class AuthControllers {
      * @param res.
      * @returns Response.
     */
-    LogoutUserAccount: (req: Request, res: Response) => Promise<Response>;
+    HandleLogoutUserAccount: (req: Request, res: Response) => Promise<Response>;
+    /**
+     * Note: Google auth callback handler.
+     * @param {Request} req - Express request object.
+     * @param {Response} res - Express response object.
+     * @param {NextFunction} next - Express next middleware function.
+     * @returns {Promise<void>}
+    */
+    HandleGoogleAuthCallback: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    /**
+     * Note: Facebook auth callback handler.
+     * @param {Request} req - Express request object.
+     * @param {Response} res - Express response object.
+     * @param {NextFunction} next - Express next middleware function.
+     * @returns {Promise<void>}
+    */
+    HandleFacebookAuthCallback: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }
 export default AuthControllers;
 //# sourceMappingURL=auth.controllers.d.ts.map

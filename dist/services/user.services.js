@@ -3,9 +3,9 @@ import UserModel from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
-import { UserStatusEnum } from "../interfaces/user.interfaces.js";
+import { UserStatusEnum, } from "../interfaces/user.interfaces.js";
 import mongoose from "mongoose";
-import bcrypt, { genSalt } from "bcrypt";
+import bcrypt from "bcrypt";
 import ProductModel from "../models/product.model.js";
 import OtpServices from "./otp.services.js";
 import TokenServices from "./token.services.js";
@@ -86,162 +86,6 @@ class UserServices {
         const user = await this.GetUserById(userId);
         user.password = password;
         await user.save();
-        return;
-    }
-    /**
-     * Note: Register User account.
-     * @param userObject - required fields is email, password, zipCode is optionl, userName,
-     * @throw if emails exist.
-    */
-    async RegisterUserAccount(userObject) {
-        const { email, fullname, password, username, zipCode } = userObject;
-        const checkUserAccountEmailExist = await UserModel.findOne({
-            $or: [
-                { email: email },
-                { username: username }
-            ]
-        });
-        if (checkUserAccountEmailExist?.email === email) {
-            if (checkUserAccountEmailExist.isVerfied === true) {
-                throw new ApiError(STATUS_CODES.UNAUTHORIZED, ERROR_MESSAGES.AUTH.EMAIL_EXISTS);
-            }
-            /** Note: if user is not verified send otp. */
-            const sendOtpPayload = {
-                purpose: "REGISTER_ACCOUNT",
-                email: email,
-                userId: checkUserAccountEmailExist._id.toString()
-            };
-            const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);
-            return checkUserAccountEmailExist;
-        }
-        if (checkUserAccountEmailExist?.username === username) {
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED, ERROR_MESSAGES.AUTH.USERNAME_EXISTS);
-        }
-        /** Note: end otp hashing section. */
-        const UserDocument = {
-            email: email,
-            fullname: fullname,
-            password: password,
-            username: username,
-            isVerfied: false
-        };
-        const created_user = await UserModel.create(UserDocument);
-        /** Note: Generate new otp for email verification. */
-        const sendOtpPayload = {
-            purpose: "REGISTER_ACCOUNT",
-            email: email,
-            userId: created_user._id.toString()
-        };
-        const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);
-        /** Send response */
-        return created_user;
-    }
-    /**
-     * Note: Sended verification otp verifier.
-     * @param otpObject - userId.
-     * @param otpObject - otp.
-     * @update userDocument update isVerified status.
-     * @returns Boolean.
-    */
-    async VerifyRegistrationOtp(otpObject) {
-        const { userId } = otpObject;
-        /** Verify Registration Otp */
-        const verifyOtp = await this.otpServices.VerifyOtp(otpObject);
-        const user = await this.GetUserById(userId);
-        /** Note: Generate access and refresh token. */
-        const { accessToken } = await this.GenerateRefreshAndAccessToken(userId);
-        /** Note: Update user document and asign the refreshToken etc.*/
-        /** Note: Create a token for a refreshToken etc.*/
-        const createTokenPayload = {
-            type: TokenTypes.REFRESH,
-            userId: user._id.toString()
-        };
-        const { rawToken } = await this.tokenServices.CreateToken(createTokenPayload);
-        const returnedUser = user.toObject();
-        delete returnedUser.password;
-        return {
-            user: returnedUser,
-            tokens: {
-                accessToken: accessToken,
-                refreshToken: rawToken
-            }
-        };
-    }
-    /**
-     * Note: Account access and refresh token generater.
-     * @param userDocument - with Document.
-     * @update userDocument.refreshToken.
-     * @returns access_token and refresh_token.
-    */
-    async GenerateRefreshAndAccessToken(userId) {
-        const user = await this.GetUserById(userId);
-        const accessToken = await user.GenerateAccessToken();
-        return { accessToken };
-    }
-    /**
-     * Note: Login user with email and password
-     * @param userObject - email and password is required fields.
-     * @check email is exit.
-     * @update userDocument refreshToken and lastSeen.
-     * @returns access and refresh token.
-    */
-    async LoginUserAccount(userObject) {
-        const { email, password } = userObject;
-        const user = await UserModel.findOne({ email: email, isVerfied: true });
-        if (!user) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
-        }
-        /** Match Password. */
-        if (!user.password) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
-        }
-        const hashed_password = user.password;
-        /** Note: Compare normal password to hashpassword. */
-        const compare_password = await bcrypt.compare(password, hashed_password);
-        if (!compare_password) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
-        }
-        /** Note: Generate access and refresh token. */
-        const { accessToken } = await this.GenerateRefreshAndAccessToken(user._id.toString());
-        /** Note: Create a token for a refreshToken etc.*/
-        const createTokenPayload = {
-            type: TokenTypes.REFRESH,
-            userId: user._id.toString()
-        };
-        const { rawToken } = await this.tokenServices.CreateToken(createTokenPayload);
-        const returnedUser = user.toObject();
-        delete returnedUser.password;
-        return {
-            user: returnedUser,
-            tokens: {
-                refreshToken: rawToken,
-                accessToken
-            }
-        };
-    }
-    /**
-     * Note: Forgot account password
-     * @param forgotAccoutDetails - email is hardly required.
-     * @check email is exist.
-     * @update user document otp and otp expiry.
-     * @returns NULL.
-    */
-    async ForgotAccountPassword(forgotAccoutDetails) {
-        const { email } = forgotAccoutDetails;
-        console.log(forgotAccoutDetails);
-        const user = await UserModel.findOne({ email: email, isVerfied: true });
-        console.log(user);
-        if (!user) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND);
-        }
-        /** Note: if account is exist generate a new otp and with email. */
-        /** Note: Send otp on email using with nodemailer */
-        const sendOtpPayload = {
-            userId: user._id.toString(),
-            purpose: "FORGOT_ACCOUNT",
-            email: email
-        };
-        const sendOtp = await this.otpServices.SendOtp(sendOtpPayload);
         return;
     }
     /**
@@ -512,25 +356,6 @@ class UserServices {
     async ChangeAccountEmailVerifyOtp(userObject) {
     }
     /**
-     * Note: Logout User Account Remove access and refreshToken.
-     * @param userObject - userId.
-     * @update userDocument refreshToken.
-     * @return null.
-    */
-    async LogoutUserAccount(userObject) {
-        const { userId, refreshToken } = userObject;
-        const user = await this.GetUserById(userId);
-        /** Note: Delete RefreshToken */
-        const findRefreshTokenPayload = {
-            token: refreshToken,
-            type: TokenTypes.REFRESH,
-            userId: userId
-        };
-        const token = await this.tokenServices.FindValidToken(findRefreshTokenPayload);
-        await token.deleteOne();
-        return true;
-    }
-    /**
      * Note: Deactivate user account.
      * @param userObject - userId
      * @update userDocument status.
@@ -567,63 +392,6 @@ class UserServices {
         await user.save();
         return;
     }
-    /**
-     * Note: Verify Forgot account otp.
-     * @param otpObject - email.
-     * @param otpObject - otp.
-     * @returns null.
-    */
-    async VerifyForgotAccountOtp(otpObject) {
-        const { email, otp } = otpObject;
-        const user = await UserModel.findOne({
-            email: email
-        });
-        /** Note: Check email is exist. */
-        if (!user) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND);
-        }
-        /** Note: otp verify payload. */
-        const OtpVerifyPayload = {
-            otp: otp,
-            purpose: "FORGOT_ACCOUNT",
-            userId: user._id.toString()
-        };
-        const {} = await this.otpServices.VerifyOtp(OtpVerifyPayload);
-        /** Note: Create Reset token. for non authenticated. */
-        const resetTokenPayload = {
-            type: TokenTypes.RESET_PASSWORD,
-            userId: user._id.toString(),
-        };
-        const { rawToken } = await this.tokenServices.CreateToken(resetTokenPayload);
-        return { resetToken: rawToken };
-    }
-    /**
-     * Note: Reset password with resetToken based verification is only for un authencticated.
-     * @param resetObject - resetToken.
-     * @param resetObject - email.
-     * @update userDocument - password.
-     * @return null.
-    */
-    async resetPasswordWithToken(resetObject) {
-        const { email, resetToken, password } = resetObject;
-        /** Note: Check user exist. */
-        const user = await UserModel.findOne({ email: email });
-        if (!user) {
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.USER.NOT_FOUND);
-        }
-        /** Note: verify reset token now. */
-        const verifyResetTokenPayload = {
-            rawToken: resetToken,
-            type: TokenTypes.RESET_PASSWORD,
-            userId: user._id.toString()
-        };
-        const tokenVerification = await this.tokenServices.VerifyResetToken(verifyResetTokenPayload);
-        /** Note: after reset token verification assign the user document password to password and automatecly saved in db hashed password. */
-        user.password = password;
-        await user.save();
-        return;
-    }
-    ;
 }
 export default UserServices;
 //# sourceMappingURL=user.services.js.map

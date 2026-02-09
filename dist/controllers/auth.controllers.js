@@ -2,12 +2,13 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 /** Note: Response Constants. */
 import { ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES } from "../constants/responseConstants.js";
-/** Note: imported UserServices. */
-import UserServices from "../services/user.services.js";
 /** Zod Validaters  */
 import { VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_REGISTERATION_OTP } from "../validaters/user.validaters.js";
+import UserServices from "../services/user.services.js";
+import AuthServices from "../services/auth.services.js";
 class AuthControllers {
     userServices = new UserServices();
+    authServices = new AuthServices();
     /**
      * Note: Register User account.
      * @param req.
@@ -23,7 +24,7 @@ class AuthControllers {
         /** Note: Register User Payload. */
         const { email, fullname, password, username, zipCode } = result.data;
         const registerUserPayload = result.data;
-        const registerUser = await this.userServices.RegisterUserAccount(registerUserPayload);
+        const registerUser = await this.authServices.RegisterUserAccount(registerUserPayload);
         return res.status(200).json(new ApiResponse(registerUser, SUCCESS_MESSAGES.AUTH.REGISTER + ", And verify otp.", true, 200));
     };
     /**
@@ -44,7 +45,7 @@ class AuthControllers {
             userId: userId,
             purpose: "REGISTER_ACCOUNT"
         };
-        const { tokens, user } = await this.userServices.VerifyRegistrationOtp(otpObject);
+        const { tokens, user } = await this.authServices.VerifyRegistrationOtp(otpObject);
         /** Note: Cookies Options. */
         const cookieOptions = {
             httpOnly: true,
@@ -69,7 +70,7 @@ class AuthControllers {
         }
         /** Note: verifyUser credinals payload. */
         const verifyUserPayload = result.data;
-        const { user, tokens } = await this.userServices.LoginUserAccount(verifyUserPayload);
+        const { user, tokens } = await this.authServices.LoginUserAccount(verifyUserPayload);
         /** Note: Cookies Options. */
         const cookieOptions = {
             httpOnly: true,
@@ -97,7 +98,7 @@ class AuthControllers {
         const forgotPasswordPayload = {
             email: email
         };
-        const sendOtpProccessing = await this.userServices.ForgotAccountPassword(forgotPasswordPayload);
+        const sendOtpProccessing = await this.authServices.ForgotAccount(forgotPasswordPayload);
         return res.status(STATUS_CODES.OK).json(new ApiResponse([], SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED, true, STATUS_CODES.OK));
     };
     /**
@@ -117,7 +118,7 @@ class AuthControllers {
             email: email,
             otp: otp
         };
-        const { resetToken } = await this.userServices.VerifyForgotAccountOtp(verifyForgotAccountOtpPayload);
+        const { resetToken } = await this.authServices.VerifyForgotAccountOtp(verifyForgotAccountOtpPayload);
         return res.status(STATUS_CODES.OK).json(new ApiResponse({ resetToken }, SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED, true, STATUS_CODES.OK));
     };
     /**
@@ -134,7 +135,7 @@ class AuthControllers {
         }
         /** Note: Reset password payload. */
         const resetPasswordPayload = result.data;
-        const resetPasswordService = await this.userServices.resetPasswordWithToken(resetPasswordPayload);
+        const resetPasswordService = await this.authServices.resetPasswordWithToken(resetPasswordPayload);
         return res.status(STATUS_CODES.OK).json(new ApiResponse([], SUCCESS_MESSAGES.USER.UPDATE, true, STATUS_CODES.OK));
     };
     /**
@@ -143,14 +144,14 @@ class AuthControllers {
      * @param res.
      * @returns Response.
     */
-    LogoutUserAccount = async (req, res) => {
+    HandleLogoutUserAccount = async (req, res) => {
         const refreshToken = req.cookies?.refreshToken;
         /** Note: Logout account payload. */
         const logoutAccountPayload = {
             refreshToken: refreshToken,
             userId: req.user._id.toString()
         };
-        const logoutAccount = await this.userServices.LogoutUserAccount(logoutAccountPayload);
+        const logoutAccount = await this.authServices.LogoutUserAccount(logoutAccountPayload);
         /** Note: clear access and refersh token from cookies */
         /** Note: Cookies Options. */
         const cookieOptions = {
@@ -163,6 +164,24 @@ class AuthControllers {
             .clearCookie("accessToken", cookieOptions)
             .json(new ApiResponse([], SUCCESS_MESSAGES.AUTH.LOGOUT, true, STATUS_CODES.OK));
     };
+    /**
+     * Note: Google auth callback handler.
+     * @param {Request} req - Express request object.
+     * @param {Response} res - Express response object.
+     * @param {NextFunction} next - Express next middleware function.
+     * @returns {Promise<void>}
+    */
+    HandleGoogleAuthCallback = async (req, res, next) => {
+        console.log(req.user);
+    };
+    /**
+     * Note: Facebook auth callback handler.
+     * @param {Request} req - Express request object.
+     * @param {Response} res - Express response object.
+     * @param {NextFunction} next - Express next middleware function.
+     * @returns {Promise<void>}
+    */
+    HandleFacebookAuthCallback = async (req, res, next) => { };
 }
 export default AuthControllers;
 //# sourceMappingURL=auth.controllers.js.map

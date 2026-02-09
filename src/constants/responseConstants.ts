@@ -122,6 +122,7 @@ export const ERROR_MESSAGES = {
         REFRESH_TOKEN_NOT_FOUND: "Refresh token is not found",
         OTP_NOT_FOUND: "Otp not found",
         INVALID_OTP: "Invalid otp",
+        OAUTH_EMAIL_NOT_PROVIDED: "Authentication failed. Please try another sign-in method",
         EMAIL_NOT_FOUND: "Email not found",
         TOKEN_NOT_FOUND: "Token not found",
         TOKEN_IS_USED: "Token is used already",

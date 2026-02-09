@@ -1,5 +1,4 @@
-import { type AuthResponseInterface, type ChangeAccountEmailInterface, type ChangeAccountEmailResponseInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type LoginUserAccountInterface, type RefreshAndAccessTokenGeneraterInterface, type RegisterUserAccountMenuallyInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type VerifyUpdateEmailOtpInterface, type VerifyForgotAccountOtpInterface, type resetPasswordWithTokenInterface, type LogoutUserAccountInterface } from "../interfaces/user.interfaces.js";
-import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
+import { type ChangeAccountEmailInterface, type ChangeAccountEmailResponseInterface, type ChangeAccountEmailVerifyOtpInterface, type ChangeAccountPasswordInterface, type GetUserProfileInterface, type UpdateUserPasswordInterface, type UpdateUserProfileInterface, type UserDocument, type VerifyUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
 /**
  * Note: Service Methods.
  * 01: GetUserById
@@ -54,45 +53,6 @@ declare class UserServices {
     */
     UpdateUserAccountPassword(userObject: UpdateUserPasswordInterface): Promise<void>;
     /**
-     * Note: Register User account.
-     * @param userObject - required fields is email, password, zipCode is optionl, userName,
-     * @throw if emails exist.
-    */
-    RegisterUserAccount(userObject: RegisterUserAccountMenuallyInterface): Promise<UserDocument>;
-    /**
-     * Note: Sended verification otp verifier.
-     * @param otpObject - userId.
-     * @param otpObject - otp.
-     * @update userDocument update isVerified status.
-     * @returns Boolean.
-    */
-    VerifyRegistrationOtp(otpObject: VerifyOtpInterface): Promise<AuthResponseInterface>;
-    /**
-     * Note: Account access and refresh token generater.
-     * @param userDocument - with Document.
-     * @update userDocument.refreshToken.
-     * @returns access_token and refresh_token.
-    */
-    protected GenerateRefreshAndAccessToken(userId: string): Promise<RefreshAndAccessTokenGeneraterInterface>;
-    /**
-     * Note: Login user with email and password
-     * @param userObject - email and password is required fields.
-     * @check email is exit.
-     * @update userDocument refreshToken and lastSeen.
-     * @returns access and refresh token.
-    */
-    LoginUserAccount(userObject: LoginUserAccountInterface): Promise<AuthResponseInterface>;
-    /**
-     * Note: Forgot account password
-     * @param forgotAccoutDetails - email is hardly required.
-     * @check email is exist.
-     * @update user document otp and otp expiry.
-     * @returns NULL.
-    */
-    ForgotAccountPassword(forgotAccoutDetails: {
-        email: string;
-    }): Promise<void>;
-    /**
      * Note: Change Account Password.
      * @param accountDetails - userId and password
      * @check email is exist.
@@ -141,13 +101,6 @@ declare class UserServices {
     */
     ChangeAccountEmailVerifyOtp(userObject: ChangeAccountEmailVerifyOtpInterface): Promise<void>;
     /**
-     * Note: Logout User Account Remove access and refreshToken.
-     * @param userObject - userId.
-     * @update userDocument refreshToken.
-     * @return null.
-    */
-    LogoutUserAccount(userObject: LogoutUserAccountInterface): Promise<Boolean>;
-    /**
      * Note: Deactivate user account.
      * @param userObject - userId
      * @update userDocument status.
@@ -165,23 +118,6 @@ declare class UserServices {
     ActivateUserAccount(userObject: {
         userId: string;
     }): Promise<void>;
-    /**
-     * Note: Verify Forgot account otp.
-     * @param otpObject - email.
-     * @param otpObject - otp.
-     * @returns null.
-    */
-    VerifyForgotAccountOtp(otpObject: VerifyForgotAccountOtpInterface): Promise<{
-        resetToken: string;
-    }>;
-    /**
-     * Note: Reset password with resetToken based verification is only for un authencticated.
-     * @param resetObject - resetToken.
-     * @param resetObject - email.
-     * @update userDocument - password.
-     * @return null.
-    */
-    resetPasswordWithToken(resetObject: resetPasswordWithTokenInterface): Promise<void>;
 }
 export default UserServices;
 //# sourceMappingURL=user.services.d.ts.map
