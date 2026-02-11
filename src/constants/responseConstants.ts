@@ -153,6 +153,15 @@ export const ERROR_MESSAGES = {
         NOT_FOUND: "Category not found"
     },
 
+    SIZE: {
+      NOT_FOUND: "Size not found",
+      ALREADY_EXIST: "Size already exist"
+    },
+
+    BRAND : {
+      ALREADY_EXIST: "Brand already exist",
+      NOT_FOUND: "Brand not found"
+    },
     ORDER: {
         NOT_FOUND: "Order not found",
         CREATE_FAILED: "Failed to place order",

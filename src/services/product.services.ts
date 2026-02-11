@@ -8,7 +8,7 @@ import type { CreateProductInterface, ProductDocument, SearchProductInterface } 
 import mongoose from "mongoose";
 
 class ProductServices {
-
+    
     /**
      * Note: Create Product
      * @constructor
@@ -22,10 +22,11 @@ class ProductServices {
      * @param {string} material - Product material
      * @param {string} condition - Product condition
      * @param {string} size - Product size
+     * @param {string} status - Product status
      * @returns {Promise<ProductDocument>} Newly created product
     */
     public async CreateProduct(productDetails:CreateProductInterface):Promise<ProductDocument> {
-        const {brand,categoryId,colors,condition,coverImage,description,material,owner,price,size,title} = productDetails;
+        const {brand,categoryId,colors,condition,coverImage,description,material,owner,price,size,title,status} = productDetails;
         /** Note: Check Selected category is exist. */
         const category = await CategoryModel.findById(new mongoose.Types.ObjectId(categoryId));
         if(!category){
@@ -33,16 +34,20 @@ class ProductServices {
         }
         /** Note: Create Product Document */
         const ProductDocument = await ProductModel.create({
-            categoryId:new mongoose.Types.ObjectId(category),
+            categoryId:new mongoose.Types.ObjectId(categoryId),
             owner:new mongoose.Types.ObjectId(owner),
+            size:new mongoose.Types.ObjectId(size),
             title:title,
             description:description,
             brand:new mongoose.Types.ObjectId(brand),
             colors:colors,
             condition:condition,
             coverImage:coverImage,
-            material
-        })
+            material:material,
+            price:price,
+            status:status
+        });
+        return ProductDocument;
     };
 
     /**
@@ -61,7 +66,67 @@ class ProductServices {
      * @returns {Promise<[]>} - Searched product
     */
     public async SearchProduct(searchDetails:SearchProductInterface):Promise<ProductDocument[]> {
+        const {conditions,meterials,page,categoryId,price,q,limit,brands,sizes,userId} = searchDetails;
+        let searchProductQuery:any = {
+            
+        };
+        /** Note: Pagination */
+        const pageNumber = page;
+        const limitNumber = limit;
+        /** Note: Skip SearchProducts */
+        const skipNumber = (pageNumber - 1) * limitNumber;
+        
+        if(price){
+            /** Sort min price */
+            if(price.min) searchProductQuery.price.$gte = Number(price.min);
+            
+            /** Sort min price */
+            if(price.max) searchProductQuery.price.$lte = Number(price.max);
+        }
+        if(categoryId) searchProductQuery.categoryId = new mongoose.Types.ObjectId(categoryId);
+        if(conditions && conditions.length > 0) searchProductQuery.condition = { $in : conditions};
+        if(sizes && sizes.length > 0) searchProductQuery.size = { $in : sizes};
+        if(meterials && meterials.length > 0) searchProductQuery.meterial = { $in : meterials};
+        if(brands && brands.length > 0) searchProductQuery.brand = { $in : brands};
+        if(q) searchProductQuery.title = {$regex:q,$options: "i"};
 
+        const searchProducts = await ProductModel.aggregate([
+            {
+                $match : searchProductQuery
+            },
+            {
+                $lookup : {
+                    from:"wishlists",
+                    localField:"_id",            
+                    foreignField: "productId",
+                    as: "likes"
+                }
+            },
+            {
+                $addFields : {
+                    isLiked: {
+                        $in: [new mongoose.Types.ObjectId(userId),"$likes.owner"]
+                    },
+                    totalLikes: {
+                        $size : "$likes"
+                    }
+                }
+            },
+            {
+                $project : {
+                    _id:1,
+                    title:1,
+                    coverImage:1,
+                    totalLikes:1,
+                    isLiked:1,
+                    price:1,
+                    parcelSize:1,
+                    condition:1
+                }
+            }
+        ]);
+        
+        re
     }
 
     /**
@@ -100,9 +165,6 @@ class ProductServices {
     */
     public async GetFeaturedProducts():Promise<ProductDocument[]> {};
 
-    /**
-     * 
-    */
 }
 
 export default ProductServices;

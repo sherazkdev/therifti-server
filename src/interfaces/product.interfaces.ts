@@ -90,7 +90,7 @@ export enum ProductColor {
 
   MULTICOLOR = "MULTICOLOR",
 }
-export enum ProductSize {
+export enum ProductParcelSize {
     SMALL = "SMALL",
     MEDIUM = "MEDIUM",
     LARGE = "LARGE"
@@ -112,7 +112,8 @@ export interface ProductInterface {
     coverImage:string,
     colors:ProductColor[],
     material:ProductMaterial,
-    size:ProductSize,
+    parcelSize:ProductParcelSize,
+    size:Types.ObjectId,
     price:number,
     status:ProductStatus,
 };
@@ -130,19 +131,25 @@ export interface CreateProductInterface {
   coverImage:string,
   colors:ProductColor[],
   material:ProductMaterial,
-  size:ProductSize,
+  parcelSize:ProductParcelSize,
+  size:string,
   price:number,
+  status:ProductStatus
 }
 
 export interface SearchProductInterface {
+  userId?:string,
   q?:string,
   categoryId?:string,
   price?:{
     min?:number,
     max?:number
   },
-  meterial:string[],
-  condition:ProductCondition,
+  meterials:string[],
+  conditions:ProductCondition[],
+  brands:string[],
+  sizes:string[],
   page:number,
-  
+  limit:number
 }
+
