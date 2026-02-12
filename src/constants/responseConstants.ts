@@ -86,6 +86,21 @@ export const SUCCESS_MESSAGES = {
     BUMP_EXPIRED: "Product promotion expired"
   },
 
+  SIZE: {
+    FETCHED:"Size Documents fetched successfully",
+    NOT_FOUND:"Size not found",
+    CREATED:"Size Document successfully created",
+    UPDATED:"Size Document successfully updated",
+    DELETED:"Size Document successfully deleted"
+  },
+  BRAND: {
+    FETCHED:"Size Documents fetched successfully",
+    NOT_FOUND:"Size not found",
+    CREATED:"Size Document successfully created",
+    UPDATED:"Size Document successfully updated",
+    DELETED:"Size Document successfully deleted"
+  },
+
   BUNDLE: {
     CREATED: "Bundle created successfully"
   },

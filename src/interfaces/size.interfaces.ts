@@ -17,10 +17,10 @@ export interface SizeDocument extends SizeInterface, Document {};
 export interface CreateSizeInterface {
     categoryId:string,
     international: string
-    US?: string
-    EU?: string
-    UK?: string
-    waist?: string
+    US?: string | null
+    EU?: string | null
+    UK?: string | null
+    waist?: string | null
 }
 export interface UpdateSizeInterface {
     sizeId:string,

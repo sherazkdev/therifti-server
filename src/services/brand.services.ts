@@ -50,4 +50,4 @@ class BrandServices {
     
 }
 
-export default BrandServices
+export default BrandServices;

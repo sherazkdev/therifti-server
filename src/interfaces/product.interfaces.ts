@@ -1,4 +1,12 @@
 import type {Types,Document} from "mongoose";
+export const PRODUCT_SORT = [
+  "PRICE_HIGH_TO_LOW",
+  "PRICE_LOW_TO_HIGH",
+  "NEWEST_FIRST",
+  "RELEVANCE",
+] as const;
+
+export type ProductSort = typeof PRODUCT_SORT[number];
 
 export enum ProductCondition {
   NEW_WITH_TAGS = "NEW_WITH_TAGS",
@@ -153,3 +161,36 @@ export interface SearchProductInterface {
   limit:number
 }
 
+export interface UpdateProductInterface {
+  productId:string,
+  categoryId:string,
+  title:string,
+  description:string,
+  condition:ProductCondition,
+  brand:Types.ObjectId,
+  coverImage:string,
+  colors:ProductColor[],
+  material:ProductMaterial,
+  parcelSize:ProductParcelSize,
+  size:string,
+  price:number,
+  status:ProductStatus
+}
+
+export interface FeaturedProductsInterface {
+  userId?:string,
+  page:number,
+  limit:10,
+  categoryId?:string,
+  price?:{
+    min?:number,
+    max?:number
+  },
+  sizes:string[],
+  sort:ProductSort
+}
+
+export interface GetSingleProductInterface {
+  productId:string,
+  userId?:string
+}
