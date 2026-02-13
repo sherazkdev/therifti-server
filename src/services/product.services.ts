@@ -171,7 +171,7 @@ class ProductServices {
         product.parcelSize = parcelSize;
         product.description = description;
         product.condition = condition;
-        product.size = new mongoose.Types.Object(size);
+        product.size = new mongoose.Types.ObjectId(size);
         product.brand = new mongoose.Types.ObjectId(brand);
         product.status = status;
         product.price = price;
@@ -181,7 +181,7 @@ class ProductServices {
     };
 
     /**
-     * Note: Get Featured products
+     * Note: Get Featured products.
      * @constructer
      * @param {string} categoryId - Sort by category
      * @param {number} price - Sory by price
@@ -448,7 +448,7 @@ class ProductServices {
 
 
     /**
-     * Note: Get Product By Category 
+     * Note: Get Products Lenght
     */
 }
 

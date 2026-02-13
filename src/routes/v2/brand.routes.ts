@@ -11,3 +11,9 @@ import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 const BrandRouter:Router = express.Router();
 const brandControllers = new BrandControllers();
 const authMiddlewares = new AuthMiddlewares();
+
+/** Secure Routes */
+BrandRouter.route("/create").post(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(brandControllers.HandleCreateBrand));
+BrandRouter.route("/get-brands-by-category/:categoryId").get(AsyncHandler(brandControllers.HandleGetBrandByCategory));
+
+export default BrandRouter;

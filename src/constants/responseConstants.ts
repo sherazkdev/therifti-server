@@ -165,7 +165,10 @@ export const ERROR_MESSAGES = {
     },
 
     CATEGORY: {
-        NOT_FOUND: "Category not found"
+        NOT_FOUND: "Category not found",
+        ALREADY_EXIST: "Category allready exist",
+        FETCHED: "Categories fetched",
+        DELETE_CATEGORY_WITH_PRODUCTS: "Cannot delete category. {count} products are associated with this category."
     },
 
     SIZE: {
