@@ -4,6 +4,11 @@ import {type ChatDocument} from "../interfaces/chat.interfaces.js";
 
 /** Chat Model */
 const ChatSchema = new mongoose.Schema<ChatDocument>({
+    productRef:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Product",
+        required:true
+    },
     members:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",

@@ -7,3 +7,14 @@ export interface WishlistInterface {
 };
 
 export interface WishlistDocument extends WishlistInterface, Document {};
+
+/** Note: Add To wishlist interface. */
+export interface AddToWishlistInterface {
+    productId:string,
+    owner:string
+}
+
+/** Note: Remove to wishlist interface */
+export interface RemoveToWishlistInterface {
+    wishlistId:string
+}

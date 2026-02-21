@@ -145,7 +145,21 @@ export const ERROR_MESSAGES = {
         ACCESS_TOKEN_NOT_FOUND: "Access token is not found",
         TOKEN_INVALID: "Invalid authentication token"
     },
-
+    FOLLOW:{
+      FOLLOWED:"User followed successfully",
+      UN_FOLLOWED:"User unFollowed successfully",
+      NOT_FOUND:"Follower is not found",
+      FOLLOWER_FETCHED:"Follower fetched successfully",
+      ALREADY_EXIST:"Follower allready exist",
+      FOLLOWING_FETCHED:"Following fetched successfully",
+    },
+    WISHLIST:{
+      NOT_FOUND:"Wishlist not found",
+      ALREADY_EXIST:"Wishlist allready exist",
+      CREATED:"Wishlist created successfully",
+      REMOVED:"Wishlist removed successfully",
+      FETCHED:"Wishlist successfully fetched"
+    },
     USER: {
         NOT_FOUND: "User not found",
         UPDATE_FAILED: "Failed to update user profile",

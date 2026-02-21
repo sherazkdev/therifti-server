@@ -5,7 +5,6 @@ import CategoryModel from "../models/category.model.js";
 
 /** Api Services */
 import ApiError from "../utils/ApiError.js";
-import ApiResponse from "../utils/ApiResponse.js";
 
 /** Services */
 import ProductModel from "../models/product.model.js";
@@ -167,7 +166,7 @@ class CategoryServices {
         /** Note: Check Product exist to using this category. */
         const productsLenght = await ProductModel.countDocuments({categoryId:new mongoose.Types.ObjectId(categoryId)});
         if(productsLenght > 0){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.CATEGORY.DELETE_CATEGORY_WITH_PRODUCTS.replace("{count}",productsLenght.toStrinG()));
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.CATEGORY.DELETE_CATEGORY_WITH_PRODUCTS.replace("{count}",productsLenght.toString()));
         }
         /** Note: Delete Category document. */
         await category.deleteOne();
