@@ -212,6 +212,7 @@ export const ERROR_MESSAGES = {
 
     CHAT: {
         CHAT_NOT_FOUND: "Chat not found",
+        ALREADY_EXIST:"Chat already exist",
         MESSAGE_FAILED: "Failed to send message"
     },
 

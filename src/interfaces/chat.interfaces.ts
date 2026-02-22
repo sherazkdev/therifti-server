@@ -14,3 +14,8 @@ export interface CreateChatInterface {
     members:string[],
     productRef:string
 }
+
+/** Note: Get Chats Interface */
+export interface GetChatInterface {
+    userId:string
+}
