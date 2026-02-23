@@ -7,9 +7,4 @@ import CategoryServices from "../services/category.services.js";
 
 class CategoryControllers extends CategoryServices {
     
-    constructor(){
-        super();
-    }
-
-    /** Handle Get Category Products */
 }

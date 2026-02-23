@@ -10,7 +10,6 @@ import ProductServices from "../services/product.services.js";
 class ProductControllers {
     private productServices = new ProductServices();
 
-
     /**
      * Note: Handle Create new product document.
      * @param {Request} req - Request parameter object.

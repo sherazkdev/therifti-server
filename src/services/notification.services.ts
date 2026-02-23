@@ -6,6 +6,27 @@ import type { CreateNotificationInterface, NotificationDocument } from "../inter
 
 
 class NotificationServices {
+    
+    /**
+     * Note: Create Notification Service
+     *
+     * Purpose:
+     * This service is responsible for creating and storing notifications
+     * for users when they are offline. These notifications allow users
+     * to view missed activities such as new messages or follower actions
+     * once they come back online.
+     *
+     * Use cases:
+     * - New message received while the recipient is offline
+     * - Follower activity while the user is offline
+     * - Product price drop notification for followers
+     * - Product sold notification for users who added the product to their wishlist
+     *
+     * Notes:
+     * - Notifications are stored as history records
+     * - This service does not send real-time notifications
+     * - Used only when the recipient is offline
+    */
     public async CreateNotification(notificationObject: CreateNotificationInterface): Promise<NotificationDocument> {
         const { recipient_id, type, metaData, linkUrl } = notificationObject;
 

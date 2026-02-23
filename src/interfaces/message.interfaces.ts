@@ -29,5 +29,10 @@ export interface GetChatMessagesInterface {
     limit?:number,
 }
 
+export interface MarkMessagesAsSeenInterface {
+    chatId:string,
+    receiverId:string
+}
+
 /** Message Document */
 export interface MessageDocument extends MessageInterface, Document {};

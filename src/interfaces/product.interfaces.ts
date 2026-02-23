@@ -8,107 +8,113 @@ export const PRODUCT_SORT = [
 
 export type ProductSort = typeof PRODUCT_SORT[number];
 
-export enum ProductCondition {
-  NEW_WITH_TAGS = "NEW_WITH_TAGS",
-  NEW_WITHOUT_TAGS = "NEW_WITHOUT_TAGS",
-  VERY_GOOD = "VERY_GOOD",
-  GOOD = "GOOD",
-  SATISFACTORY = "SATISFACTORY",
-};
+export const PRODUCT_CONDITION = ["NEW_WITH_TAGS","NEW_WITHOUT_TAGS","VERY_GOOD","GOOD","SATISFACTORY"] as const;
+export type ProductCondition = typeof PRODUCT_CONDITION[number];
 
-export enum ProductMaterial {
-  ACRYLIC = "ACRYLIC",
-  ALPACA = "ALPACA",
-  BAMBOO = "BAMBOO",
-  CANVAS = "CANVAS",
-  CARDBOARD = "CARDBOARD",
-  CASHMERE = "CASHMERE",
-  CERAMIC = "CERAMIC",
-  CHIFFON = "CHIFFON",
-  CORDUROY = "CORDUROY",
-  COTTON = "COTTON",
-  DENIM = "DENIM",
-  DOWN = "DOWN",
-  ELASTANE = "ELASTANE",
-  FAUX_FUR = "FAUX_FUR",
-  FAUX_LEATHER = "FAUX_LEATHER",
-  FELT = "FELT",
-  FLANNEL = "FLANNEL",
-  FLEECE = "FLEECE",
-  FOAM = "FOAM",
-  GLASS = "GLASS",
-  GOLD = "GOLD",
-  JUTE = "JUTE",
-  LACE = "LACE",
-  LATEX = "LATEX",
-  LEATHER = "LEATHER",
-  LINEN = "LINEN",
-  MERINO = "MERINO",
-  MESH = "MESH",
-  METAL = "METAL",
-  MOHAIR = "MOHAIR",
-  NEOPRENE = "NEOPRENE",
-  NYLON = "NYLON",
-  PAPER = "PAPER",
-  PATENT_LEATHER = "PATENT_LEATHER",
-  PLASTIC = "PLASTIC",
-  POLYESTER = "POLYESTER",
-  PORCELAIN = "PORCELAIN",
-  RATTAN = "RATTAN",
-  RAYON = "RAYON",
-  RUBBER = "RUBBER",
-  SATIN = "SATIN",
-  SEQUIN = "SEQUIN",
-  SILICONE = "SILICONE",
-  SILK = "SILK",
-  SILVER = "SILVER",
-  STEEL = "STEEL",
-  STONE = "STONE",
-  STRAW = "STRAW",
-  SUEDE = "SUEDE",
-  TULLE = "TULLE",
-  TWEED = "TWEED",
-  VELOUR = "VELOUR",
-  VELVET = "VELVET",
-  WOOD = "WOOD",
-  WOOL = "WOOL",
-}
-export enum ProductColor {
-  BLACK = "BLACK",
-  WHITE = "WHITE",
-  GREY = "GREY",
-  BROWN = "BROWN",
-  BEIGE = "BEIGE",
+/** Note: Product Material array */
+export const PRODUCT_MATERIAL = [
+  "ACRYLIC",
+  "ALPACA",
+  "BAMBOO",
+  "CANVAS",
+  "CARDBOARD",
+  "CASHMERE",
+  "CERAMIC",
+  "CHIFFON",
+  "CORDUROY",
+  "COTTON",
+  "DENIM",
+  "DOWN",
+  "ELASTANE",
+  "FAUX_FUR",
+  "FAUX_LEATHER",
+  "FELT",
+  "FLANNEL",
+  "FLEECE",
+  "FOAM",
+  "GLASS",
+  "GOLD",
+  "JUTE",
+  "LACE",
+  "LATEX",
+  "LEATHER",
+  "LINEN",
+  "MERINO",
+  "MESH",
+  "METAL",
+  "MOHAIR",
+  "NEOPRENE",
+  "NYLON",
+  "PAPER",
+  "PATENT_LEATHER",
+  "PLASTIC",
+  "POLYESTER",
+  "PORCELAIN",
+  "RATTAN",
+  "RAYON",
+  "RUBBER",
+  "SATIN",
+  "SEQUIN",
+  "SILICONE",
+  "SILK",
+  "SILVER",
+  "STEEL",
+  "STONE",
+  "STRAW",
+  "SUEDE",
+  "TULLE",
+  "TWEED",
+  "VELOUR",
+  "VELVET",
+  "WOOD",
+  "WOOL"
+] as const;
+export type ProductMaterial = typeof PRODUCT_MATERIAL[number];
 
-  RED = "RED",
-  MAROON = "MAROON",
-  PINK = "PINK",
-  PURPLE = "PURPLE",
-  ORANGE = "ORANGE",
-  YELLOW = "YELLOW",
+/** Note: Product Color array */
+export const PRODUCT_COLOR = [
+  "BLACK",
+  "WHITE",
+  "GREY",
+  "BROWN",
+  "BEIGE",
 
-  BLUE = "BLUE",
-  NAVY = "NAVY",
-  TEAL = "TEAL",
-  GREEN = "GREEN",
-  OLIVE = "OLIVE",
+  "RED",
+  "MAROON",
+  "PINK",
+  "PURPLE",
+  "ORANGE",
+  "YELLOW",
 
-  GOLD = "GOLD",
-  SILVER = "SILVER",
+  "BLUE",
+  "NAVY",
+  "TEAL",
+  "GREEN",
+  "OLIVE",
 
-  MULTICOLOR = "MULTICOLOR",
-}
-export enum ProductParcelSize {
-    SMALL = "SMALL",
-    MEDIUM = "MEDIUM",
-    LARGE = "LARGE"
-}
-export enum ProductStatus {
-    DRAFT = "DRAFT",
-    PUBLISHED = "PUBLISHED",
-    DELETED = "DELETED",
-    SOLD = "SOLD"
-}
+  "GOLD",
+  "SILVER",
+
+  "MULTICOLOR"
+] as const;
+export type ProductColor = typeof PRODUCT_COLOR[number];
+
+/** Note: Product Parcel size array */
+export const PRODUCT_PARCEL_SIZE = [
+  "SMALL",
+  "MEDIUM",
+  "LARGE"
+] as const;
+export type ProductParcelSize = typeof PRODUCT_PARCEL_SIZE[number];
+
+/** Note: Product Status array */
+export const PRODUCT_STATUS = [
+  "DRAFT",
+  "PUBLISHED",
+  "DELETED",
+  "SOLD"
+] as const;
+export type ProductStatus = typeof PRODUCT_STATUS[number];
 
 export interface ProductInterface {
     categoryId:Types.ObjectId,
@@ -138,7 +144,7 @@ export interface CreateProductInterface {
   brand:Types.ObjectId,
   coverImage:string,
   colors:ProductColor[],
-  material:ProductMaterial,
+  material:ProductMaterial[],
   parcelSize:ProductParcelSize,
   size:string,
   price:number,

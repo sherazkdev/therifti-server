@@ -1,16 +1,13 @@
 import MessageModel from "../models/message.model.js";
-import ApiError from "../utils/ApiError.js";
-import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import mongoose from "mongoose";
 import { MessageStatus } from "../interfaces/message.interfaces.js";
-import { NotificationType } from "../interfaces/notification.interface.js";
 
 /** Services */
-import type { SendMessageInterface,MessageDocument, GetChatMessagesInterface } from "../interfaces/message.interfaces.js";
+import type { SendMessageInterface,MessageDocument, GetChatMessagesInterface, MarkMessagesAsSeenInterface } from "../interfaces/message.interfaces.js";
 import SocketServices from "../sockets/sockets.js";
 
 class MessageServices {
-    private socketServices = new SocketServices();
+    private socketServices = SocketServices.io();
     
     /**
      * Note: Send Message Service.
@@ -91,13 +88,36 @@ class MessageServices {
 		return chatMessagesDocuments;
 	}
 
-	public async MarkMessagesAsSeen(chatId: string, receiverId: string) {
-		await MessageModel.updateMany({
+	/**
+	 * Marks all unread messages in a chat as seen.
+	 *
+	 * This service updates the status of all messages in a specific chat
+	 * that were sent **to the given receiver** and are not yet marked as
+	 * `SEEN`. It is typically used when a user opens a chat and views
+	 * previously unread messages.
+	 *
+	 * Update criteria:
+	 * - Matches messages by `chatId`
+	 * - Filters by `receiverId`
+	 * - Updates only messages whose status is not `SEEN`
+	 *
+	 * @param {MarkMessagesAsSeenInterface} params - Parameters required to mark messages as seen.
+	 * @param {string} params.chatId - Unique identifier of the chat.
+	 * @param {string} params.receiverId - User ID of the message receiver.
+	 *
+	 * @returns {Promise<void>} Resolves when the messages are successfully updated.
+	 */
+	public async MarkMessagesAsSeen(params: MarkMessagesAsSeenInterface): Promise<void> {
+		const { chatId, receiverId } = params;
+
+		await MessageModel.updateMany(
+			{
 			chatId: new mongoose.Types.ObjectId(chatId),
 			receiverId: new mongoose.Types.ObjectId(receiverId),
 			status: { $ne: MessageStatus.SEEN }
-		}, { $set: { status: MessageStatus.SEEN } });
-		return;
+			},
+			{ $set: { status: MessageStatus.SEEN } }
+		);
 	}
 }
 

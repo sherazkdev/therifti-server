@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 /** Import Types */
 import type {ProductDocument} from "../interfaces/product.interfaces.js";
-import { ProductColor, ProductCondition, ProductMaterial, ProductParcelSize, ProductStatus } from "../interfaces/product.interfaces.js";
+import { PRODUCT_COLOR, PRODUCT_CONDITION, PRODUCT_MATERIAL, PRODUCT_PARCEL_SIZE, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
 
 const ProductSchema = new mongoose.Schema<ProductDocument>({
     categoryId:{
@@ -37,7 +37,7 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
     condition:{
         type:String,
         index:true,
-        enum:Object.values(ProductCondition),
+        enum:PRODUCT_CONDITION,
         required:true
     },
     brand:{
@@ -48,12 +48,12 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
     },
     material:{
         type:String,
-        enum:Object.values(ProductMaterial),
+        enum:PRODUCT_MATERIAL,
         required:true
     },
     colors:{
         type: [String],
-        enum: Object.values(ProductColor),
+        enum: PRODUCT_COLOR,
         validate: {
             validator: (v: String[]) => v.length <= 2,
             message: `Error: maximum 2 colors allowed.`
@@ -67,13 +67,13 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
     },
     parcelSize:{
         type:String,
-        enum:Object.values(ProductParcelSize),
-        default:ProductParcelSize.MEDIUM
+        enum:PRODUCT_PARCEL_SIZE,
+        required:true
     },
     status:{
         type:String,
-        enum:Object.values(ProductStatus),
-        default:ProductStatus.PUBLISHED
+        enum:PRODUCT_STATUS,
+        default:"PUBLISHED"
     }
 },{timestamps:true});
 
