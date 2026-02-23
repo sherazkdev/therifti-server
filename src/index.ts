@@ -10,12 +10,13 @@ import Sockets from "./sockets/sockets.js";
 MongooseConnection.Connect()
 .then( () => {
     const server = http.createServer(app);
-    const socketsServices = new Sockets(server);
+    const socketsServices = Sockets;
+    /** Note: Initialized Socket Server */
+    socketsServices.init(server);
 
-    /** Initialized Socket Server */
-    socketsServices.init();
     /** Listen the server */
     server.listen(env.PORT, () => console.log(`\x1b[32m%s\x1b[0m`, `Ready on http://localhost:${env.PORT}`));
 })
 .catch( (e:any) => app)
+
 export default app;

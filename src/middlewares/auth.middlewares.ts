@@ -22,15 +22,28 @@ class AuthMiddlewares {
      * @param socket.
      * @param next.
     */
-    public AuthenticateSocket(socket:Socket,next:NextFunction){
+    public async AuthenticateSocket(socket:Socket,next:NextFunction):Promise<void>{
         try {
             const cookies = socket.handshake.headers.cookie ? cookie.parse(socket.handshake.headers.cookie) : {};
             if(!cookies?.accessToken){
-                socket.user = null;
-                socket.isAuthenticated = false;
-                next();
+                socket.userId = null;
+                socket.isGuest = true;
+                return next();
             };
+            /** Note: If accessToken is not == null get userId using jwt. */
+            const decodToken = jwt.verify(cookies.accessToken,env.ACCESS_TOKEN_SECRET) as JwtPayloadInterface;
+            /** Note: Check userId document is exist. */
+            const userDocument = await UserModel.findById(new mongoose.Types.ObjectId(decodToken._id)).select("-password -refreshToken") as UserDocument | null;
+            if(!userDocument){
+                socket.userId = null;
+                socket.isGuest = true;
+                return next();
+            }
 
+            /** Note: If userDocument is exist assing The userId and isGuest false. */
+            socket.userId = userDocument._id.toString();
+            socket.isGuest = false;
+            return next();
         } catch (e:any) {
             next(e);
         }
@@ -43,7 +56,7 @@ class AuthMiddlewares {
                 throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.COMMON.UNAUTHORIZED);
             }
             /** Note: Jwt dcrypting and verify user. */
-            const decoded = await jwt.verify(accessToken,env.ACCESS_TOKEN_SECRET) as JwtPayloadInterface;
+            const decoded = jwt.verify(accessToken,env.ACCESS_TOKEN_SECRET) as JwtPayloadInterface;
             if(!decoded){
                 throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_INVALID);
             }

@@ -16,7 +16,7 @@ type NotificationMetaData = {
     /** New Message */
     senderId: Types.ObjectId;
     senderName?: string;
-    chatRoomId: Types.ObjectId;
+    chatId: Types.ObjectId;
     lastMessage: string;
 };
 
@@ -39,6 +39,13 @@ export interface NotificationInterface {
     linkUrl:string,
     status?:NotifcationStatus
 };
+
+export interface CreateNotificationInterface {
+    recipient_id: Types.ObjectId | string;
+    type: NotificationType;
+    metaData: NotificationMetaData;
+    linkUrl: string;
+}
 
 /* Note: extends NotificationInterface to Document */
 export interface NotificationDocument extends NotificationInterface, Document {};

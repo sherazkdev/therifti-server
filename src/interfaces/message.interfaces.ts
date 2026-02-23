@@ -16,5 +16,18 @@ export interface MessageInterface {
     status:MessageStatus,
 };
 
+export interface SendMessageInterface {
+	chatId: string;
+	senderId: string;
+	receiverId: string;
+	content: string;
+}
+
+export interface GetChatMessagesInterface {
+    chatId:string,
+    page?:number,
+    limit?:number,
+}
+
 /** Message Document */
 export interface MessageDocument extends MessageInterface, Document {};
