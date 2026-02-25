@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 /** Import Types */
 import type {ProductDocument} from "../interfaces/product.interfaces.js";
-import { PRODUCT_COLOR, PRODUCT_CONDITION, PRODUCT_MATERIAL, PRODUCT_PARCEL_SIZE, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
+import { PRODUCT_COLOR, PRODUCT_CONDITION, PRODUCT_MATERIAL, PRODUCT_MATERIAL_ENUM, PRODUCT_PARCEL_SIZE, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
 
 const ProductSchema = new mongoose.Schema<ProductDocument>({
     categoryId:{
@@ -46,11 +46,13 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
         index:true,
         required:true
     },
-    material:{
-        type:String,
-        enum:PRODUCT_MATERIAL,
-        required:true
-    },
+    materials: [
+        {
+            type: String,
+            enum: PRODUCT_MATERIAL_ENUM,
+            required: true,
+        },
+    ],
     colors:{
         type: [String],
         enum: PRODUCT_COLOR,

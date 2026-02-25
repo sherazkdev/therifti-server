@@ -56,7 +56,7 @@ class ProductServices {
             colors:colors,
             condition:condition,
             coverImage:coverImage,
-            material:material,
+            materials:Array.isArray(material) ? material[0] : material,
             price:price,
             status:status
         });
@@ -103,7 +103,7 @@ class ProductServices {
         if(categoryId) searchProductQuery.categoryId = new mongoose.Types.ObjectId(categoryId);
         if(conditions && conditions.length > 0) searchProductQuery.condition = { $in : conditions};
         if(sizes && sizes.length > 0) searchProductQuery.size = { $in : sizes};
-        if(meterials && meterials.length > 0) searchProductQuery.meterial = { $in : meterials};
+        if(materials && materials.length > 0) searchProductQuery.meterial = { $in : materials};
         if(brands && brands.length > 0) searchProductQuery.brand = { $in : brands};
         if(q) searchProductQuery.title = {$regex:q,$options: "i"};
 
@@ -190,7 +190,7 @@ class ProductServices {
         product.title = title;
         product.coverImage = coverImage;
         product.colors = colors;
-        product.material = material;
+        product.material = Array.isArray(materials) ? materials[0] : materials;
         product.parcelSize = parcelSize;
         product.description = description;
         product.condition = condition;

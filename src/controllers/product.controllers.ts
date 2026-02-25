@@ -9,6 +9,7 @@ import {VALIDATE_CREATE_PRODUCT,VALIDATE_GET_FEATURED_PRODUCTS,VALIDATE_GET_SING
 /** Services*/
 import ProductServices from "../services/product.services.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class ProductControllers {
     private productServices = new ProductServices();
@@ -73,7 +74,7 @@ class ProductControllers {
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
         }
         // Note: Search product payload.
-        const searchProductPayload = result.data;
+        const searchProductPayload = {...result.data,userId:(req.user as UserDocument)._id.toString()};
         const searchResultDocuments = await this.productServices.SearchProduct(searchProductPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(searchResultDocuments,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)

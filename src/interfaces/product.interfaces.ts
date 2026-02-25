@@ -70,6 +70,7 @@ export const PRODUCT_MATERIAL = [
   "WOOL"
 ] as const;
 export type ProductMaterial = typeof PRODUCT_MATERIAL[number];
+export const PRODUCT_MATERIAL_ENUM: readonly string[] =[...PRODUCT_MATERIAL];
 
 /** Note: Product Color array */
 export const PRODUCT_COLOR = [

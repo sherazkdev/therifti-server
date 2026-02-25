@@ -15,7 +15,7 @@ export const VALIDATE_CREATE_PRODUCT = z.object({
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
     price:z.number(),
     status:z.enum(PRODUCT_STATUS),
-    material:z.enum(PRODUCT_MATERIAL).array(),
+    material:z.array(z.enum(PRODUCT_MATERIAL)),
 });
 
 /** Note: Validate Update Product */

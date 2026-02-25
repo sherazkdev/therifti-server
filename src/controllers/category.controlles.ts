@@ -13,7 +13,7 @@ import type { Request,Response } from "express";
 import CategoryServices from "../services/category.services.js";
 import type { UserDocument } from "../interfaces/user.interfaces.js";
 
-class CategoryControllers extends CategoryServices {
+class CategoryControllers {
     private categoryServices = new CategoryServices();
 
     /**
@@ -97,7 +97,7 @@ class CategoryControllers extends CategoryServices {
      * - Throws `ApiError` with BAD_REQUEST if validation fails
      * - Calls `categoryServices.DeleteCategory` to delete the category
      */
-    public HandleDelete = async (req:Request,res:Response) => {
+    public HandleDeleteCategory = async (req:Request,res:Response) => {
         const result = VALIDATE_DELETE_CATEGORY.safeParse(req.body);
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
@@ -132,3 +132,5 @@ class CategoryControllers extends CategoryServices {
         )
     };
 }
+
+export default CategoryControllers

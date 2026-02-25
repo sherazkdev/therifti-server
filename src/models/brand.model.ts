@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 /** Import types and intefaces */
-import {type BrandDocument, BrandStatus} from "../interfaces/brand.interfaces.js";
+import {type BrandDocument, BRAND_STATUS} from "../interfaces/brand.interfaces.js";
 
 /** Note: Brand Schema For brands. */
 const BrandSchema = new mongoose.Schema<BrandDocument>({
@@ -10,8 +10,8 @@ const BrandSchema = new mongoose.Schema<BrandDocument>({
     },
     status:{
         type:String,
-        enum:Object.values(BrandStatus),
-        default:BrandStatus.ENABLED
+        enum:BRAND_STATUS,
+        default:"ENABLED"
     }
 }, {timestamps:true});
 

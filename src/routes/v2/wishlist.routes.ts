@@ -1,11 +1,21 @@
-// import express from "express";
+import express from "express";
+import type { Router } from "express";
 
-// /** Middlewares */
+/* Note: Controllers imports **/
+import WishlistControllers from "../../controllers/wishlist.controllers.js";
 
-// /** Controllers */
-// import NotificationController from "../../controllers/notification.controllers.js";
-// const NotificationRouter = express.Router();
+import AsyncHandler from "../../utils/AsyncHandler.js";
+/** Imports Middlewares */
+import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
-// /** Secure routes */
+const WishlistRouter:Router = express.Router();
+const wishlistControllers = new WishlistControllers();
+const authMiddlewares = new AuthMiddlewares();
 
-// export default NotificationRouter;
+WishlistRouter.use(authMiddlewares.AuthenticateJwtCookie);
+/* Secure Routes **/
+WishlistRouter.route("/add-to-wishlist").post(AsyncHandler(wishlistControllers.HandleAddToWishlist));
+WishlistRouter.route("/remove-to-wishlist/:wishlistId").delete(AsyncHandler(wishlistControllers.HandleRemoveToWishlist));
+WishlistRouter.route("/get-wishlist").get(AsyncHandler(wishlistControllers.HandleGetWishlists));
+
+export default WishlistRouter;

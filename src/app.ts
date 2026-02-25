@@ -30,6 +30,10 @@ initPassport();
 
 /** Routes */
 import ProductRouter from "./routes/v2/product.routes.js";
+import WishlistRouter from "./routes/v2/wishlist.routes.js";
+import CategoryRouter from "./routes/v2/category.routes.js";
+import FollowRouter from "./routes/v2/follow.routes.js";
+import ChatRouter from "./routes/v2/chat.routes.js";
 import UserRouter from "./routes/v2/user.routes.js";
 import AuthRouter from "./routes/v2/auth.routes.js";
 import BrandRouter from "./routes/v2/brand.routes.js";
@@ -40,6 +44,10 @@ app.use("/api/v1/auth",AuthRouter);
 app.use("/api/v1/products",ProductRouter);
 app.use("/api/v1/brands",BrandRouter);
 app.use("/api/v1/sizes",SizeRouter);
+app.use("/api/v1/wishlists",WishlistRouter);
+app.use("/api/v1/categories",CategoryRouter);
+app.use("/api/v1/follows",FollowRouter);
+app.use("/api/v1/chats",ChatRouter);
 
 app.use(ErrorHandler);
 export default app;

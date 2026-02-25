@@ -10,6 +10,7 @@ import {VALIDATE_FOLLOW_SELLER,VALIDATE_GET_FOLLOWERS,VALIDATE_GET_FOLLOWINGS,VA
 /** Services*/
 import FollowServices from "../services/follow.services.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class FollowControllers {
     private followServices = new FollowServices();
@@ -41,7 +42,7 @@ class FollowControllers {
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
         }
         /** Note: FolLow seller payload. */
-        const followSellerPayload = result.data;
+        const followSellerPayload = {...result.data,followingId:(req.user as UserDocument)._id.toString()};
         await this.followServices.FollowSeller(followSellerPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse([],SUCCESS_MESSAGES.FOLLOW.FOLLOWED,true,STATUS_CODES.OK)
@@ -70,12 +71,12 @@ class FollowControllers {
      * - Returns only success response, does not return the unfollow document
      */
     public HandleUnfollow = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_UNFOLLOW_SELLER.safeParse(req.body);
+        const result = VALIDATE_UNFOLLOW_SELLER.safeParse(req.params);
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
         }
         /** Note: unFollow seller payload. */
-        const unFollowSellerPayload = result.data;
+        const unFollowSellerPayload = {...result.data,followingId:(req.user as UserDocument)._id.toString()};
         await this.followServices.UnFollowSeller(unFollowSellerPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.FOLLOW.UNFOLLOWED,true,STATUS_CODES.ACCEPTED)
@@ -145,3 +146,5 @@ class FollowControllers {
         )
     }
 }
+
+export default FollowControllers;
