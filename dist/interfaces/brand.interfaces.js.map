@@ -1,1 +1,1 @@
-{"version":3,"file":"brand.interfaces.js","sourceRoot":"","sources":["../../src/interfaces/brand.interfaces.ts"],"names":[],"mappings":"AAEA,mBAAmB;AACnB,MAAM,CAAN,IAAY,WAIX;AAJD,WAAY,WAAW;IACnB,kCAAmB,CAAA;IACnB,kCAAmB,CAAA;IACnB,oCAAqB,CAAA;AACzB,CAAC,EAJW,WAAW,KAAX,WAAW,QAItB;AAAA,CAAC;AAMD,CAAC;AAGgE,CAAC"}
+{"version":3,"file":"brand.interfaces.js","sourceRoot":"","sources":["../../src/interfaces/brand.interfaces.ts"],"names":[],"mappings":"AAEA,mBAAmB;AACnB,MAAM,CAAC,MAAM,YAAY,GAAG,CAAC,SAAS,EAAC,SAAS,EAAC,UAAU,CAAU,CAAC;AAQrE,CAAC;AAGgE,CAAC"}

@@ -13,6 +13,21 @@ export interface MessageInterface {
     content: string;
     status: MessageStatus;
 }
+export interface SendMessageInterface {
+    chatId: string;
+    senderId: string;
+    receiverId: string;
+    content: string;
+}
+export interface GetChatMessagesInterface {
+    chatId: string;
+    page?: number;
+    limit?: number;
+}
+export interface MarkMessagesAsSeenInterface {
+    chatId: string;
+    receiverId: string;
+}
 /** Message Document */
 export interface MessageDocument extends MessageInterface, Document {
 }

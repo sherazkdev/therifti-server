@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { CategoryStatus } from "../interfaces/category.interfaces.js";
+import { CATEGORY_STATUS } from "../interfaces/category.interfaces.js";
 /** CategorySchema */
 const CategorySchema = new mongoose.Schema({
     owner: {
@@ -10,7 +10,7 @@ const CategorySchema = new mongoose.Schema({
     parent: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category",
-        required: true
+        default: null
     },
     title: {
         type: String,
@@ -23,8 +23,8 @@ const CategorySchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: Object.values(CategoryStatus),
-        default: CategoryStatus.ENABLED
+        enum: CATEGORY_STATUS,
+        default: "ENABLED"
     }
 }, { timestamps: true });
 /** CategoryModel */

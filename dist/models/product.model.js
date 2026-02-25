@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ProductColor, ProductCondition, ProductMaterial, ProductSize, ProductStatus } from "../interfaces/product.interfaces.js";
+import { PRODUCT_COLOR, PRODUCT_CONDITION, PRODUCT_MATERIAL, PRODUCT_MATERIAL_ENUM, PRODUCT_PARCEL_SIZE, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
 const ProductSchema = new mongoose.Schema({
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -10,6 +10,11 @@ const ProductSchema = new mongoose.Schema({
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
+        required: true
+    },
+    size: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Size",
         required: true
     },
     title: {
@@ -28,7 +33,7 @@ const ProductSchema = new mongoose.Schema({
     condition: {
         type: String,
         index: true,
-        enum: Object.values(ProductCondition),
+        enum: PRODUCT_CONDITION,
         required: true
     },
     brand: {
@@ -37,14 +42,16 @@ const ProductSchema = new mongoose.Schema({
         index: true,
         required: true
     },
-    material: {
-        type: String,
-        enum: Object.values(ProductMaterial),
-        required: true
-    },
+    materials: [
+        {
+            type: String,
+            enum: PRODUCT_MATERIAL_ENUM,
+            required: true,
+        },
+    ],
     colors: {
         type: [String],
-        enum: Object.values(ProductColor),
+        enum: PRODUCT_COLOR,
         validate: {
             validator: (v) => v.length <= 2,
             message: `Error: maximum 2 colors allowed.`
@@ -56,15 +63,15 @@ const ProductSchema = new mongoose.Schema({
         index: true,
         required: true,
     },
-    size: {
+    parcelSize: {
         type: String,
-        enum: Object.values(ProductSize),
-        default: ProductSize.MEDIUM
+        enum: PRODUCT_PARCEL_SIZE,
+        required: true
     },
     status: {
         type: String,
-        enum: Object.values(ProductStatus),
-        default: ProductStatus.PUBLISHED
+        enum: PRODUCT_STATUS,
+        default: "PUBLISHED"
     }
 }, { timestamps: true });
 /* ProductModel **/

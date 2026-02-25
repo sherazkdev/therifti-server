@@ -22,6 +22,7 @@ const env = {
     CORS_ORIGIN: requireEnv("CORS_ORIGIN"),
     FACEBOOK_CALLBACK_URL: requireEnv("FACEBOOK_CALLBACK_URL"),
     PORT: requireEnv("PORT"),
+    CLIENT_URL: requireEnv("CLIENT_URL"),
     NODE_ENV: requireEnv("NODE_ENV"),
     CLOUDINARY_APP_PASSWORD: requireEnv("CLOUDINARY_APP_PASSWORD"),
     ACCESS_TOKEN_EXPIRY: requireEnv("ACCESS_TOKEN_EXPIRY"),

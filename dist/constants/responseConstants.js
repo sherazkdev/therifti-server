@@ -50,8 +50,22 @@ export const SUCCESS_MESSAGES = {
         SOLD: "Product marked as sold",
         RESERVED: "Product reserved successfully"
     },
+    WISHLIST: {
+        ADDED: "Product added successfully in wishlists",
+        REMOVED: "Product removed from wishlists",
+        FETCHED: "Wishlist fetched"
+    },
+    FOLLOW: {
+        FOLLOWED: "Followed successfully",
+        UNFOLLOWED: "unFollowed successfully",
+        FOLLOWINGS_FETCHED: "Followings fetched",
+        FOLLOWERS_FETCHED: "Followers feteched"
+    },
     CATEGORY: {
-        FETCH: "Categories fetched successfully"
+        FETCH: "Categories fetched successfully",
+        UPDATED: "Category updated successfully",
+        CREATED: "Category created successfully",
+        DELETED: "Category Deleted successfully"
     },
     ORDER: {
         CREATE: "Order placed successfully",
@@ -67,11 +81,27 @@ export const SUCCESS_MESSAGES = {
     },
     CHAT: {
         MESSAGE_SENT: "Message sent successfully",
-        CHAT_CREATED: "Chat created successfully"
+        CHAT_CREATED: "Chat created successfully",
+        DELETED: "Chat deleted successfully",
+        FETCHED: "Chat fetched successfully"
     },
     PROMOTION: {
         BUMP_CREATED: "Product promotion activated successfully",
         BUMP_EXPIRED: "Product promotion expired"
+    },
+    SIZE: {
+        FETCHED: "Size Documents fetched successfully",
+        NOT_FOUND: "Size not found",
+        CREATED: "Size Document successfully created",
+        UPDATED: "Size Document successfully updated",
+        DELETED: "Size Document successfully deleted"
+    },
+    BRAND: {
+        FETCHED: "Size Documents fetched successfully",
+        NOT_FOUND: "Size not found",
+        CREATED: "Size Document successfully created",
+        UPDATED: "Size Document successfully updated",
+        DELETED: "Size Document successfully deleted"
     },
     BUNDLE: {
         CREATED: "Bundle created successfully"
@@ -105,12 +135,28 @@ export const ERROR_MESSAGES = {
         REFRESH_TOKEN_NOT_FOUND: "Refresh token is not found",
         OTP_NOT_FOUND: "Otp not found",
         INVALID_OTP: "Invalid otp",
+        OAUTH_EMAIL_NOT_PROVIDED: "Authentication failed. Please try another sign-in method",
         EMAIL_NOT_FOUND: "Email not found",
         TOKEN_NOT_FOUND: "Token not found",
         TOKEN_IS_USED: "Token is used already",
         OTP_EXPIRED: "Otp Expired",
         ACCESS_TOKEN_NOT_FOUND: "Access token is not found",
         TOKEN_INVALID: "Invalid authentication token"
+    },
+    FOLLOW: {
+        FOLLOWED: "User followed successfully",
+        UN_FOLLOWED: "User unFollowed successfully",
+        NOT_FOUND: "Follower is not found",
+        FOLLOWER_FETCHED: "Follower fetched successfully",
+        ALREADY_EXIST: "Follower allready exist",
+        FOLLOWING_FETCHED: "Following fetched successfully",
+    },
+    WISHLIST: {
+        NOT_FOUND: "Wishlist not found",
+        ALREADY_EXIST: "Wishlist allready exist",
+        CREATED: "Wishlist created successfully",
+        REMOVED: "Wishlist removed successfully",
+        FETCHED: "Wishlist successfully fetched"
     },
     USER: {
         NOT_FOUND: "User not found",
@@ -130,7 +176,18 @@ export const ERROR_MESSAGES = {
         NOT_OWNER: "You are not the owner of this product"
     },
     CATEGORY: {
-        NOT_FOUND: "Category not found"
+        NOT_FOUND: "Category not found",
+        ALREADY_EXIST: "Category allready exist",
+        FETCHED: "Categories fetched",
+        DELETE_CATEGORY_WITH_PRODUCTS: "Cannot delete category. {count} products are associated with this category."
+    },
+    SIZE: {
+        NOT_FOUND: "Size not found",
+        ALREADY_EXIST: "Size already exist"
+    },
+    BRAND: {
+        ALREADY_EXIST: "Brand already exist",
+        NOT_FOUND: "Brand not found"
     },
     ORDER: {
         NOT_FOUND: "Order not found",
@@ -147,6 +204,7 @@ export const ERROR_MESSAGES = {
     },
     CHAT: {
         CHAT_NOT_FOUND: "Chat not found",
+        ALREADY_EXIST: "Chat already exist",
         MESSAGE_FAILED: "Failed to send message"
     },
     PROMOTION: {

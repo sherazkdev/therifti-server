@@ -187,7 +187,6 @@ class UserServices {
         const { userId, limit, page, sort, categoryId } = userObject;
         /** Note: Product Sorting. */
         let productSort = { createdAt: -1 };
-        console.log(userObject);
         if (sort) {
             if (sort === "NEWEST_FIRST")
                 productSort = { createdAt: -1 };

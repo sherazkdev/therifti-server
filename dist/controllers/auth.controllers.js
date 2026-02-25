@@ -4,9 +4,13 @@ import ApiResponse from "../utils/ApiResponse.js";
 import { ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES } from "../constants/responseConstants.js";
 /** Zod Validaters  */
 import { VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT, VALIDATE_RESET_PASSWORD, VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP, VALIDATE_VERIFY_REGISTERATION_OTP } from "../validaters/user.validaters.js";
+import { TokenTypes } from "../interfaces/token.interfaces.js";
 import UserServices from "../services/user.services.js";
 import AuthServices from "../services/auth.services.js";
+import TokenServices from "../services/token.services.js";
+import env from "../constants/loadEnv.js";
 class AuthControllers {
+    tokenServices = new TokenServices();
     userServices = new UserServices();
     authServices = new AuthServices();
     /**
@@ -172,7 +176,28 @@ class AuthControllers {
      * @returns {Promise<void>}
     */
     HandleGoogleAuthCallback = async (req, res, next) => {
-        console.log(req.user);
+        const user = await this.userServices.GetUserById(req.user._id.toString());
+        /** Note: Generate AccessToken */
+        const { accessToken } = await this.authServices.GenerateRefreshAndAccessToken(user._id.toString());
+        /** Create Token Payload */
+        const createTokenPayload = {
+            type: TokenTypes.REFRESH,
+            userId: user._id.toString()
+        };
+        const { rawToken } = await this.tokenServices.CreateToken(createTokenPayload);
+        /** Note: Cookies Options. */
+        const cookieOptions = {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: true
+        };
+        /** Remove Password field for the UserDocument. */
+        // const userObject = user.toObject();
+        // delete userObject.password;
+        return res.status(STATUS_CODES.OK)
+            .cookie("accessToken", accessToken, cookieOptions)
+            .cookie("refreshToken", rawToken, cookieOptions)
+            .redirect(env.CLIENT_URL);
     };
     /**
      * Note: Facebook auth callback handler.
@@ -181,7 +206,30 @@ class AuthControllers {
      * @param {NextFunction} next - Express next middleware function.
      * @returns {Promise<void>}
     */
-    HandleFacebookAuthCallback = async (req, res, next) => { };
+    HandleFacebookAuthCallback = async (req, res, next) => {
+        const user = await this.userServices.GetUserById(req.user._id.toString());
+        /** Note: Generate AccessToken */
+        const { accessToken } = await this.authServices.GenerateRefreshAndAccessToken(user._id.toString());
+        /** Create Token Payload */
+        const createTokenPayload = {
+            type: TokenTypes.REFRESH,
+            userId: user._id.toString()
+        };
+        const { rawToken } = await this.tokenServices.CreateToken(createTokenPayload);
+        /** Note: Cookies Options. */
+        const cookieOptions = {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: true
+        };
+        /** Remove Password field for the UserDocument. */
+        // const userObject = user.toObject();
+        // delete userObject.password;
+        return res.status(STATUS_CODES.OK)
+            .cookie("accessToken", accessToken, cookieOptions)
+            .cookie("refreshToken", rawToken, cookieOptions)
+            .redirect(env.CLIENT_URL);
+    };
 }
 export default AuthControllers;
 //# sourceMappingURL=auth.controllers.js.map

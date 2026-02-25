@@ -1,11 +1,5 @@
 /** Brand Status */
-export var BrandStatus;
-(function (BrandStatus) {
-    BrandStatus["DELETED"] = "DELETED";
-    BrandStatus["ENABLED"] = "ENABLED";
-    BrandStatus["DISABLED"] = "DISABLED";
-})(BrandStatus || (BrandStatus = {}));
-;
+export const BRAND_STATUS = ["DELETED", "ENABLED", "DISABLED"];
 ;
 ;
 //# sourceMappingURL=brand.interfaces.js.map

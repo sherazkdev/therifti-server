@@ -84,9 +84,7 @@ class ProductServices {
     */
     public async SearchProduct(searchDetails:SearchProductInterface):Promise<ProductDocument[]> {
         const {conditions,materials,page,categoryId,price,q,limit,brands,sizes,userId} = searchDetails;
-        let searchProductQuery:any = {
-            
-        };
+        let searchProductQuery:any = {};
         /** Note: Pagination */
         const pageNumber = page;
         const limitNumber = limit;

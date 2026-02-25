@@ -96,6 +96,12 @@ export const SUCCESS_MESSAGES = {
     DELETED: "Chat deleted successfully",
     FETCHED: "Chat fetched successfully"
   },
+  MATERIAL:{
+    FETHED:"Material successfully fetched",
+    DELETED:"Material successfully deleted",
+    UPDATED:"Material successfully updated",
+    CREATED:"Material successfully created"
+  },
 
   PROMOTION: {
     BUMP_CREATED: "Product promotion activated successfully",
@@ -168,6 +174,10 @@ export const ERROR_MESSAGES = {
       FOLLOWER_FETCHED:"Follower fetched successfully",
       ALREADY_EXIST:"Follower allready exist",
       FOLLOWING_FETCHED:"Following fetched successfully",
+    },
+    MATERIAL: {
+      NOT_FOUND:"Material not found",
+      ALREADY_EXIST:"Material already exist"
     },
     WISHLIST:{
       NOT_FOUND:"Wishlist not found",

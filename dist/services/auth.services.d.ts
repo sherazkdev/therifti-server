@@ -88,8 +88,8 @@ declare class AuthServices {
      * An object containing the generated access token.
      *
      * @throws {ApiError} If the user is not found.
-     */
-    protected GenerateRefreshAndAccessToken(userId: string): Promise<RefreshAndAccessTokenGeneraterInterface>;
+    */
+    GenerateRefreshAndAccessToken(userId: string): Promise<RefreshAndAccessTokenGeneraterInterface>;
 }
 export default AuthServices;
 //# sourceMappingURL=auth.services.d.ts.map

@@ -8,7 +8,7 @@ declare class AuthMiddlewares {
      * @param socket.
      * @param next.
     */
-    AuthenticateSocket(socket: Socket, next: NextFunction): void;
+    AuthenticateSocket(socket: Socket, next: NextFunction): Promise<void>;
     AuthenticateJwtCookie: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }
 export default AuthMiddlewares;

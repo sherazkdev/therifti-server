@@ -45,8 +45,22 @@ export declare const SUCCESS_MESSAGES: {
         SOLD: string;
         RESERVED: string;
     };
+    WISHLIST: {
+        ADDED: string;
+        REMOVED: string;
+        FETCHED: string;
+    };
+    FOLLOW: {
+        FOLLOWED: string;
+        UNFOLLOWED: string;
+        FOLLOWINGS_FETCHED: string;
+        FOLLOWERS_FETCHED: string;
+    };
     CATEGORY: {
         FETCH: string;
+        UPDATED: string;
+        CREATED: string;
+        DELETED: string;
     };
     ORDER: {
         CREATE: string;
@@ -63,10 +77,26 @@ export declare const SUCCESS_MESSAGES: {
     CHAT: {
         MESSAGE_SENT: string;
         CHAT_CREATED: string;
+        DELETED: string;
+        FETCHED: string;
     };
     PROMOTION: {
         BUMP_CREATED: string;
         BUMP_EXPIRED: string;
+    };
+    SIZE: {
+        FETCHED: string;
+        NOT_FOUND: string;
+        CREATED: string;
+        UPDATED: string;
+        DELETED: string;
+    };
+    BRAND: {
+        FETCHED: string;
+        NOT_FOUND: string;
+        CREATED: string;
+        UPDATED: string;
+        DELETED: string;
     };
     BUNDLE: {
         CREATED: string;
@@ -100,12 +130,28 @@ export declare const ERROR_MESSAGES: {
         REFRESH_TOKEN_NOT_FOUND: string;
         OTP_NOT_FOUND: string;
         INVALID_OTP: string;
+        OAUTH_EMAIL_NOT_PROVIDED: string;
         EMAIL_NOT_FOUND: string;
         TOKEN_NOT_FOUND: string;
         TOKEN_IS_USED: string;
         OTP_EXPIRED: string;
         ACCESS_TOKEN_NOT_FOUND: string;
         TOKEN_INVALID: string;
+    };
+    FOLLOW: {
+        FOLLOWED: string;
+        UN_FOLLOWED: string;
+        NOT_FOUND: string;
+        FOLLOWER_FETCHED: string;
+        ALREADY_EXIST: string;
+        FOLLOWING_FETCHED: string;
+    };
+    WISHLIST: {
+        NOT_FOUND: string;
+        ALREADY_EXIST: string;
+        CREATED: string;
+        REMOVED: string;
+        FETCHED: string;
     };
     USER: {
         NOT_FOUND: string;
@@ -126,6 +172,17 @@ export declare const ERROR_MESSAGES: {
     };
     CATEGORY: {
         NOT_FOUND: string;
+        ALREADY_EXIST: string;
+        FETCHED: string;
+        DELETE_CATEGORY_WITH_PRODUCTS: string;
+    };
+    SIZE: {
+        NOT_FOUND: string;
+        ALREADY_EXIST: string;
+    };
+    BRAND: {
+        ALREADY_EXIST: string;
+        NOT_FOUND: string;
     };
     ORDER: {
         NOT_FOUND: string;
@@ -142,6 +199,7 @@ export declare const ERROR_MESSAGES: {
     };
     CHAT: {
         CHAT_NOT_FOUND: string;
+        ALREADY_EXIST: string;
         MESSAGE_FAILED: string;
     };
     PROMOTION: {

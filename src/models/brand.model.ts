@@ -4,6 +4,11 @@ import {type BrandDocument, BRAND_STATUS} from "../interfaces/brand.interfaces.j
 
 /** Note: Brand Schema For brands. */
 const BrandSchema = new mongoose.Schema<BrandDocument>({
+    categoryId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Category",
+        required:true
+    },
     brand:{
         type:String,
         required:true

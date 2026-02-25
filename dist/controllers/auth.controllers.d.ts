@@ -1,6 +1,7 @@
 /** Note: imports types */
 import type { NextFunction, Request, Response } from "express";
 declare class AuthControllers {
+    private tokenServices;
     private userServices;
     private authServices;
     /**

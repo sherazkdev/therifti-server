@@ -116,6 +116,26 @@ class CategoryServices {
     };
 
     /**
+     * Note: Get Category By ID Service.
+     * 
+     * `Purpose:`
+     * - Fetch a single category document from the database using its ID.
+     * - Returns null if no category is found with the provided ID.
+     * 
+     * @param {string} categoryId - The MongoDB ID of the category to fetch.
+     * 
+     * @returns {Promise<CategoryDocument | null>} - The category document if found, otherwise null.
+     * 
+     * `Notes:`
+     * - Converts the string ID to a MongoDB ObjectId before querying.
+     * - Simple read-only fetch; no updates are performed.
+     */
+    public async GetCategoryById(categoryId:string):Promise<CategoryDocument | null> {
+        const categoryDocument = await CategoryModel.findById(new mongoose.Types.ObjectId(categoryId));
+        return categoryDocument;
+    }
+
+    /**
      * Note: Build nested tree structure for categories.
      *
      * This helper method converts a flat descendants array (returned from $graphLookup)

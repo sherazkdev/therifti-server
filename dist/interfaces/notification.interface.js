@@ -13,4 +13,5 @@ export var NotifcationStatus;
 })(NotifcationStatus || (NotifcationStatus = {}));
 ;
 ;
+;
 //# sourceMappingURL=notification.interface.js.map

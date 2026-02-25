@@ -1,0 +1,1 @@
+{"version":3,"file":"socket.interfaces.d.ts","sourceRoot":"","sources":["../../src/interfaces/socket.interfaces.ts"],"names":[],"mappings":"AACA,MAAM,WAAW,oBAAoB;IACjC,aAAa,EAAC,GAAG,CAAC,MAAM,EAAC,MAAM,CAAC,CAAC;IACjC,MAAM,EAAC,GAAG,CAAC,MAAM,CAAC,CAAA;CACrB;AACD,wBAAwB;AACxB,eAAO,MAAM,WAAW,EAAC,oBAGxB,CAAC"}

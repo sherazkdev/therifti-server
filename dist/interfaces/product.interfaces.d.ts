@@ -1,100 +1,21 @@
 import type { Types, Document } from "mongoose";
-export declare enum ProductCondition {
-    NEW_WITH_TAGS = "NEW_WITH_TAGS",
-    NEW_WITHOUT_TAGS = "NEW_WITHOUT_TAGS",
-    VERY_GOOD = "VERY_GOOD",
-    GOOD = "GOOD",
-    SATISFACTORY = "SATISFACTORY"
-}
-export declare enum ProductMaterial {
-    ACRYLIC = "ACRYLIC",
-    ALPACA = "ALPACA",
-    BAMBOO = "BAMBOO",
-    CANVAS = "CANVAS",
-    CARDBOARD = "CARDBOARD",
-    CASHMERE = "CASHMERE",
-    CERAMIC = "CERAMIC",
-    CHIFFON = "CHIFFON",
-    CORDUROY = "CORDUROY",
-    COTTON = "COTTON",
-    DENIM = "DENIM",
-    DOWN = "DOWN",
-    ELASTANE = "ELASTANE",
-    FAUX_FUR = "FAUX_FUR",
-    FAUX_LEATHER = "FAUX_LEATHER",
-    FELT = "FELT",
-    FLANNEL = "FLANNEL",
-    FLEECE = "FLEECE",
-    FOAM = "FOAM",
-    GLASS = "GLASS",
-    GOLD = "GOLD",
-    JUTE = "JUTE",
-    LACE = "LACE",
-    LATEX = "LATEX",
-    LEATHER = "LEATHER",
-    LINEN = "LINEN",
-    MERINO = "MERINO",
-    MESH = "MESH",
-    METAL = "METAL",
-    MOHAIR = "MOHAIR",
-    NEOPRENE = "NEOPRENE",
-    NYLON = "NYLON",
-    PAPER = "PAPER",
-    PATENT_LEATHER = "PATENT_LEATHER",
-    PLASTIC = "PLASTIC",
-    POLYESTER = "POLYESTER",
-    PORCELAIN = "PORCELAIN",
-    RATTAN = "RATTAN",
-    RAYON = "RAYON",
-    RUBBER = "RUBBER",
-    SATIN = "SATIN",
-    SEQUIN = "SEQUIN",
-    SILICONE = "SILICONE",
-    SILK = "SILK",
-    SILVER = "SILVER",
-    STEEL = "STEEL",
-    STONE = "STONE",
-    STRAW = "STRAW",
-    SUEDE = "SUEDE",
-    TULLE = "TULLE",
-    TWEED = "TWEED",
-    VELOUR = "VELOUR",
-    VELVET = "VELVET",
-    WOOD = "WOOD",
-    WOOL = "WOOL"
-}
-export declare enum ProductColor {
-    BLACK = "BLACK",
-    WHITE = "WHITE",
-    GREY = "GREY",
-    BROWN = "BROWN",
-    BEIGE = "BEIGE",
-    RED = "RED",
-    MAROON = "MAROON",
-    PINK = "PINK",
-    PURPLE = "PURPLE",
-    ORANGE = "ORANGE",
-    YELLOW = "YELLOW",
-    BLUE = "BLUE",
-    NAVY = "NAVY",
-    TEAL = "TEAL",
-    GREEN = "GREEN",
-    OLIVE = "OLIVE",
-    GOLD = "GOLD",
-    SILVER = "SILVER",
-    MULTICOLOR = "MULTICOLOR"
-}
-export declare enum ProductSize {
-    SMALL = "SMALL",
-    MEDIUM = "MEDIUM",
-    LARGE = "LARGE"
-}
-export declare enum ProductStatus {
-    DRAFT = "DRAFT",
-    PUBLISHED = "PUBLISHED",
-    DELETED = "DELETED",
-    SOLD = "SOLD"
-}
+export declare const PRODUCT_SORT: readonly ["PRICE_HIGH_TO_LOW", "PRICE_LOW_TO_HIGH", "NEWEST_FIRST", "RELEVANCE"];
+export type ProductSort = typeof PRODUCT_SORT[number];
+export declare const PRODUCT_CONDITION: readonly ["NEW_WITH_TAGS", "NEW_WITHOUT_TAGS", "VERY_GOOD", "GOOD", "SATISFACTORY"];
+export type ProductCondition = typeof PRODUCT_CONDITION[number];
+/** Note: Product Material array */
+export declare const PRODUCT_MATERIAL: readonly ["ACRYLIC", "ALPACA", "BAMBOO", "CANVAS", "CARDBOARD", "CASHMERE", "CERAMIC", "CHIFFON", "CORDUROY", "COTTON", "DENIM", "DOWN", "ELASTANE", "FAUX_FUR", "FAUX_LEATHER", "FELT", "FLANNEL", "FLEECE", "FOAM", "GLASS", "GOLD", "JUTE", "LACE", "LATEX", "LEATHER", "LINEN", "MERINO", "MESH", "METAL", "MOHAIR", "NEOPRENE", "NYLON", "PAPER", "PATENT_LEATHER", "PLASTIC", "POLYESTER", "PORCELAIN", "RATTAN", "RAYON", "RUBBER", "SATIN", "SEQUIN", "SILICONE", "SILK", "SILVER", "STEEL", "STONE", "STRAW", "SUEDE", "TULLE", "TWEED", "VELOUR", "VELVET", "WOOD", "WOOL"];
+export type ProductMaterial = typeof PRODUCT_MATERIAL[number];
+export declare const PRODUCT_MATERIAL_ENUM: readonly string[];
+/** Note: Product Color array */
+export declare const PRODUCT_COLOR: readonly ["BLACK", "WHITE", "GREY", "BROWN", "BEIGE", "RED", "MAROON", "PINK", "PURPLE", "ORANGE", "YELLOW", "BLUE", "NAVY", "TEAL", "GREEN", "OLIVE", "GOLD", "SILVER", "MULTICOLOR"];
+export type ProductColor = typeof PRODUCT_COLOR[number];
+/** Note: Product Parcel size array */
+export declare const PRODUCT_PARCEL_SIZE: readonly ["SMALL", "MEDIUM", "LARGE"];
+export type ProductParcelSize = typeof PRODUCT_PARCEL_SIZE[number];
+/** Note: Product Status array */
+export declare const PRODUCT_STATUS: readonly ["DRAFT", "PUBLISHED", "DELETED", "SOLD"];
+export type ProductStatus = typeof PRODUCT_STATUS[number];
 export interface ProductInterface {
     categoryId: Types.ObjectId;
     owner: Types.ObjectId;
@@ -105,7 +26,8 @@ export interface ProductInterface {
     coverImage: string;
     colors: ProductColor[];
     material: ProductMaterial;
-    size: ProductSize;
+    parcelSize: ProductParcelSize;
+    size: Types.ObjectId;
     price: number;
     status: ProductStatus;
 }
@@ -118,22 +40,59 @@ export interface CreateProductInterface {
     title: string;
     description: string;
     condition: ProductCondition;
-    brand: Types.ObjectId;
+    brand: string;
     coverImage: string;
     colors: ProductColor[];
-    material: ProductMaterial;
-    size: ProductSize;
+    material: ProductMaterial[];
+    parcelSize: ProductParcelSize;
+    size: string;
     price: number;
+    status: ProductStatus;
 }
 export interface SearchProductInterface {
-    q?: string;
-    categoryId?: string;
+    userId?: string | null | undefined;
+    q?: string | null | undefined;
+    categoryId?: string | null | undefined;
     price?: {
-        min?: number;
-        max?: number;
-    };
-    meterial: string[];
-    condition: ProductCondition;
+        min?: number | null | undefined;
+        max?: number | null | undefined;
+    } | undefined;
+    materials?: ProductMaterial[] | null | undefined;
+    conditions?: ProductCondition[] | null | undefined;
+    brands?: string[] | null | undefined;
+    sizes?: string[] | null | undefined;
     page: number;
+    limit: number;
+}
+export interface UpdateProductInterface {
+    productId: string;
+    categoryId: string;
+    title: string;
+    description: string;
+    condition: ProductCondition;
+    brand: string;
+    coverImage: string;
+    colors: ProductColor[];
+    materials: ProductMaterial[];
+    parcelSize: ProductParcelSize;
+    size: string;
+    price: number;
+    status: ProductStatus;
+}
+export interface FeaturedProductsInterface {
+    userId?: string;
+    page?: number | null | undefined;
+    limit?: number;
+    categoryId?: string | null | undefined;
+    price?: {
+        min?: number | null | undefined;
+        max?: number | null | undefined;
+    } | undefined;
+    sizes?: string[] | null | undefined;
+    sort?: ProductSort | null | undefined;
+}
+export interface GetSingleProductInterface {
+    productId: string;
+    userId?: string;
 }
 //# sourceMappingURL=product.interfaces.d.ts.map

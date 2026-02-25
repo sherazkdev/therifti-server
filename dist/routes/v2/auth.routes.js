@@ -1,5 +1,5 @@
 import express from "express";
-import passport, { session } from "passport";
+import passport from "passport";
 /* Note: UserControllers imports **/
 import AuthControllers from "../../controllers/auth.controllers.js";
 import AsyncHandler from "../../utils/AsyncHandler.js";
@@ -11,8 +11,8 @@ const authMiddlewares = new AuthMiddlewares();
 /** Note: Auth Strateges */
 AuthRouter.route("/google").get(passport.authenticate("google", { scope: ["profile", "email"], session: false }));
 AuthRouter.route("/google-callback").get(passport.authenticate("google", { session: false }), authControllers.HandleGoogleAuthCallback);
-AuthRouter.route("/facebook").get(passport.authenticate("faceboook", { scope: ["email"], session: false }));
-AuthRouter.route("/facebook-callback").get(passport.authenticate("faceboook", { session: false }), authControllers.HandleFacebookAuthCallback);
+AuthRouter.route("/facebook").get(passport.authenticate("facebook", { scope: ["email"], session: false }));
+AuthRouter.route("/facebook/callback").get(passport.authenticate("facebook", { session: false }), authControllers.HandleFacebookAuthCallback);
 AuthRouter.route("/register").post(AsyncHandler(authControllers.HandleRegisterUserAccount));
 AuthRouter.route("/registeration-otp-verifier").patch(AsyncHandler(authControllers.HandleRegisterationOtpVerifier));
 AuthRouter.route("/login").post(AsyncHandler(authControllers.HandleLoginUserAccount));

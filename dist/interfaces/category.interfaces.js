@@ -1,9 +1,5 @@
 import { Document, Types } from "mongoose";
-;
 /** Category Status */
-export var CategoryStatus;
-(function (CategoryStatus) {
-    CategoryStatus["ENABLED"] = "ENABLED";
-    CategoryStatus["DISABLED"] = "DISABLED";
-})(CategoryStatus || (CategoryStatus = {}));
+export const CATEGORY_STATUS = ["ENABLED", "DISABLED"];
+;
 //# sourceMappingURL=category.interfaces.js.map

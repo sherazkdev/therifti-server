@@ -19,25 +19,42 @@ class AuthServices {
     */
     async LoginWithGoogle(profile) {
         const { name, emails, photos, id } = profile;
-        /** note: Check user is exist. */
-        let user = await UserModel.findOne({
-            googleId: id
-        });
-        if (!user) {
-            const emailSafe = emails || [];
-            const photosSafe = photos || [];
-            const removeNullFileds = {
-                googleId: id,
-                email: emailSafe[0]?.value ?? null,
-                avatar: photosSafe[0]?.value ?? null,
-                fullname: (name?.givenName && name?.familyName) ? name.givenName + " " + name.familyName : null,
-                username: emailSafe[0]?.value.split("@")[0] ?? null,
-                isVerfied: true
-            };
-            /** Note: Filter User */
-            const filterdUser = await this.userServices.RemoveNullAndUndefinedValues(removeNullFileds);
-            /** Note: Create new account */
-            user = await UserModel.create(filterdUser);
+        const email = profile.emails && profile.emails[0]?.value;
+        let user;
+        if (email) {
+            /** note: Check user is exist. */
+            user = await UserModel.findOne({
+                $or: [
+                    {
+                        email: email,
+                    },
+                    {
+                        googleId: id
+                    }
+                ]
+            });
+            if (!user) {
+                const removeNullFileds = {
+                    googleId: id,
+                    email: email,
+                    avatar: (photos && photos[0]?.value) ? photos[0]?.value : null,
+                    fullname: (name?.givenName && name?.familyName) ? name.givenName + " " + name.familyName : null,
+                    username: email.split("@")[0],
+                    isVerfied: true
+                };
+                /** Note: Filter User */
+                const filterdUser = await this.userServices.RemoveNullAndUndefinedValues(removeNullFileds);
+                /** Note: Create new account */
+                user = await UserModel.create(filterdUser);
+            }
+            else if (!user.googleId) {
+                /** Assign the google auth id user Document id. */
+                user.googleId = id;
+                await user.save();
+            }
+        }
+        else {
+            throw new ApiError(STATUS_CODES.BAD_REQUEST, ERROR_MESSAGES.AUTH.OAUTH_EMAIL_NOT_PROVIDED);
         }
         return user;
     }
@@ -305,7 +322,7 @@ class AuthServices {
      * An object containing the generated access token.
      *
      * @throws {ApiError} If the user is not found.
-     */
+    */
     async GenerateRefreshAndAccessToken(userId) {
         const user = await this.userServices.GetUserById(userId);
         const accessToken = await user.GenerateAccessToken();

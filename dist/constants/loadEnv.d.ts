@@ -4,6 +4,7 @@ interface EnvironmentVariables {
     FACEBOOK_APP_PASSWORD: string;
     FACEBOOK_APP_ID: string;
     GOOGLE_APP_PASSWORD: string;
+    CLIENT_URL: string;
     GOOGLE_APP_ID: string;
     CORS_ORIGIN: string;
     PORT: string | number;
