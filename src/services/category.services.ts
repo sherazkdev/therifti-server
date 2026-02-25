@@ -17,7 +17,7 @@ class CategoryServices {
      * This method creates a new category document in the database.
      * Optionally, it can be a subcategory if `parentId` is provided.
      * 
-     * @param {object} categoryObject - The data object for creating a category.
+     * @param {CreateCategoryInterface} categoryObject - The data object for creating a category.
      * @param {string} [categoryObject.title] - Category document title (Required).
      * @param {string} [categoryObject.owner] - Owner of the category (Required).
      * @param {string} [categoryObject.parent] - Optional parent category ID for subcategories (Optional).
@@ -28,16 +28,17 @@ class CategoryServices {
      * 
      * @throws {ApiError} Throws error if category not found | validation fails or DB operation fails.
     */
-    public async CreateNewCategory(categoryObject:CreateCategoryInterface):Promise<CategoryDocument> {
+    public async CreateCategory(categoryObject:CreateCategoryInterface):Promise<CategoryDocument> {
         const {owner,title,image,parent,status} = categoryObject;
         /** Note: Duplicate category is exist. */
         const category = await CategoryModel.findOne({
             title:title
         });
         if(category) throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.CATEGORY.ALREADY_EXIST);
+        const parentId = parent ? new mongoose.Types.ObjectId(parent) : null;
         const categoryDocument = await CategoryModel.create({
             owner:new mongoose.Types.ObjectId(owner),
-            parent:new mongoose.Types.ObjectId(parent) || null,
+            parent:parentId,
             title:title,
             image:image || null,
             status:status
@@ -71,7 +72,7 @@ class CategoryServices {
         category.title = title;
         category.status = status;
         category.image = image || null;
-        category.parent = new mongoose.Types.ObjectId(parent) || null;
+        if(parent) category.parent = new mongoose.Types.ObjectId(parent);
         await category.save();
 
         return category;

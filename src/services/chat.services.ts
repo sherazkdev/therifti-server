@@ -66,7 +66,7 @@ class ChatServices {
      *
      * @throws {ApiError} If the chat does not exist or deletion fails.
      */
-    public async DeleteChat(chatId: any): Promise<void> {
+    public async DeleteChat(chatId: string): Promise<void> {
         /** Note: Check chat room is already exist. */
         const chatDocument = await ChatModel.findById(new mongoose.Types.ObjectId(chatId));
         if(!chatDocument) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.CHAT.CHAT_NOT_FOUND);
@@ -143,3 +143,5 @@ class ChatServices {
         return chatDocuments;
     };
 }
+
+export default ChatServices;

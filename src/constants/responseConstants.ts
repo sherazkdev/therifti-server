@@ -56,9 +56,23 @@ export const SUCCESS_MESSAGES = {
     SOLD: "Product marked as sold",
     RESERVED: "Product reserved successfully"
   },
+  WISHLIST: {
+    ADDED:"Product added successfully in wishlists",
+    REMOVED:"Product removed from wishlists",
+    FETCHED:"Wishlist fetched"
+  },
 
+  FOLLOW : {
+    FOLLOWED: "Followed successfully",
+    UNFOLLOWED: "unFollowed successfully",
+    FOLLOWINGS_FETCHED: "Followings fetched",
+    FOLLOWERS_FETCHED: "Followers feteched"
+  },
   CATEGORY: {
-    FETCH: "Categories fetched successfully"
+    FETCH: "Categories fetched successfully",
+    UPDATED: "Category updated successfully",
+    CREATED: "Category created successfully",
+    DELETED: "Category Deleted successfully"
   },
 
   ORDER: {
@@ -78,7 +92,9 @@ export const SUCCESS_MESSAGES = {
 
   CHAT: {
     MESSAGE_SENT: "Message sent successfully",
-    CHAT_CREATED: "Chat created successfully"
+    CHAT_CREATED: "Chat created successfully",
+    DELETED: "Chat deleted successfully",
+    FETCHED: "Chat fetched successfully"
   },
 
   PROMOTION: {

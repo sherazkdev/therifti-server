@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { PRODUCT_CONDITION, PRODUCT_MATERIAL, PRODUCT_PARCEL_SIZE, PRODUCT_SORT, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
+import { PRODUCT_COLOR, PRODUCT_CONDITION, PRODUCT_MATERIAL, PRODUCT_PARCEL_SIZE, PRODUCT_SORT, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
 
 /** Note: Validate Create Product */
 export const VALIDATE_CREATE_PRODUCT = z.object({
@@ -11,11 +11,11 @@ export const VALIDATE_CREATE_PRODUCT = z.object({
     description:z.string(),
     condition:z.enum(PRODUCT_CONDITION),
     coverImage:z.string(),
-    colors:z.string().array(),
+    colors:z.array(z.enum(PRODUCT_COLOR)),
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
-    price:z.string(),
+    price:z.number(),
     status:z.enum(PRODUCT_STATUS),
-    meterial:z.enum(PRODUCT_MATERIAL).array(),
+    material:z.enum(PRODUCT_MATERIAL).array(),
 });
 
 /** Note: Validate Update Product */
@@ -29,11 +29,11 @@ export const VALIDATE_UPDATE_PRODUCT = z.object({
     description:z.string(),
     condition:z.enum(PRODUCT_CONDITION),
     coverImage:z.string(),
-    colors:z.string().array(),
+    colors:z.array(z.enum(PRODUCT_COLOR)),
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
-    price:z.string(),
+    price:z.number(),
     status:z.enum(PRODUCT_STATUS),
-    meterial:z.array(z.enum(PRODUCT_MATERIAL)),  
+    materials:z.array(z.enum(PRODUCT_MATERIAL))
 });
 
 /** Note: Validate Get Single Product */

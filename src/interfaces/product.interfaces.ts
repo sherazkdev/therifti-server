@@ -141,7 +141,7 @@ export interface CreateProductInterface {
   title:string,
   description:string,
   condition:ProductCondition,
-  brand:Types.ObjectId,
+  brand:string,
   coverImage:string,
   colors:ProductColor[],
   material:ProductMaterial[],
@@ -152,17 +152,17 @@ export interface CreateProductInterface {
 }
 
 export interface SearchProductInterface {
-  userId?:string,
-  q?:string,
-  categoryId?:string,
+  userId?:string | null | undefined,
+  q?:string | null | undefined,
+  categoryId?:string | null | undefined,
   price?:{
-    min?:number,
-    max?:number
-  },
-  meterials:string[],
-  conditions:ProductCondition[],
-  brands:string[],
-  sizes:string[],
+    min?:number | null | undefined,
+    max?:number | null | undefined
+  } | undefined,
+  materials?:ProductMaterial[] | null | undefined,
+  conditions?:ProductCondition[] | null | undefined,
+  brands?:string[] | null | undefined,
+  sizes?:string[] | null | undefined,
   page:number,
   limit:number
 }
@@ -173,10 +173,10 @@ export interface UpdateProductInterface {
   title:string,
   description:string,
   condition:ProductCondition,
-  brand:Types.ObjectId,
+  brand:string,
   coverImage:string,
   colors:ProductColor[],
-  material:ProductMaterial,
+  materials:ProductMaterial[],
   parcelSize:ProductParcelSize,
   size:string,
   price:number,
@@ -185,15 +185,15 @@ export interface UpdateProductInterface {
 
 export interface FeaturedProductsInterface {
   userId?:string,
-  page:number,
-  limit:10,
-  categoryId?:string,
+  page?:number | null | undefined,
+  limit?:number,
+  categoryId?:string | null | undefined,
   price?:{
-    min?:number,
-    max?:number
-  },
-  sizes:string[],
-  sort:ProductSort
+    min?:number | null | undefined,
+    max?:number | null | undefined
+  } | undefined,
+  sizes?:string[] | null | undefined,
+  sort?:ProductSort | null | undefined
 }
 
 export interface GetSingleProductInterface {

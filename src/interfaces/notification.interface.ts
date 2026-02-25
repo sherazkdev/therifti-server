@@ -45,6 +45,12 @@ export interface CreateNotificationInterface {
     type: NotificationType;
     metaData: NotificationMetaData;
     linkUrl: string;
+};
+
+export interface GetNotificationsInterface {
+    userId:string,
+    page:number,
+    limit:number
 }
 
 /* Note: extends NotificationInterface to Document */

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 /** Interfaces */
 import type {CategoryDocument} from "../interfaces/category.interfaces.js";
-import {CategoryStatus} from "../interfaces/category.interfaces.js";
+import {CATEGORY_STATUS} from "../interfaces/category.interfaces.js";
 
 /** CategorySchema */
 const CategorySchema = new mongoose.Schema<CategoryDocument>({
@@ -14,7 +14,7 @@ const CategorySchema = new mongoose.Schema<CategoryDocument>({
     parent:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Category",
-        required:true        
+        default:null
     },
     title:{
         type:String,
@@ -27,8 +27,8 @@ const CategorySchema = new mongoose.Schema<CategoryDocument>({
     },
     status:{
         type:String,
-        enum:Object.values(CategoryStatus),
-        default:CategoryStatus.ENABLED
+        enum:CATEGORY_STATUS,
+        default:"ENABLED"
     }
 },{timestamps:true})
 

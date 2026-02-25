@@ -10,20 +10,33 @@ import mongoose from "mongoose";
 class ProductServices {
     
     /**
-     * Note: Create Product
-     * @constructor
-     * @param {string} title - Product name
-     * @param {string} userId - Owner user ID
-     * @param {string} categoryId - Category ID
-     * @param {number} price - Product price
-     * @param {string} brand - Brand ID
-     * @param {string[]} images - Array of image URLs
-     * @param {string} coverImage - Main cover image
-     * @param {string} material - Product material
-     * @param {string} condition - Product condition
-     * @param {string} size - Product size
-     * @param {string} status - Product status
-     * @returns {Promise<ProductDocument>} Newly created product
+     * Note: Create Product Service
+     *
+     * Purpose:
+     * This service is responsible for creating a new product document.
+     * It validates related entities (such as category existence) and
+     * persists the product data to the database.
+     *
+     * @param {CreateProductInterface} productDetails - Product creation payload.
+     * @param {string} productDetails.title - Product title or name.
+     * @param {string} productDetails.owner - Owner user ID.
+     * @param {string} productDetails.categoryId - Category ID.
+     * @param {string} productDetails.brand - Brand ID.
+     * @param {string[]} productDetails.colors - Available product colors.
+     * @param {string} productDetails.condition - Product condition.
+     * @param {string} productDetails.coverImage - Main cover image URL.
+     * @param {string} productDetails.description - Product description.
+     * @param {string} productDetails.material - Product material.
+     * @param {string} productDetails.size - Product size ID.
+     * @param {number} productDetails.price - Product price.
+     * @param {string} productDetails.status - Product status.
+     *
+     * @returns {Promise<ProductDocument>} Newly created product document.
+     *
+     * Notes:
+     * - Validates that the selected category exists before creation
+     * - Automatically converts string IDs to MongoDB ObjectIds
+     * - Business logic is handled at the service layer
     */
     public async CreateProduct(productDetails:CreateProductInterface):Promise<ProductDocument> {
         const {brand,categoryId,colors,condition,coverImage,description,material,owner,price,size,title,status} = productDetails;
@@ -51,22 +64,26 @@ class ProductServices {
     };
 
     /**
-     * Note: Search Product in these fields title,brand,description
-     * @constructor
-     * @param {string} query - Title query
-     * @param {number} page - Pagination number
-     * @param {string} size - Size product
-     * @param {string} brand
-     * @param {string} condition
-     * @param {string[]} colors
-     * @param {number} price
-     * @param {string[]} meterial
-     * @param {string} sort
-     * @param {string} categoryId
-     * @returns {Promise<[]>} - Searched product
+     * Note: Search Product in these fields: title, brand, description
+     *
+     * Purpose:
+     * This service handles searching products using query, category,
+     * and optional filters including price, materials, conditions,
+     * brands, sizes, and userId for like status.
+     *
+     * @param {SearchProductInterface} searchDetails - Object containing search filters and pagination.
+     *
+     * @returns {Promise<ProductDocument[]>} Filtered and paginated product documents.
+     *
+     * Notes:
+     * - Supports pagination via page and limit
+     * - Filters products using categoryId, conditions, sizes, materials, brands, and price range
+     * - Performs regex search on title (`q`)
+     * - Adds `isLiked` and `totalLikes` fields using aggregation and lookup on wishlists
+     * - Returns only selected fields in the final projection
     */
     public async SearchProduct(searchDetails:SearchProductInterface):Promise<ProductDocument[]> {
-        const {conditions,meterials,page,categoryId,price,q,limit,brands,sizes,userId} = searchDetails;
+        const {conditions,materials,page,categoryId,price,q,limit,brands,sizes,userId} = searchDetails;
         let searchProductQuery:any = {
             
         };
@@ -134,11 +151,16 @@ class ProductServices {
 
     /**
      * Note: Get Product By Id
-     * @constructor
-     * @param {string} productId - Unique identifier for productDocument.
-     * @throws {ApiError} - If throw error product does not exist
-     * @returns {Promise<ProductDocument>} - Product 
-    */
+     *
+     * Purpose:
+     * Fetch a single product document by its unique identifier.
+     *
+     * @param {string} productId - Unique identifier of the product.
+     *
+     * @throws {ApiError} Throws NOT_FOUND if product does not exist
+     *
+     * @returns {Promise<ProductDocument>} Product document.
+     */
     public async GetProductById(productId:string):Promise<ProductDocument> {
         const product = await ProductModel.findById(new mongoose.Types.ObjectId(productId));
         if(!product) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.PRODUCT.NOT_FOUND);
@@ -147,20 +169,21 @@ class ProductServices {
 
     /**
      * Note: Update Product by productId
-     * @constructor
-     * @param {string} productId - Product identification id
-     * @param {string} title - Product title
-     * @param {string} description - Product description
-     * @param {string} categoryId - Product category id
-     * @param {string} brand - Product brand
-     * @param {string} size - Product size
-     * @param {string} condition - Product condition
-     * @param {string[]} colors - Product Colors
-     * @param {string} meterial - Product merterial
-     * @returns {Promise<ProductDocument>} Updated product newaly ducument
-    */
+     *
+     * Purpose:
+     * Updates an existing product document with new values provided
+     * in the payload.
+     *
+     * @param {UpdateProductInterface} updateProduct - Object containing productId and updated fields.
+     *
+     * @returns {Promise<ProductDocument>} Updated product document.
+     *
+     * Notes:
+     * - Fetches the existing product using GetProductById
+     * - Assigns new values to product fields and saves the document
+     */
     public async UpdateProduct(updateProduct:UpdateProductInterface):Promise<ProductDocument> {
-        const {brand,categoryId,colors,condition,coverImage,description,material,parcelSize,price,productId,size,status,title} = updateProduct;
+        const {brand,categoryId,colors,condition,coverImage,description,materials,parcelSize,price,productId,size,status,title} = updateProduct;
         const product = await this.GetProductById(productId);
         /** Note: Assign the product updateProductObject value to Product document. */
         product.categoryId = new mongoose.Types.ObjectId(categoryId);
@@ -181,14 +204,22 @@ class ProductServices {
     };
 
     /**
-     * Note: Get Featured products.
-     * @constructer
-     * @param {string} categoryId - Sort by category
-     * @param {number} price - Sory by price
-     * @param {string} sortType - Sorting methods
-     * @returns {Promise<ProductDocument[]>}
-     * List of latest products.
-    */
+     * Note: Get Featured Products
+     *
+     * Purpose:
+     * Retrieves featured products with optional category, price filters,
+     * and sorting. Supports pagination and adds like status for the user.
+     *
+     * @param {FeaturedProductsInterface} object - Object containing filters, pagination, and userId.
+     *
+     * @returns {Promise<ProductDocument[]>} Array of featured product documents.
+     *
+     * Notes:
+     * - Performs aggregation with `$lookup` to include likes
+     * - Adds `isLiked` and `totalLikes` fields
+     * - Supports sorting by price or creation date
+     * - Supports infinite scroll via skip & limit
+     */
     public async GetFeaturedProducts(object:FeaturedProductsInterface):Promise<ProductDocument[]> {
         const {limit,page,sizes,sort,categoryId,price,userId} = object;
         
@@ -260,13 +291,23 @@ class ProductServices {
     };
 
     /**
-     * Note: Get Single Product by id.
-     * @param {object} singleDataObject - Object containing fields to update.
-     * @param {string} [singleDataObject.productId] - ProductDocument unique identifier.
-     * @param {string} [singleDataObject.userId] - UserDocument unique identifier.
-     * @throws {ApiError} If product not exist.
-     * @returns {Promise<ProductDocument>} Finded product document.
-    */
+     * Note: Get Single Product By Id
+     *
+     * Purpose:
+     * Retrieves a single product document with its owner info, similar
+     * products, category hierarchy, likes, and follow status.
+     *
+     * @param {GetSingleProductInterface} singleDataObject - Object containing `productId` and `userId`.
+     *
+     * @throws {ApiError} Throws error if product does not exist
+     *
+     * @returns {Promise<ProductDocument>} Full product document with relational data.
+     *
+     * Notes:
+     * - Uses aggregation to fetch owner info, similar products, category hierarchy, size, brand, address, likes, and follow status
+     * - Adds `isLiked`, `totalLikes`, and `isFollowed` flags for user
+     * - Returns a single product object
+     */
     public async GetSingleProductById(singleDataObject:GetSingleProductInterface):Promise<ProductDocument> {
         const {productId,userId} = singleDataObject;
 
@@ -445,11 +486,6 @@ class ProductServices {
 
         return product[0];
     };
-
-
-    /**
-     * Note: Get Products Lenght
-    */
 }
 
 export default ProductServices;

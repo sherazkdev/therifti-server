@@ -7,7 +7,7 @@ export type CategoryStatus = typeof CATEGORY_STATUS[number];
 /** Category Interface */
 export interface CategoryInterface {
     owner:Types.ObjectId,
-    parent?:Types.ObjectId,
+    parent?:Types.ObjectId | null,
     title:string,
     image?:string | null,
     status?:CategoryStatus,
@@ -18,18 +18,18 @@ export interface CategoryDocument extends CategoryInterface, Document {}
 /** Create Category Interface */
 export interface CreateCategoryInterface {
     owner:string,
-    parent?:string,
+    parent?:string | null | undefined,
     title:string,
-    image?:string | null,
+    image?:string | null | undefined,
     status:CategoryStatus
 }
 
 /** Update Category Interface */
 export interface UpdateCategoryInterface {
     categoryId:string,
-    parent?:string,
+    parent?:string | null | undefined,
     title:string,
-    image?:string | null,
+    image?:string | null | undefined,
     status:CategoryStatus
 }
 export interface CategoryWithDescendants extends CategoryDocument {
