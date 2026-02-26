@@ -3,8 +3,10 @@ import mongoose from "mongoose";
 import { MessageStatus } from "../interfaces/message.interfaces.js";
 
 /** Services */
-import type { SendMessageInterface,MessageDocument, GetChatMessagesInterface, MarkMessagesAsSeenInterface } from "../interfaces/message.interfaces.js";
+import type { SendMessageInterface,MessageDocument, GetChatMessagesInterface, MarkMessagesAsSeenInterface, DeleteMessageInterface } from "../interfaces/message.interfaces.js";
 import SocketServices from "../sockets/sockets.js";
+import ApiError from "../utils/ApiError.js";
+import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 
 class MessageServices {
     private socketServices = SocketServices.io();
@@ -112,12 +114,68 @@ class MessageServices {
 
 		await MessageModel.updateMany(
 			{
-			chatId: new mongoose.Types.ObjectId(chatId),
-			receiverId: new mongoose.Types.ObjectId(receiverId),
-			status: { $ne: MessageStatus.SEEN }
+				chatId: new mongoose.Types.ObjectId(chatId),
+				receiverId: new mongoose.Types.ObjectId(receiverId),
+				status: { $ne: MessageStatus.SEEN }
 			},
 			{ $set: { status: MessageStatus.SEEN } }
 		);
+	}
+
+	/**
+	 * Note: Deletes a message by its unique identifier.
+	 *
+	 * This service validates the existence of a message before performing
+	 * a hard delete operation from the database. If the message does not
+	 * exist, an ApiError is thrown.
+	 *
+	 * Typical use case:
+	 * - User deletes a sent message.
+	 * - Admin removes an inappropriate or invalid message.
+	 *
+	 * Deletion behavior:
+	 * - Performs a permanent delete (`deleteOne`) on the message document.
+	 * - No soft-delete or recovery is applied.
+	 *
+	 * @param {DeleteMessageInterface} deleteMessageObj - Object containing message deletion parameters.
+	 * @param {string} deleteMessageObj.messageId - Unique identifier of the message to be deleted.
+	 *
+	 * @returns {Promise<void>} Resolves when the message is successfully deleted.
+	 *
+	 * @throws {ApiError} Throws BAD_REQUEST error if the message does not exist.
+	 */
+	public async DeleteMessage(deleteMessageObj:DeleteMessageInterface): Promise<void> {
+		const {messageId} = deleteMessageObj;
+		/** Note: Check Message Document is exist. */
+		const messageDocument = await this.GetMessageById(messageId);
+		if(!messageDocument) throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.MESSAGE.NOT_FOUND);
+		/** Delete Messafe Document */
+		await messageDocument.deleteOne();
+		return;
+	};
+
+	/**
+	 * Note: Retrieves a message document by its unique identifier.
+	 *
+	 * This helper method is used internally to fetch a single message
+	 * from the database using its MongoDB ObjectId.
+	 *
+	 * Typical use cases:
+	 * - Validate message existence before update or deletion.
+	 * - Fetch message details for internal service logic.
+	 *
+	 * @param {string} messageId - Unique identifier of the message.
+	 *
+	 * @returns {Promise<MessageDocument | null>} 
+	 * Returns the message document if found, otherwise null.
+	 *
+	 * Notes:
+	 * - Converts the string ID to a MongoDB ObjectId.
+	 * - Does not throw an error if the message is not found.
+	 */
+	protected async GetMessageById(messageId:string):Promise<MessageDocument | null> {
+		const messageDocument = await MessageModel.findById(new mongoose.Types.ObjectId(messageId));
+		return messageDocument;
 	}
 }
 

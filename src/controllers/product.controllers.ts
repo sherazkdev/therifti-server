@@ -7,12 +7,16 @@ import type {Request,Response} from "express";
 import {VALIDATE_CREATE_PRODUCT,VALIDATE_GET_FEATURED_PRODUCTS,VALIDATE_GET_SINGLE_PRODUCT,VALIDATE_SEARCH_PRODUCT,VALIDATE_UPDATE_PRODUCT} from "../validaters/product.validater.js";
 
 /** Services*/
-import ProductServices from "../services/product.services.js";
+import type ProductServices from "../services/product.services.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class ProductControllers {
-    private productServices = new ProductServices();
+    private productServices: ProductServices;
+
+    constructor(productServices:ProductServices){
+        this.productServices = productServices;
+    }
 
     /**
      * Note: Handle Create New Product

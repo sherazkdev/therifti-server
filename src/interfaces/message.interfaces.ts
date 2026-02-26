@@ -34,5 +34,9 @@ export interface MarkMessagesAsSeenInterface {
     receiverId:string
 }
 
+export interface DeleteMessageInterface {
+    messageId:string
+}
+
 /** Message Document */
 export interface MessageDocument extends MessageInterface, Document {};

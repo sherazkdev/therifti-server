@@ -1,6 +1,9 @@
 import express from "express";
 import type { Router } from "express";
 
+/** Note: Services */
+import FollowServices from "../../services/follow.services.js";
+
 /* Note: Controllers imports **/
 import FollowControllers from "../../controllers/follow.controllers.js";
 
@@ -9,7 +12,9 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const FollowRouter:Router = express.Router();
-const followControllers = new FollowControllers();
+const followService = new FollowServices();
+
+const followControllers = new FollowControllers(followService);
 const authMiddlewares = new AuthMiddlewares();
 
 FollowRouter.route("get-followings/:userId").get(AsyncHandler(followControllers.HandleGetFollowers));

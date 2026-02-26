@@ -1,6 +1,9 @@
 import express from "express";
 import type { Router } from "express";
 
+/** Note: Services */
+import ChatServices from "../../services/chat.services.js";
+
 /* Note: Controllers imports **/
 import ChatControllers from "../../controllers/chat.controllers.js";
 
@@ -9,7 +12,9 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const ChatRouter:Router = express.Router();
-const chatControllers = new ChatControllers();
+const chatServices = new ChatServices();
+
+const chatControllers = new ChatControllers(chatServices);
 const authMiddlewares = new AuthMiddlewares();
 
 ChatRouter.use(authMiddlewares.AuthenticateJwtCookie);

@@ -1,6 +1,9 @@
 import express from "express";
 import type { Router } from "express";
 
+/** Note: Services */
+import SizeServices from "../../services/size.services.js";
+
 /* Note: BrandControllers imports **/
 import SizeControllers from "../../controllers/size.controllers.js";
 import AsyncHandler from "../../utils/AsyncHandler.js";
@@ -9,7 +12,9 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const SizeRouter:Router = express.Router();
-const sizeControllers = new SizeControllers();
+const sizeServices = new SizeServices();
+
+const sizeControllers = new SizeControllers(sizeServices);
 const authMiddlewares = new AuthMiddlewares();
 
 SizeRouter.route("/get-size-by-category/:categoryId").get(AsyncHandler(sizeControllers.HandleGetSizeByCategory));

@@ -8,12 +8,15 @@ import type {Request,Response} from "express";
 import { VALIDATE_CREATE_CHAT,VALIDATE_DELETE_CHAT,VALIDATE_GET_CHATS } from "../validaters/chat.validater.js";
 
 /** Services*/
-import ChatServices from "../services/chat.services.js";
+import type ChatServices from "../services/chat.services.js";
 import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class ChatControllers {
-    private chatService = new ChatServices();
+    private chatService: ChatServices;
     
+    constructor(chatService:ChatServices){
+        this.chatService = chatService;
+    }
     /**
      * Note: Create a new Chat
      *

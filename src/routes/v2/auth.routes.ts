@@ -2,14 +2,24 @@ import express from "express";
 import passport from "passport";
 import type { Router } from "express";
 
-/* Note: UserControllers imports **/
+/** Note: Services */
+import AuthServices from "../../services/auth.services.js";
+import UserServices from "../../services/user.services.js";
+import TokenServices from "../../services/token.services.js";
+
+/* Note: Controller imports **/
 import AuthControllers from "../../controllers/auth.controllers.js";
+
 import AsyncHandler from "../../utils/AsyncHandler.js";
 /** Imports Middlewares */
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const AuthRouter:Router = express.Router();
-const authControllers = new AuthControllers();
+const authServices = new AuthServices();
+const userServices = new UserServices();
+const tokenServices = new TokenServices();
+
+const authControllers = new AuthControllers(tokenServices,userServices,authServices);
 const authMiddlewares = new AuthMiddlewares();
 
 /** Note: Auth Strateges */

@@ -1,6 +1,9 @@
 import express from "express";
 import type { Router } from "express";
 
+/** Note: Services */
+import BrandServices from "../../services/brand.services.js";
+
 /* Note: BrandControllers imports **/
 import BrandControllers from "../../controllers/brand.controllers.js";
 import AsyncHandler from "../../utils/AsyncHandler.js";
@@ -9,7 +12,9 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const BrandRouter:Router = express.Router();
-const brandControllers = new BrandControllers();
+const brandServices = new BrandServices();
+
+const brandControllers = new BrandControllers(brandServices);
 const authMiddlewares = new AuthMiddlewares();
 
 /** Secure Routes */

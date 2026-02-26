@@ -10,11 +10,15 @@ import { VALIDATE_CREATE_CATEGORY,VALIDATE_DELETE_CATEGORY,VALIDATE_UPDATE_CATEG
 import type { Request,Response } from "express";
 
 /** Services */
-import CategoryServices from "../services/category.services.js";
+import type CategoryServices from "../services/category.services.js";
 import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class CategoryControllers {
-    private categoryServices = new CategoryServices();
+    private categoryServices: CategoryServices;
+
+    constructor(categoryServices:CategoryServices){
+        this.categoryServices = categoryServices;
+    }
 
     /**
      * Note: Handle Create Category

@@ -66,6 +66,11 @@ export const SUCCESS_MESSAGES = {
     FETCHED:"Notification successfully fetched"
   },
 
+  MESSAGE:{
+    FETCHED:"Message Documents successfully fetched",
+    DELETED:"Message successfully deleted",
+    SENDED:"Message successfully sended"
+  },
   FOLLOW : {
     FOLLOWED: "Followed successfully",
     UNFOLLOWED: "unFollowed successfully",
@@ -206,6 +211,9 @@ export const ERROR_MESSAGES = {
         DELETE_FAILED: "Failed to delete product",
         ALREADY_SOLD: "Product is already sold",
         NOT_OWNER: "You are not the owner of this product"
+    },
+    MESSAGE: {
+      NOT_FOUND: "Message not found"
     },
 
     CATEGORY: {

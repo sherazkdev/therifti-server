@@ -86,7 +86,7 @@ class NotificationControllers {
      * - Throws ApiError if validation fails.
      * - Returns HTTP 200 (OK) with notification list on success.
      */
-    public HandleGetNotification = async (req:Request,res:Response):Promise<Response> => {
+    public HandleGetNotifications = async (req:Request,res:Response):Promise<Response> => {
         const result = VALIDATE_GET_NOTIFICATIONS.safeParse(req.body);
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)

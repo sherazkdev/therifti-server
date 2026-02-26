@@ -1,6 +1,9 @@
 import express from "express";
 import type { Router } from "express";
 
+/** Note: Services */
+import UserServices from "../../services/user.services.js";
+
 /* Note: UserControllers imports **/
 import UserControllers from "../../controllers/user.controllers.js";
 import AsyncHandler from "../../utils/AsyncHandler.js";
@@ -9,7 +12,9 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const UserRouter:Router = express.Router();
-const userControllers = new UserControllers();
+const userServices = new UserServices();
+
+const userControllers = new UserControllers(userServices);
 const authMiddlewares = new AuthMiddlewares();
 
 UserRouter.route("/profile").get(AsyncHandler(userControllers.HandleGetUserProfile));

@@ -1,4 +1,3 @@
-import FollowModel from "../models/follow.model.js";
 /** Response Constants */
 import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
 import ApiError from "../utils/ApiError.js";
@@ -13,8 +12,12 @@ import ApiResponse from "../utils/ApiResponse.js";
 import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class FollowControllers {
-    private followServices = new FollowServices();
+    private followServices: FollowServices;
     
+    constructor(followServices:FollowServices){
+        this.followServices = followServices;
+    }
+
     /**
      * Note: Follow a Seller
      *

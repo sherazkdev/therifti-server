@@ -8,12 +8,16 @@ import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/respo
 import type {Request,Response} from "express";
 
 /** Services */
-import BrandServices from "../services/brand.services.js";
+import type BrandServices from "../services/brand.services.js";
 import { VALIDATE_CREATE_BRAND_DOCUMENT, VALIDATE_GET_BRAND_BY_CATEGORY } from "../validaters/brand.validater.js";
 
 class BrandControllers {
-    private brandServices = new BrandServices();
+    private brandServices: BrandServices;
 
+    constructor(brandServices:BrandServices){
+        this.brandServices = brandServices;
+    }
+    
     /**
      * Note: Create Brand Document.
      * @param {Request} req - Request Object. 

@@ -8,11 +8,15 @@ import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/respo
 import type {Request,Response} from "express";
 
 /** Services */
-import SizeServices from "../services/size.services.js";
+import type SizeServices from "../services/size.services.js";
 import { VALIDATE_CREATE_SIZE_DOCUMENT, VALIDATE_GET_SIZES_BY_CATEGORY, VALIDATE_UPDATE_SIZE_DOCUMENT,VALIDATE_DELETE_SIZE_DOCUMENT } from "../validaters/size.validater.js";
 
 class SizeControllers {
-    private sizeServices = new SizeServices();
+    private sizeServices: SizeServices;
+
+    constructor(sizeServices:SizeServices){
+        this.sizeServices = sizeServices;
+    }
 
     /**
      * Note: Note: Handle Create Size Document.

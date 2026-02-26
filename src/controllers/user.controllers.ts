@@ -4,7 +4,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 /** Note: Response Constants. */
 import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
 /** Note: imported UserServices. */
-import UserServices from "../services/user.services.js";
+import type UserServices from "../services/user.services.js";
 /** Note: imports types */
 import type {Request,Response} from "express";
 /** Note: Validate Handler using zod. */
@@ -12,7 +12,11 @@ import {VALIDATE_CHANGE_EMAIL, VALIDATE_GET_USER_PROFILE, VALIDATE_GET_USER_REVI
 import type {ChangeAccountEmailInterface, GetUserProfileInterface, UpdateUserProfileInterface, UserDocument, VerifyUpdateEmailOtpInterface } from "../interfaces/user.interfaces.js";
 
 class UserControllers {
-    private userServices = new UserServices();
+    private userServices: UserServices;
+    
+    constructor(userServices:UserServices){
+        this.userServices = userServices;
+    }
 
     /**
      * Note: Change email and send otp.

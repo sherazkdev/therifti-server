@@ -13,15 +13,21 @@ import type { LogoutUserAccountInterface, RegisterUserAccountMenuallyInterface, 
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 import {TokenTypes, type CreateTokenInterface} from "../interfaces/token.interfaces.js";
 
-import UserServices from "../services/user.services.js";
-import AuthServices from "../services/auth.services.js";
-import TokenServices from "../services/token.services.js";
+import type UserServices from "../services/user.services.js";
+import type AuthServices from "../services/auth.services.js";
+import type TokenServices from "../services/token.services.js";
 import env from "../constants/loadEnv.js";
 
 class AuthControllers {
-    private tokenServices = new TokenServices();
-    private userServices = new UserServices();
-    private authServices = new AuthServices();
+    private tokenServices: TokenServices;
+    private userServices: UserServices;
+    private authServices: AuthServices;
+
+    constructor(tokenServices:TokenServices,userServices:UserServices,authServices:AuthServices){
+        this.tokenServices = tokenServices;
+        this.userServices = userServices;
+        this.authServices = authServices
+    }
 
     /**
      * Note: Register User account.

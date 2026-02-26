@@ -7,11 +7,16 @@ import type {Request,Response} from "express";
 import {VALIDATE_ADD_TO_WISHLIST,VALIDATE_REMOVE_TO_WISHLIST} from "../validaters/wishlist.validarer.js";
 
 /** Services*/
-import WishlistServices from "../services/wishlist.services.js";
+import type WishlistServices from "../services/wishlist.services.js";
 import type { UserDocument } from "../interfaces/user.interfaces.js";
 
 class WishlistControllers {
-    private wishlistServices = new WishlistServices();
+    private wishlistServices: WishlistServices;
+
+    constructor(wishlistServices:WishlistServices){
+        this.wishlistServices = wishlistServices;
+    }
+
     /**
      * Note: Add Product to Wishlist
      *
