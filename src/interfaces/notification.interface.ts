@@ -41,7 +41,7 @@ export interface NotificationInterface {
 };
 
 export interface CreateNotificationInterface {
-    recipient_id: Types.ObjectId | string;
+    recipient_id:string;
     type: NotificationType;
     metaData: NotificationMetaData;
     linkUrl: string;
@@ -51,6 +51,11 @@ export interface GetNotificationsInterface {
     userId:string,
     page:number,
     limit:number
+}
+
+export interface MarkAsReadInterface {
+    notificationId?:string | undefined,
+    userId:string
 }
 
 /* Note: extends NotificationInterface to Document */

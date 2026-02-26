@@ -2,7 +2,7 @@ import NotificationModel from "../models/notification.model.js";
 import ApiError from "../utils/ApiError.js";
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 import mongoose from "mongoose";
-import type { CreateNotificationInterface, GetNotificationsInterface, NotificationDocument } from "../interfaces/notification.interface.js";
+import type { CreateNotificationInterface, GetNotificationsInterface, MarkAsReadInterface, NotificationDocument } from "../interfaces/notification.interface.js";
 
 
 class NotificationServices {
@@ -99,7 +99,7 @@ class NotificationServices {
      * a single notification as read or marking all unread
      * notifications as read at once.
      *
-     * @param {string} recipientId - User ID of the notification recipient.
+     * @param {string} userId - User ID of the notification recipient.
      * @param {string} [notificationId] - Specific notification ID to mark as read.
      *
      * Use cases:
@@ -114,15 +114,16 @@ class NotificationServices {
      * - This service does not return updated notification documents
      * - Does not send or trigger real-time notifications
      */
-    public async MarkAsRead(recipientId: string, notificationId?: string): Promise<void> {
+    public async MarkAsRead(markAsReadObj:MarkAsReadInterface): Promise<void> {
+        const {userId,notificationId} = markAsReadObj;
         if (notificationId) {
             await NotificationModel.updateOne({
                 _id: new mongoose.Types.ObjectId(notificationId),
-                recipient_id: new mongoose.Types.ObjectId(recipientId)
+                recipient_id: new mongoose.Types.ObjectId(userId)
             }, { $set: { status: "READ" } });
         } else {
             await NotificationModel.updateMany({
-                recipient_id: new mongoose.Types.ObjectId(recipientId),
+                recipient_id: new mongoose.Types.ObjectId(userId),
                 status: { $ne: "READ" }
             }, { $set: { status: "READ" } });
         }

@@ -174,7 +174,7 @@ class MaterialControllers {
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
         }
-                /** Note: Get material payload. */
+        /** Note: Get material payload. */
         const getMaterialsPayload = result.data;
         const materialDocuments = await this.materialServices.GetMaterials(getMaterialsPayload);
         return res.status(STATUS_CODES.OK).json(

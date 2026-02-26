@@ -61,6 +61,10 @@ export const SUCCESS_MESSAGES = {
     REMOVED:"Product removed from wishlists",
     FETCHED:"Wishlist fetched"
   },
+  NOTIFICATION:{
+    READED:"Notification successfully readed",
+    FETCHED:"Notification successfully fetched"
+  },
 
   FOLLOW : {
     FOLLOWED: "Followed successfully",
