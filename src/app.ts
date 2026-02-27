@@ -31,6 +31,7 @@ initPassport();
 /** Routes */
 import NotificationRouter from "./routes/v2/notification.routes.js";
 import MaterialRouter from "./routes/v2/material.routes.js";
+import MessageRouter from "./routes/v2/message.routes.js";
 import ProductRouter from "./routes/v2/product.routes.js";
 import WishlistRouter from "./routes/v2/wishlist.routes.js";
 import CategoryRouter from "./routes/v2/category.routes.js";
@@ -52,6 +53,7 @@ app.use("/api/v1/follows",FollowRouter);
 app.use("/api/v1/chats",ChatRouter);
 app.use("/api/v1/notifications",NotificationRouter);
 app.use("/api/v1/materials",MaterialRouter);
+app.use("/api/v1/messages",MessageRouter);
 
 app.use(ErrorHandler);
 export default app;

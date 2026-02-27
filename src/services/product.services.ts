@@ -39,7 +39,7 @@ class ProductServices {
      * - Business logic is handled at the service layer
     */
     public async CreateProduct(productDetails:CreateProductInterface):Promise<ProductDocument> {
-        const {brand,categoryId,colors,condition,coverImage,description,material,owner,price,size,title,status} = productDetails;
+        const {brand,categoryId,colors,condition,coverImage,description,materials,owner,price,size,title,status} = productDetails;
         /** Note: Check Selected category is exist. */
         const category = await CategoryModel.findById(new mongoose.Types.ObjectId(categoryId));
         if(!category){
@@ -56,7 +56,7 @@ class ProductServices {
             colors:colors,
             condition:condition,
             coverImage:coverImage,
-            materials:Array.isArray(material) ? material[0] : material,
+            materials:materials.map(id => new mongoose.Types.ObjectId(id)),
             price:price,
             status:status
         });
@@ -98,6 +98,12 @@ class ProductServices {
             /** Sort min price */
             if(price.max) searchProductQuery.price.$lte = Number(price.max);
         }
+        let isLikedField:any;
+        if (userId) {
+            isLikedField = {
+                $in: [new mongoose.Types.ObjectId(userId), "$likes.owner"]
+            };
+        }
         if(categoryId) searchProductQuery.categoryId = new mongoose.Types.ObjectId(categoryId);
         if(conditions && conditions.length > 0) searchProductQuery.condition = { $in : conditions};
         if(sizes && sizes.length > 0) searchProductQuery.size = { $in : sizes};
@@ -119,9 +125,7 @@ class ProductServices {
             },
             {
                 $addFields : {
-                    isLiked: {
-                        $in: [new mongoose.Types.ObjectId(userId),"$likes.owner"]
-                    },
+                    isLiked: isLikedField,
                     totalLikes: {
                         $size : "$likes"
                     }
@@ -188,7 +192,7 @@ class ProductServices {
         product.title = title;
         product.coverImage = coverImage;
         product.colors = colors;
-        product.material = Array.isArray(materials) ? materials[0] : materials;
+        product.materials = materials.map(id => new mongoose.Types.ObjectId(id));
         product.parcelSize = parcelSize;
         product.description = description;
         product.condition = condition;

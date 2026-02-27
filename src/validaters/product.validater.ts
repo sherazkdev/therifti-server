@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { PRODUCT_COLOR, PRODUCT_CONDITION, PRODUCT_MATERIAL, PRODUCT_PARCEL_SIZE, PRODUCT_SORT, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
+import { PRODUCT_COLOR, PRODUCT_CONDITION, PRODUCT_PARCEL_SIZE, PRODUCT_SORT, PRODUCT_STATUS } from "../interfaces/product.interfaces.js";
 
 /** Note: Validate Create Product */
 export const VALIDATE_CREATE_PRODUCT = z.object({
@@ -15,7 +15,7 @@ export const VALIDATE_CREATE_PRODUCT = z.object({
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
     price:z.number(),
     status:z.enum(PRODUCT_STATUS),
-    material:z.array(z.enum(PRODUCT_MATERIAL)),
+    materials:z.array(z.string().min(24,"Error: Object id at least 24 character")),
 });
 
 /** Note: Validate Update Product */
@@ -33,7 +33,7 @@ export const VALIDATE_UPDATE_PRODUCT = z.object({
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
     price:z.number(),
     status:z.enum(PRODUCT_STATUS),
-    materials:z.array(z.enum(PRODUCT_MATERIAL))
+    materials:z.array(z.string().min(24,"Error: Object id at least 24 character"))
 });
 
 /** Note: Validate Get Single Product */
@@ -49,7 +49,7 @@ export const VALIDATE_SEARCH_PRODUCT = z.object({
         min:z.number().nullable().optional(),
         max:z.number().nullable().optional()
     }).optional(),
-    materials:z.array(z.enum(PRODUCT_MATERIAL)).optional(),
+    materials:z.array(z.string().min(24,"Error: Object id at least 24 character")).optional(),
     conditions:z.array(z.enum(PRODUCT_CONDITION)).optional(),
     brands:z.array(z.string().min(24,"Error: Object id at least 24 character")).nullable().optional(),
     sizes:z.array(z.string().min(24,"Error: Object id at least 24 character")).nullable().optional(),
