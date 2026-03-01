@@ -165,11 +165,34 @@ class SocketServices {
      *
      * @returns {Server} Socket.IO server instance.
     */
-    static io():SocketServices{
+    static io():Server{
         if (!SocketServices.instance) {
             throw new Error("SocketServices not initialized");
         }
-        return this.instance;
+        return this.instance._io;
+    }
+
+    /**
+     * Note: Returns the singleton instance of `SocketServices`.
+     *
+     * This method exposes the full SocketServices instance, including
+     * internal socket lifecycle methods such as connection registration
+     * and advanced event orchestration.
+     *
+     * NOTE:
+     * - Intended for **internal or advanced use only**
+     * - External services should prefer using `SocketServices.io()`
+     *   instead of accessing the full service instance.
+     *
+     * IMPORTANT:
+     * - Must be called only after `SocketServices.init()` has completed.
+     *
+     * @throws {Error} If SocketServices has not been initialized.
+     *
+     * @returns {SocketServices} The initialized SocketServices singleton instance.
+     */
+    static getServerInstance():SocketServices{
+        return SocketServices.instance;
     }
 }
 

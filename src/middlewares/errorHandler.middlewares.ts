@@ -4,9 +4,11 @@ import env from "../constants/loadEnv.js";
 export default async function ErrorHandler (err:any,req:Request,res:Response,next:NextFunction):Promise<Response> {
     
     if(err instanceof ApiError){
+        console.log(err)
         return res.status(err.statusCode).json({
             message:err.message,
             success:false,
+            statusCode:err.statusCode,
             stack:env.NODE_ENV === "PRODUCTION" ? err.stack : null,
             errors:err.errors || []
         })

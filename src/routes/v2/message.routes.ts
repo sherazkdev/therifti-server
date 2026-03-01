@@ -3,6 +3,7 @@ import type { Router } from "express";
 
 /** Note: Services */
 import MessageServices from "../../services/message.services.js";
+import SocketServices from "../../sockets/sockets.js";
 
 /** Note: Controllers */
 import MessageControllers from "../../controllers/message.controllers.js";
@@ -10,7 +11,8 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const MessageRouter: Router = express.Router();
-const messageServices = new MessageServices();
+const socketServices = SocketServices.getServerInstance();
+const messageServices = new MessageServices(socketServices);
 
 const messageControllers = new MessageControllers(messageServices);
 const authMiddlewares = new AuthMiddlewares();

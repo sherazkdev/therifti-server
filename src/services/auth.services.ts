@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 
 import type { Profile as GoogleProfile, Profile } from "passport-google-oauth20";
 import type { Profile as FacebookProfile } from "passport-facebook";
-import type { RefreshAndAccessTokenGeneraterInterface, UserDocument } from "../interfaces/user.interfaces.js";
+import type { ForgotResponseInterface, RefreshAndAccessTokenGeneraterInterface, UserDocument } from "../interfaces/user.interfaces.js";
 
 /** Interfaces */
 import type {AuthResponseInterface,RegisterUserAccountMenuallyInterface,LoginUserAccountInterface,UserInterface,resetPasswordWithTokenInterface,VerifyForgotAccountOtpInterface,LogoutUserAccountInterface
@@ -18,6 +18,8 @@ import type {SendOtpInterface, VerifyOtpInterface} from "../interfaces/otp.inter
 import TokenServices from "./token.services.js";
 import UserServices from "./user.services.js";
 import OtpServices from "./otp.services.js";
+import type { AuthApiResponse } from "../interfaces/auth.interfaces.js";
+import mongoose from "mongoose";
 
 class AuthServices {
     private userServices = new UserServices();
@@ -109,7 +111,7 @@ class AuthServices {
      * @param userObject - required fields is email, password, zipCode is optionl, userName, 
      * @throw if emails exist.
     */
-    public async RegisterUserAccount(userObject:RegisterUserAccountMenuallyInterface):Promise<UserDocument> {
+    public async RegisterUserAccount(userObject:RegisterUserAccountMenuallyInterface):Promise<AuthApiResponse> {
         const {email, fullname, password, username, zipCode} = userObject;
         const checkUserAccountEmailExist = await UserModel.findOne({
             $or : [
@@ -128,7 +130,11 @@ class AuthServices {
                 userId:checkUserAccountEmailExist._id.toString()
             } 
             const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);
-            return checkUserAccountEmailExist;
+            /** Send response */
+            const apiResponseObj = {
+                userId:checkUserAccountEmailExist._id.toString()
+            };
+            return apiResponseObj;
         } if(checkUserAccountEmailExist?.username === username){
             throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.USERNAME_EXISTS)
         }
@@ -151,7 +157,11 @@ class AuthServices {
         const sendOtpForRegistration = await this.otpServices.SendOtp(sendOtpPayload);        
         
         /** Send response */
-        return created_user;
+        const apiResponseObj = {
+            userId:created_user._id.toString()
+        };
+
+        return apiResponseObj;
     }
 
     /**
@@ -240,10 +250,8 @@ class AuthServices {
      * @returns null.
     */
     public async VerifyForgotAccountOtp(otpObject:VerifyForgotAccountOtpInterface):Promise<{resetToken:string}> {
-        const {email,otp} = otpObject;
-        const user = await UserModel.findOne({
-            email: email
-        });
+        const {userId,otp} = otpObject;
+        const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         /** Note: Check email is exist. */
         if(!user){
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
@@ -273,9 +281,9 @@ class AuthServices {
      * @return null.
     */
     public async resetPasswordWithToken(resetObject:resetPasswordWithTokenInterface):Promise<void> {
-        const {email,resetToken,password} = resetObject;
+        const {userId,resetToken,password} = resetObject;
         /** Note: Check user exist. */
-        const user = await UserModel.findOne({email:email});
+        const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         if(!user){
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
         }
@@ -326,7 +334,7 @@ class AuthServices {
      * 
      * @note Sended otp on user email and otp hashed save in database.
     */
-    public async ForgotAccount(forgotAccoutDetails:{email:string}):Promise<void> {
+    public async ForgotAccount(forgotAccoutDetails:{email:string}):Promise<ForgotResponseInterface> {
         const {email} = forgotAccoutDetails;
         const user = await UserModel.findOne({email:email,isVerfied:true});
         if(!user){
@@ -340,7 +348,7 @@ class AuthServices {
             email:email
         }
         const sendOtp = await this.otpServices.SendOtp(sendOtpPayload);
-        return;
+        return {userId:user._id.toString()};
     }
 
     /**

@@ -5,12 +5,17 @@ import { MessageStatus } from "../interfaces/message.interfaces.js";
 /** Services */
 import type { SendMessageInterface,MessageDocument, GetChatMessagesInterface, MarkMessagesAsSeenInterface, DeleteMessageInterface } from "../interfaces/message.interfaces.js";
 import SocketServices from "../sockets/sockets.js";
+import { Server } from "socket.io";
 import ApiError from "../utils/ApiError.js";
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 
 class MessageServices {
-    private socketServices = SocketServices.io();
-    
+	private socketServices: SocketServices;
+	
+	constructor(socketServices:SocketServices){
+		this.socketServices = socketServices;
+	}
+
     /**
      * Note: Send Message Service.
      * 

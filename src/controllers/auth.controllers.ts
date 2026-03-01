@@ -44,9 +44,9 @@ class AuthControllers {
         /** Note: Register User Payload. */
         const {email,fullname,password,username,zipCode} = result.data;
         const registerUserPayload:RegisterUserAccountMenuallyInterface = result.data;
-        const registerUser = await this.authServices.RegisterUserAccount(registerUserPayload);
+        const registerdUser = await this.authServices.RegisterUserAccount(registerUserPayload);
         return res.status(200).json(
-            new ApiResponse(registerUser,SUCCESS_MESSAGES.AUTH.REGISTER + ", And verify otp.",true,200)
+            new ApiResponse(registerdUser,SUCCESS_MESSAGES.AUTH.REGISTER + ", And verify otp.",true,200)
         )
     }
 
@@ -96,6 +96,7 @@ class AuthControllers {
         if(!result.success){
             throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
+        console.log(req.body)
         /** Note: verifyUser credinals payload. */
         const verifyUserPayload = result.data;
         const {user,tokens} = await this.authServices.LoginUserAccount(verifyUserPayload);
@@ -130,9 +131,9 @@ class AuthControllers {
         const forgotPasswordPayload = {
             email:email
         };
-        const sendOtpProccessing = await this.authServices.ForgotAccount(forgotPasswordPayload);
+        const userDocumentId = await this.authServices.ForgotAccount(forgotPasswordPayload);
         return res.status(STATUS_CODES.OK).json(
-            new ApiResponse([],SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
+            new ApiResponse(userDocumentId,SUCCESS_MESSAGES.USER.OTP_SUCCESSFULLY_SENDED,true,STATUS_CODES.OK)
         )
     };
 
@@ -147,10 +148,10 @@ class AuthControllers {
         if(!result.success){
             throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
-        const {email,otp} = result.data;
+        const {userId,otp} = result.data;
         /** Note: Verify forgot account otp. */
         const verifyForgotAccountOtpPayload:VerifyForgotAccountOtpInterface = {
-            email:email,
+            userId:userId,
             otp:otp
         };
         const {resetToken} = await this.authServices.VerifyForgotAccountOtp(verifyForgotAccountOtpPayload);

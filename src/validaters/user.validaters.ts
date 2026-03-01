@@ -43,7 +43,7 @@ export const VALIDATE_UPDATE_USER_PROFILE = z.object({
 export const VALIDATE_FORGOT_PASSWORD = z.object({
     email: z.email().optional(),
     userId: z.string().optional()
-})
+});
 
 /** Note: Validate Verify Registeration Otp. */
 export const VALIDATE_VERIFY_REGISTERATION_OTP = z.object({
@@ -70,14 +70,14 @@ export const VALIDATE_FORGOT_ACCOUNT_PASSWORD = z.object({
 
 /** Note: Validate Verify Sended Forgot account otp. */
 export const VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP = z.object({
-    email: z.email(),
+    userId: z.string().length(24,"Error: Object id at least 24 character"),
     otp: z.string()
 });
 
 /** Note: Validate Reset Password. */
 export const VALIDATE_RESET_PASSWORD = z.object({
     password: z.string().min(8,"Error: password at least 9 character"),
-    email: z.email(),
+    userId: z.string().length(24,"Error: Object id at least 24 character"),
     resetToken: z.string()
 })
 /** Note: Get user reviews. */

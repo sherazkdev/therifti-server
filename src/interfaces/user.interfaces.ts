@@ -128,6 +128,10 @@ export interface AuthResponseInterface {
         refreshToken:string,
         accessToken:string
     }
+};
+
+export interface ForgotResponseInterface {
+    userId:string
 }
 
 export interface VerifyUpdateEmailOtpInterface {
@@ -138,13 +142,13 @@ export interface VerifyUpdateEmailOtpInterface {
 }
 
 export interface VerifyForgotAccountOtpInterface {
-    email:string,
+    userId:string,
     otp:string
 }
 
 export interface resetPasswordWithTokenInterface {
     resetToken:string,
-    email:string,
+    userId:string,
     password:string
 }
 
