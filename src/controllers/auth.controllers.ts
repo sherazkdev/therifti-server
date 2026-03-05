@@ -2,7 +2,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 /** Note: Response Constants. */
-import {ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
+import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
 
 /** Note: imports types */
 import type {CookieOptions, NextFunction, Request,Response} from "express";
@@ -60,7 +60,7 @@ class AuthControllers {
     public HandleRegisterationOtpVerifier = async (req:Request,res:Response):Promise<Response> => {
         const result = VALIDATE_VERIFY_REGISTERATION_OTP.safeParse(req.body);
         if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG,ERROR_CODES.VALIDATION.FAILED);
         }
         const {otp,userId} = result.data;
         const otpObject:VerifyOtpInterface = {
@@ -76,7 +76,7 @@ class AuthControllers {
             sameSite:"lax",
             secure:true
         };
-        
+        console.log(user,tokens);
         return res.status(STATUS_CODES.OK)
         .cookie("accessToken",tokens.accessToken,cookieOptions)
         .cookie("refreshToken",tokens.refreshToken,cookieOptions)
@@ -124,7 +124,7 @@ class AuthControllers {
     public HandleForgotAccountPassword = async (req:Request,res:Response):Promise<Response> => {
         const result = VALIDATE_FORGOT_ACCOUNT_PASSWORD.safeParse(req.body);
         if(!result.success){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG,ERROR_CODES.VALIDATION.FAILED);
         }
         const {email} = result.data;
         /** Note: Forgot password payload.*/
@@ -146,7 +146,7 @@ class AuthControllers {
     public HandleVerifyForgotAccountOtp = async (req:Request,res:Response):Promise<Response> => {
         const result = VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP.safeParse(req.body);
         if(!result.success){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG,ERROR_CODES.VALIDATION.FAILED);
         }
         const {userId,otp} = result.data;
         /** Note: Verify forgot account otp. */
@@ -170,7 +170,7 @@ class AuthControllers {
         const result = VALIDATE_RESET_PASSWORD.safeParse(req.body);
         /** Note: Check if any error in result. */
         if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG.);
         }
         /** Note: Reset password payload. */
         const resetPasswordPayload:resetPasswordWithTokenInterface = result.data;
@@ -280,6 +280,23 @@ class AuthControllers {
         .redirect(env.CLIENT_URL);
     };
     
+    /**
+     * Note: Handle Get Current LoggedIn User. 
+     * 
+     * This service using for get logged in user Document using auth middleware.
+     * and return userDocument with a client.
+     * 
+     * @param {Request} req - Express request object.
+     * @param {Response} res - Express response object.
+     * 
+     * @returns {Promise<Response>} - LoggedIn userdocument.
+    */
+    public HandleGetCurrentLoggedInUser = async (req:Request,res:Response):Promise<Response> => {
+        const userDocument = req.user as UserDocument;
+        return res.status(STATUS_CODES.OK).json(    
+            new ApiResponse(STATUS_CODES.OK,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
+        )
+    }
 
 }
 

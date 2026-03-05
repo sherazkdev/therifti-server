@@ -34,11 +34,12 @@ AuthRouter.route("/registeration-otp-verifier").patch(AsyncHandler(authControlle
 AuthRouter.route("/login").post(AsyncHandler(authControllers.HandleLoginUserAccount));
 
 /** Secure Routes */
-AuthRouter.route("/logout").patch(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(authControllers.HandleLogoutUserAccount));
+AuthRouter.route("/logout").get(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(authControllers.HandleLogoutUserAccount));
+AuthRouter.route(".current-user").get(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(authControllers.HandleGetCurrentLoggedInUser));
 
 /** Note: Reset Password routes. */
 AuthRouter.route("/forgot-password").post(AsyncHandler(authControllers.HandleForgotAccountPassword));
 AuthRouter.route("/verify-forgot-otp").post(AsyncHandler(authControllers.HandleVerifyForgotAccountOtp));
-AuthRouter.route("/reset-password").post(AsyncHandler(authControllers.HandleResetPassword));
+AuthRouter.route("/reset-password").patch(AsyncHandler(authControllers.HandleResetPassword));
 
 export default AuthRouter;

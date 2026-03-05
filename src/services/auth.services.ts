@@ -2,7 +2,7 @@ import UserModel from "../models/user.model.js";
 /** Note: UserModel Services */
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
-import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
+import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import bcrypt from "bcrypt";
 
 import type { Profile as GoogleProfile, Profile } from "passport-google-oauth20";
@@ -67,7 +67,7 @@ class AuthServices {
                 await user.save();
             }
         }else {
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.AUTH.OAUTH_EMAIL_NOT_PROVIDED)
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.AUTH.OAUTH_EMAIL_NOT_PROVIDED,ERROR_CODES.AUTH.OAUTH_EMAIL_NOT_PROVIDED);
         }
         return user;
     };
@@ -121,7 +121,7 @@ class AuthServices {
         });
         if(checkUserAccountEmailExist?.email === email){
             if(checkUserAccountEmailExist.isVerfied === true){
-                throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.EMAIL_EXISTS);
+                throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.EMAIL_EXISTS,ERROR_CODES.AUTH.EMAIL_EXISTS);
             }
             /** Note: if user is not verified send otp. */
             const sendOtpPayload:SendOtpInterface = {
@@ -136,7 +136,7 @@ class AuthServices {
             };
             return apiResponseObj;
         } if(checkUserAccountEmailExist?.username === username){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.USERNAME_EXISTS)
+            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.USERNAME_EXISTS,ERROR_CODES.AUTH.USERNAME_EXISTS);
         }
         /** Note: end otp hashing section. */
         const UserDocument:UserInterface = {
@@ -188,9 +188,12 @@ class AuthServices {
         }
         const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
 
+        /** Note: Update User isVerified status. */
+        user.isVerfied = true;
+        await user.save();
         const returnedUser = user.toObject();
         delete returnedUser.password;
-
+        
         return {
             user:returnedUser,
             tokens:{
@@ -211,17 +214,17 @@ class AuthServices {
         const {email, password} = userObject;
         const user = await UserModel.findOne({email:email,isVerfied:true});
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND,ERROR_CODES.AUTH.EMAIL_NOT_FOUND);
         }
         /** Match Password. */
         if(!user.password){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,ERROR_CODES.AUTH.INVALID_CREDENTIALS);
         }
         const hashed_password = user.password;
         /** Note: Compare normal password to hashpassword. */
         const compare_password = await bcrypt.compare(password,hashed_password);
         if(!compare_password){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,ERROR_CODES.AUTH.INVALID_CREDENTIALS);
         }
         /** Note: Generate access and refresh token. */
         const {accessToken} = await this.GenerateRefreshAndAccessToken(user._id.toString());
@@ -254,7 +257,7 @@ class AuthServices {
         const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         /** Note: Check email is exist. */
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND,ERROR_CODES.AUTH.EMAIL_EXISTS);
         }
         /** Note: otp verify payload. */
         const OtpVerifyPayload:VerifyOtpInterface = {
@@ -338,7 +341,7 @@ class AuthServices {
         const {email} = forgotAccoutDetails;
         const user = await UserModel.findOne({email:email,isVerfied:true});
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND,ERROR_CODES.AUTH.EMAIL_NOT_FOUND);
         }
         /** Note: if account is exist generate a new otp and with email. */
         /** Note: Send otp on email using with nodemailer */

@@ -8,6 +8,7 @@ export default async function ErrorHandler (err:any,req:Request,res:Response,nex
         return res.status(err.statusCode).json({
             message:err.message,
             success:false,
+            errorCode:err.errorcode,
             statusCode:err.statusCode,
             stack:env.NODE_ENV === "PRODUCTION" ? err.stack : null,
             errors:err.errors || []

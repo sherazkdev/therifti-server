@@ -2,7 +2,7 @@ import UserModel from "../models/user.model.js";
 import OtpModel from "../models/otp.model.js";
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
-import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
+import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import path from "node:path";
@@ -46,16 +46,16 @@ class OtpServices {
         /** Note: Compare otp. */
         const hashed_otp = hashed_user_otp_object?.otp;
         if(!hashed_otp){
-            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.OTP_NOT_FOUND)
+            throw new ApiError(STATUS_CODES.NOT_FOUND, ERROR_MESSAGES.AUTH.OTP_NOT_FOUND,ERROR_CODES.AUTH.OTP_NOT_FOUND)
         }
         /** Check otp expiry. */
         const now = Date.now();
         if(hashed_user_otp_object.otpExpiry.getTime() < now){
-            // throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.OTP_EXPIRED);
+            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.OTP_EXPIRED,ERROR_CODES.AUTH.OTP_EXPIRED);
         }
         const compare_otp = await bcrypt.compare(otp,hashed_otp);
         if(!compare_otp){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.INVALID_OTP);
+            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.INVALID_OTP,ERROR_CODES.AUTH.INVALID_OTP);
         }
         await hashed_user_otp_object.deleteOne();
         return true;
@@ -75,7 +75,7 @@ class OtpServices {
         );
         /** Note: Check file is exist in directory. */
         if(!templatePath || !fs.existsSync(templatePath)){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.EMAIL.EMAIL_TEMPLATE_NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.EMAIL.EMAIL_TEMPLATE_NOT_FOUND,ERROR_CODES.VALIDATION.FAILED);
         }
         return templatePath;
     }
@@ -89,14 +89,13 @@ class OtpServices {
         const {purpose,userId,email} = otpObject;
         const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND,ERROR_CODES.AUTH.EMAIL_NOT_FOUND);
         }
         /** Note: Check old otp is exist */
         const oldOtpDocument = await OtpModel.findOne({
             purpose:purpose,
             userId:userId
         });
-        console.log(oldOtpDocument)
         const templatePath = await this.GetTemplatePath({filename:"otp.email.hbs"});
         const source = fs.readFileSync(templatePath,"utf-8");
         const html = hbs.compile(source);

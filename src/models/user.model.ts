@@ -47,14 +47,15 @@ const UserSchema = new mongoose.Schema<UserDocument>({
         type:{
             countryCode:{
                 type:String,
-                defualt:null
+                default:null
             },
             nationalNumber:{
                 type:String,
-                defualt:null
+                default:null
             }
         },
-        default:{}
+        _id:false,
+        default:() => {}
     },
     dob:{
         type:Date,

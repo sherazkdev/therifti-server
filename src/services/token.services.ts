@@ -4,7 +4,7 @@ import TokenModel from "../models/token.model.js";
 /** Note: UserModel Services */
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
-import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
+import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import crypto from "crypto";
 import { TokenTypes, type CreateTokenInterface, type CreateTokenResponseInterface, type FindValidTokenInterface, type GenerateTokenResultInterface, type TokenDocument, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
 
@@ -27,28 +27,50 @@ class TokenServices {
      * @param resetTokenObject - rawToken. 
      * @returns Boolean. 
     */
-    public async VerifyResetToken(resetTokenObject:VerifyResetTokenInterface):Promise<Boolean> {
-        const {rawToken,userId,type} = resetTokenObject;
-        /** Note: find token */
+    public async VerifyResetToken(resetTokenObject:VerifyResetTokenInterface): Promise<boolean> {
+        const {rawToken,type,userId} = resetTokenObject;
+        
+        // Hash input token
+        const hashedInput = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+        // Find token by userId and type (ignore isUsed and expiresAt for now)
         const token = await TokenModel.findOne({
-            type:type,
-            userId:userId
+            userId: new mongoose.Types.ObjectId(userId),
+            type,
+            token: hashedInput
         });
-        /** Note: Current date miliseconds. */
-        const now = Date.now();
-        if(!token) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_NOT_FOUND);
-        if(token.isUsed) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_IS_USED);
-        if(token.expiresAt.getTime() < now) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.TOKEN_EXPIRED);
-        /** Note: Compare hashed token. */
-        const hashedInput = crypto.createHash("sha256").update(rawToken).digest();
-        const tokenBuffer = Buffer.from(token.token,"hex");
-        /** Note: Token Compare */
-        if(!crypto.timingSafeEqual(hashedInput,tokenBuffer)){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED, ERROR_MESSAGES.AUTH.TOKEN_INVALID);
+
+        if (!token) {
+            // Token does not exist → invalid
+            throw new ApiError(
+                STATUS_CODES.UNAUTHORIZED,
+                ERROR_MESSAGES.AUTH.TOKEN_INVALID,
+                ERROR_CODES.AUTH.TOKEN_INVALID
+            );
         }
-        /** Note: mark is used */
+
+        // Check if token already used
+        if (token.isUsed) {
+            throw new ApiError(
+                STATUS_CODES.NOT_FOUND,
+                ERROR_MESSAGES.AUTH.TOKEN_IS_USED,
+                ERROR_CODES.AUTH.TOKEN_IS_USED
+            );
+        }
+
+        // Check if token expired
+        if (token.expiresAt.getTime() < Date.now()) {
+            throw new ApiError(
+                STATUS_CODES.UNAUTHORIZED,
+                ERROR_MESSAGES.AUTH.TOKEN_EXPIRED,
+                ERROR_CODES.AUTH.TOKEN_EXPIRED
+            );
+        }
+
+        // Mark token as used
         token.isUsed = true;
         await token.save();
+
         return true;
     }
 
