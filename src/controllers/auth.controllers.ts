@@ -170,7 +170,7 @@ class AuthControllers {
         const result = VALIDATE_RESET_PASSWORD.safeParse(req.body);
         /** Note: Check if any error in result. */
         if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG.);
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
         }
         /** Note: Reset password payload. */
         const resetPasswordPayload:resetPasswordWithTokenInterface = result.data;
@@ -240,10 +240,10 @@ class AuthControllers {
         // delete userObject.password;
 
         
-        return res.status(STATUS_CODES.OK)
+    return res.status(STATUS_CODES.OK)
         .cookie("accessToken",accessToken,cookieOptions)
         .cookie("refreshToken",rawToken,cookieOptions)
-        .redirect(env.CLIENT_URL);
+        .redirect(`${env.CLIENT_URL}/login?accessToken=${accessToken}&refreshToken=${rawToken}&provider=GOOGLE`);
     };
     
     /**
@@ -277,7 +277,7 @@ class AuthControllers {
         return res.status(STATUS_CODES.OK)
         .cookie("accessToken",accessToken,cookieOptions)
         .cookie("refreshToken",rawToken,cookieOptions)
-        .redirect(env.CLIENT_URL);
+        .redirect(`${env.CLIENT_URL}/login?accessToken=${accessToken}&refreshToken=${rawToken}&provider=FACEBOOK`);
     };
     
     /**
@@ -293,9 +293,11 @@ class AuthControllers {
     */
     public HandleGetCurrentLoggedInUser = async (req:Request,res:Response):Promise<Response> => {
         const userDocument = req.user as UserDocument;
-        return res.status(STATUS_CODES.OK).json(    
-            new ApiResponse(STATUS_CODES.OK,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
+        setTimeout( () => {
+            return res.status(STATUS_CODES.OK).json(    
+            new ApiResponse(userDocument,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
         )
+        },2000)
     }
 
 }

@@ -16,12 +16,14 @@ class MongooseConnection {
     /** Mongoose Connection */
     public async Connect(){
         try {
+            console.log(env.MONGO_URI)
             const connectionInstance = await mongoose.connect(`${env.MONGO_URI}/therfti-v2`);
             this.connection = connectionInstance.connection;
             this.isConnected = true;
             console.log(` MongoDB running at this ${this.connection.host} Host.`);
             return;
         } catch (e:MongooseError | any) {
+            console.log(e);
             throw new Error(e);
         }
     }

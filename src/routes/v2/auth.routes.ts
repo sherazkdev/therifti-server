@@ -35,7 +35,7 @@ AuthRouter.route("/login").post(AsyncHandler(authControllers.HandleLoginUserAcco
 
 /** Secure Routes */
 AuthRouter.route("/logout").get(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(authControllers.HandleLogoutUserAccount));
-AuthRouter.route(".current-user").get(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(authControllers.HandleGetCurrentLoggedInUser));
+AuthRouter.route("/current-user").get(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(authControllers.HandleGetCurrentLoggedInUser));
 
 /** Note: Reset Password routes. */
 AuthRouter.route("/forgot-password").post(AsyncHandler(authControllers.HandleForgotAccountPassword));
