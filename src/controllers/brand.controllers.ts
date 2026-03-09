@@ -26,13 +26,10 @@ class BrandControllers {
      * @returns {Promise<Response>} Created brand document.
     */
     public HandleCreateBrand = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_CREATE_BRAND_DOCUMENT.safeParse(req.body);
+        const result = VALIDATE_CREATE_BRAND_DOCUMENT.parse(req.body);
         /** Note: Check If any error in validation. */
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
         /** @note Create size document. */
-        const createSizePayload = result.data;
+        const createSizePayload = result;
         const brandDocument = await this.brandServices.CreateBrand(createSizePayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(brandDocument,SUCCESS_MESSAGES.BRAND.CREATED,true,STATUS_CODES.OK)
@@ -47,12 +44,10 @@ class BrandControllers {
      * @returns {Promise<Response>} Matched Brands.
     */
     public HandleGetBrandByCategory = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_BRAND_BY_CATEGORY.safeParse(req.params);
+        const result = VALIDATE_GET_BRAND_BY_CATEGORY.parse(req.params);
         /** Note: Check If any error in validation. */
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
-        const brands = await this.brandServices.GetBrandByCategory(result.data.categoryId);
+
+        const brands = await this.brandServices.GetBrandByCategory(result.categoryId);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(brands,SUCCESS_MESSAGES.BRAND.FETCHED,true,STATUS_CODES.OK)
         )

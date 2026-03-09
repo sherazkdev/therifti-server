@@ -8,7 +8,7 @@ import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../co
 import type {CookieOptions, NextFunction, Request,Response} from "express";
 
 /** Zod Validaters  */
-import {VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT,VALIDATE_RESET_PASSWORD,VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP,VALIDATE_VERIFY_REGISTERATION_OTP} from "../validaters/user.validaters.js";
+import {VALIDATE_FORGOT_ACCOUNT_PASSWORD, VALIDATE_LOGIN_USER_ACCOUNT, VALIDATE_REGISTER_USER_ACCOUNT,VALIDATE_RESET_PASSWORD,VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP,VALIDATE_VERIFY_REGISTERATION_OTP,VALIDATE_REFRESH_ACCESSTOKEN} from "../validaters/user.validaters.js";
 import type { LogoutUserAccountInterface, RegisterUserAccountMenuallyInterface, resetPasswordWithTokenInterface, UserDocument, VerifyForgotAccountOtpInterface } from "../interfaces/user.interfaces.js";
 import type { VerifyOtpInterface } from "../interfaces/otp.interfaces.js";
 import {TokenTypes, type CreateTokenInterface} from "../interfaces/token.interfaces.js";
@@ -37,13 +37,11 @@ class AuthControllers {
     */
     public HandleRegisterUserAccount = async (req:Request,res:Response):Promise<Response> => {
         /** Note: Validate User Details. */
-        const result = await VALIDATE_REGISTER_USER_ACCOUNT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
+        const result = await VALIDATE_REGISTER_USER_ACCOUNT.parse(req.body);
+
         /** Note: Register User Payload. */
-        const {email,fullname,password,username,zipCode} = result.data;
-        const registerUserPayload:RegisterUserAccountMenuallyInterface = result.data;
+        const {email,fullname,password,username,zipCode} = result;
+        const registerUserPayload:RegisterUserAccountMenuallyInterface = result;
         const registerdUser = await this.authServices.RegisterUserAccount(registerUserPayload);
         return res.status(200).json(
             new ApiResponse(registerdUser,SUCCESS_MESSAGES.AUTH.REGISTER + ", And verify otp.",true,200)
@@ -58,11 +56,9 @@ class AuthControllers {
      * @returns UserDocument.
     */
     public HandleRegisterationOtpVerifier = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_VERIFY_REGISTERATION_OTP.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result?.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG,ERROR_CODES.VALIDATION.FAILED);
-        }
-        const {otp,userId} = result.data;
+        const result = VALIDATE_VERIFY_REGISTERATION_OTP.parse(req.body);
+
+        const {otp,userId} = result;
         const otpObject:VerifyOtpInterface = {
             otp:otp,
             userId:userId,
@@ -92,13 +88,10 @@ class AuthControllers {
      * @returns userDocument.
     */
     public HandleLoginUserAccount = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_LOGIN_USER_ACCOUNT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        console.log(req.body)
+        const result = VALIDATE_LOGIN_USER_ACCOUNT.parse(req.body);
+
         /** Note: verifyUser credinals payload. */
-        const verifyUserPayload = result.data;
+        const verifyUserPayload = result;
         const {user,tokens} = await this.authServices.LoginUserAccount(verifyUserPayload);
         /** Note: Cookies Options. */
         const cookieOptions:CookieOptions = {
@@ -122,11 +115,9 @@ class AuthControllers {
      * @returns null. 
     */
     public HandleForgotAccountPassword = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_FORGOT_ACCOUNT_PASSWORD.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG,ERROR_CODES.VALIDATION.FAILED);
-        }
-        const {email} = result.data;
+        const result = VALIDATE_FORGOT_ACCOUNT_PASSWORD.parse(req.body);
+
+        const {email} = result;
         /** Note: Forgot password payload.*/
         const forgotPasswordPayload = {
             email:email
@@ -144,11 +135,9 @@ class AuthControllers {
      * @returns null.
     */
     public HandleVerifyForgotAccountOtp = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG,ERROR_CODES.VALIDATION.FAILED);
-        }
-        const {userId,otp} = result.data;
+        const result = VALIDATE_VERIFY_FORGOT_ACCOUNT_OTP.parse(req.body);
+
+        const {userId,otp} = result;
         /** Note: Verify forgot account otp. */
         const verifyForgotAccountOtpPayload:VerifyForgotAccountOtpInterface = {
             userId:userId,
@@ -167,13 +156,9 @@ class AuthControllers {
      * @returns Response. 
     */
     public HandleResetPassword = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_RESET_PASSWORD.safeParse(req.body);
-        /** Note: Check if any error in result. */
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
+        const result = VALIDATE_RESET_PASSWORD.parse(req.body);
         /** Note: Reset password payload. */
-        const resetPasswordPayload:resetPasswordWithTokenInterface = result.data;
+        const resetPasswordPayload:resetPasswordWithTokenInterface = result;
 
         const resetPasswordService = await this.authServices.resetPasswordWithToken(resetPasswordPayload);
         return res.status(STATUS_CODES.OK).json(
@@ -240,7 +225,7 @@ class AuthControllers {
         // delete userObject.password;
 
         
-    return res.status(STATUS_CODES.OK)
+        return res.status(STATUS_CODES.OK)
         .cookie("accessToken",accessToken,cookieOptions)
         .cookie("refreshToken",rawToken,cookieOptions)
         .redirect(`${env.CLIENT_URL}/login?accessToken=${accessToken}&refreshToken=${rawToken}&provider=GOOGLE`);
@@ -293,12 +278,29 @@ class AuthControllers {
     */
     public HandleGetCurrentLoggedInUser = async (req:Request,res:Response):Promise<Response> => {
         const userDocument = req.user as UserDocument;
-        setTimeout( () => {
-            return res.status(STATUS_CODES.OK).json(    
-            new ApiResponse(userDocument,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK)
-        )
-        },2000)
+        return res.status(STATUS_CODES.OK).json(new ApiResponse(userDocument,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK));
     }
+
+    public HandleRefreshAccessToken = async (req:Request,res:Response):Promise<Response> => {
+        console.log(req.body,req.headers.referer)
+        const result = VALIDATE_REFRESH_ACCESSTOKEN.parse(req.body);
+        console.log(result,"12")
+        /** Note: Refresh Token Payload */
+        const refreshTokenPayload = result.refreshToken;
+        const {accessToken,refreshToken} = await this.authServices.RefreshAccessToken(refreshTokenPayload);
+
+        /** Note: Cookies Options. */
+        const cookieOptions:CookieOptions = {
+            httpOnly:true,
+            sameSite:"lax",
+            secure:true
+        };
+        
+        return res.status(STATUS_CODES.OK)
+        .cookie("accessToken",accessToken,cookieOptions)
+        .cookie("refreshToken",refreshToken,cookieOptions)
+        .json(new ApiResponse({refreshToken,accessToken},SUCCESS_MESSAGES.AUTH.TOKEN_REFRESH,true,STATUS_CODES.OK));
+    };
 
 }
 

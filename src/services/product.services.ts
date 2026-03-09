@@ -3,9 +3,10 @@ import CategoryModel from "../models/category.model.js";
 /** Note: UserModel Services */
 import ApiError from "../utils/ApiError.js";
 /** Response Constants */
-import {ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
+import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import type { CreateProductInterface, FeaturedProductsInterface, GetSingleProductInterface, ProductDocument, SearchProductInterface, UpdateProductInterface } from "../interfaces/product.interfaces.js";
 import mongoose from "mongoose";
+import type { SizeDocument } from "../interfaces/size.interfaces.js";
 
 class ProductServices {
     
@@ -39,21 +40,23 @@ class ProductServices {
      * - Business logic is handled at the service layer
     */
     public async CreateProduct(productDetails:CreateProductInterface):Promise<ProductDocument> {
-        const {brand,categoryId,colors,condition,coverImage,description,materials,owner,price,size,title,status} = productDetails;
+        const {brand,categoryId,colors,condition,coverImage,description,materials,owner,price,sizes,title,status,images,parcelSize} = productDetails;
         /** Note: Check Selected category is exist. */
         const category = await CategoryModel.findById(new mongoose.Types.ObjectId(categoryId));
         if(!category){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.CATEGORY.NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_CODES.CATEGORY.NOT_FOUND,[{field:"categoryId",message:ERROR_MESSAGES.CATEGORY.NOT_FOUND}]);
         }
         /** Note: Create Product Document */
         const ProductDocument = await ProductModel.create({
             categoryId:new mongoose.Types.ObjectId(categoryId),
             owner:new mongoose.Types.ObjectId(owner),
-            size:new mongoose.Types.ObjectId(size),
+            sizes:sizes.map( (s) => new mongoose.Types.ObjectId(s)),
             title:title,
             description:description,
             brand:new mongoose.Types.ObjectId(brand),
             colors:colors,
+            parcelSize:parcelSize,
+            images:images,
             condition:condition,
             coverImage:coverImage,
             materials:materials.map(id => new mongoose.Types.ObjectId(id)),
@@ -185,7 +188,7 @@ class ProductServices {
      * - Assigns new values to product fields and saves the document
      */
     public async UpdateProduct(updateProduct:UpdateProductInterface):Promise<ProductDocument> {
-        const {brand,categoryId,colors,condition,coverImage,description,materials,parcelSize,price,productId,size,status,title} = updateProduct;
+        const {brand,categoryId,colors,condition,coverImage,description,materials,parcelSize,price,productId,sizes,status,title} = updateProduct;
         const product = await this.GetProductById(productId);
         /** Note: Assign the product updateProductObject value to Product document. */
         product.categoryId = new mongoose.Types.ObjectId(categoryId);
@@ -196,7 +199,7 @@ class ProductServices {
         product.parcelSize = parcelSize;
         product.description = description;
         product.condition = condition;
-        product.size = new mongoose.Types.ObjectId(size);
+        product.sizes = sizes.map(id => new mongoose.Types.ObjectId(id));
         product.brand = new mongoose.Types.ObjectId(brand);
         product.status = status;
         product.price = price;

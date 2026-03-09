@@ -39,12 +39,9 @@ class ProductControllers {
      * - Returns the newly created product wrapped in a standardized `ApiResponse`
     */
     public HandleCreateProduct = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_CREATE_PRODUCT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_CREATE_PRODUCT.parse(req.body);
         // Note: Create Product payload.
-        const createProductPayload = result.data;
+        const createProductPayload = {...result,owner:(req.user as UserDocument)._id.toString()};
         await this.productServices.CreateProduct(createProductPayload);
         return res.status(STATUS_CODES.CREATED).json(
             new ApiResponse([],SUCCESS_MESSAGES.PRODUCT.CREATE,true,STATUS_CODES.CREATED)
@@ -73,12 +70,10 @@ class ProductControllers {
      * - Returns results in standardized `ApiResponse` format
     */
     public HandleSearchProduct = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_SEARCH_PRODUCT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_SEARCH_PRODUCT.parse(req.body);
+
         // Note: Search product payload.
-        const searchProductPayload = {...result.data,userId:(req.user as UserDocument)._id.toString()};
+        const searchProductPayload = {...result,userId:(req.user as UserDocument)._id.toString()};
         const searchResultDocuments = await this.productServices.SearchProduct(searchProductPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(searchResultDocuments,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)
@@ -105,12 +100,10 @@ class ProductControllers {
      * - Returns empty array with SUCCESS message after update
     */
     public HandleUpdateProduct = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_UPDATE_PRODUCT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_UPDATE_PRODUCT.parse(req.body);
+
         // Note: Update product payload.
-        const UpdateProductPayload = result.data;
+        const UpdateProductPayload = result;
         await this.productServices.UpdateProduct(UpdateProductPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.PRODUCT.UPDATE,true,STATUS_CODES.ACCEPTED)
@@ -137,12 +130,10 @@ class ProductControllers {
      * - Returns products in standardized `ApiResponse` format
     */
     public HandleGetFeaturedProducts = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_FEATURED_PRODUCTS.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_GET_FEATURED_PRODUCTS.parse(req.body);
+
         // Note: Featured product payload.
-        const featuredProductPayload = result.data;
+        const featuredProductPayload = result;
         const featuredProductsDocuments = await this.productServices.GetFeaturedProducts(featuredProductPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(featuredProductsDocuments,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)
@@ -169,12 +160,10 @@ class ProductControllers {
      * - Returns product in standardized `ApiResponse` format
     */
     public HandleGetSingleProductById = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_SINGLE_PRODUCT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_GET_SINGLE_PRODUCT.parse(req.body);
+
         // Note: Single Product payload.
-        const singleProductPayload = result.data;
+        const singleProductPayload = result;
         const singleProductDocument = await this.productServices.GetSingleProductById(singleProductPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(singleProductDocument,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)

@@ -16,11 +16,13 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
         ref:"User",
         required:true  
     },
-    size:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Size",
-        required:true
-    },
+    sizes:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Size",
+            required:true
+        }
+    ],
     title:{
         type:String,
         index:true,
@@ -63,6 +65,11 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
         },
         index: true,
     },
+    images:[{
+        type:String,
+        min:1,
+        required:true,
+    }],
     price:{
         type:Number,
         index:true,

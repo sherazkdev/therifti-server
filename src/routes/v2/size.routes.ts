@@ -17,7 +17,7 @@ const sizeServices = new SizeServices();
 const sizeControllers = new SizeControllers(sizeServices);
 const authMiddlewares = new AuthMiddlewares();
 
-SizeRouter.route("/get-size-by-category/:categoryId").get(AsyncHandler(sizeControllers.HandleGetSizeByCategory));
+SizeRouter.route("/get-sizes-by-category/:categoryId").get(AsyncHandler(sizeControllers.HandleGetSizeByCategory));
 /** Secure routes */
 SizeRouter.route("/create-size").post(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(sizeControllers.HandleCreateSize));
 SizeRouter.route("/update-size").patch(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(sizeControllers.HandleUpdateSize));

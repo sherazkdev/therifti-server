@@ -8,7 +8,7 @@ import type { NextFunction,Request,Response } from "express";
 import UserServices from "../services/user.services.js";
 import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
-import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
+import { ERROR_CODES, ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 import UserModel from "../models/user.model.js";
 import type { JwtPayloadInterface } from "../interfaces/auth.interfaces.js";
 import mongoose from "mongoose";
@@ -53,7 +53,7 @@ class AuthMiddlewares {
         try {
             const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[0]
             if(!accessToken){
-                throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.COMMON.UNAUTHORIZED);
+                throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_CODES.COMMON.UNAUTHORIZED);
             }
             /** Note: Jwt dcrypting and verify user. */
             const decoded = jwt.verify(accessToken,env.ACCESS_TOKEN_SECRET) as JwtPayloadInterface;

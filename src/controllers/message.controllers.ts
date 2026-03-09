@@ -42,12 +42,10 @@ class MessageControllers {
      * - Returns HTTP 200 (OK) on success.
      */
     public HandleGetChatMessages = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_CHAT_MESSAGES.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_GET_CHAT_MESSAGES.parse(req.body);
+
         /** Note: Chat Messages payload. */
-        const chatMessagesPayload = result.data;
+        const chatMessagesPayload = result;
         const chatMessagesDocuments = await this.messageServices.GetChatMessages(chatMessagesPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(chatMessagesDocuments,SUCCESS_MESSAGES.MESSAGE.FETCHED,true,STATUS_CODES.OK)
@@ -77,12 +75,10 @@ class MessageControllers {
      * - Returns HTTP 202 (Accepted) on success.
      */
     public HandleDeleteMessage = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_DELETE_MESSAGE.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_DELETE_MESSAGE.parse(req.body);
+
         /** Note: Delete Message Payload. */
-        const deleteMessagePayload = result.data;
+        const deleteMessagePayload = result;
         await this.messageServices.DeleteMessage(deleteMessagePayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.DELETED,true,STATUS_CODES.ACCEPTED)
@@ -113,12 +109,10 @@ class MessageControllers {
      * - Returns HTTP 202 (Accepted) on success.
      */
     public HandleSendMessage = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_SEND_MESSAGE.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_SEND_MESSAGE.parse(req.body);
+
         /** Note: Send Message Payload. */
-        const sendMessagePayload = {...result.data,senderId:(req.user as UserDocument)._id.toString()};
+        const sendMessagePayload = {...result,senderId:(req.user as UserDocument)._id.toString()};
         await this.messageServices.SendMessage(sendMessagePayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.SENDED,true,STATUS_CODES.ACCEPTED)

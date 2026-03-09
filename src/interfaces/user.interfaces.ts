@@ -71,6 +71,13 @@ export interface RegisterUserAccountMenuallyInterface {
 export interface RefreshAndAccessTokenGeneraterInterface {
     accessToken:string
 }
+
+/** Refresh and AccessTokenResponse Interface */
+export interface RefreshAndAccessTokenResponseInterface {
+    accessToken:string,
+    refreshToken:string
+}
+
 /** Send Mail */
 export interface SendMailInterface {
     to:string,

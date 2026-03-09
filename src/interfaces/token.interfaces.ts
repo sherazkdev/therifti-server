@@ -39,7 +39,12 @@ export interface CreateTokenResponseInterface {
 }
 
 export interface FindValidTokenInterface {
-    userId:string,
     type:TokenTypes,
+    userId: string,
     token:string
+}
+
+export interface GetTokenByTokenInterface {
+    token:string,
+    type:TokenTypes
 }

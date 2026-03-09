@@ -40,12 +40,10 @@ class FollowControllers {
      * - Returns only success response, does not return the follow document
      */
     public HandleFollowSeller = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_FOLLOW_SELLER.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_FOLLOW_SELLER.parse(req.body);
+
         /** Note: FolLow seller payload. */
-        const followSellerPayload = {...result.data,followingId:(req.user as UserDocument)._id.toString()};
+        const followSellerPayload = {...result,followingId:(req.user as UserDocument)._id.toString()};
         await this.followServices.FollowSeller(followSellerPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse([],SUCCESS_MESSAGES.FOLLOW.FOLLOWED,true,STATUS_CODES.OK)
@@ -74,12 +72,10 @@ class FollowControllers {
      * - Returns only success response, does not return the unfollow document
      */
     public HandleUnfollow = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_UNFOLLOW_SELLER.safeParse(req.params);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_UNFOLLOW_SELLER.parse(req.params);
+
         /** Note: unFollow seller payload. */
-        const unFollowSellerPayload = {...result.data,followingId:(req.user as UserDocument)._id.toString()};
+        const unFollowSellerPayload = {...result,followingId:(req.user as UserDocument)._id.toString()};
         await this.followServices.UnFollowSeller(unFollowSellerPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.FOLLOW.UNFOLLOWED,true,STATUS_CODES.ACCEPTED)
@@ -108,11 +104,9 @@ class FollowControllers {
      * - Returns an array of follower documents
      */
     public HandleGetFollowers = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_FOLLOWERS.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
-        const followerDocuments = await this.followServices.GetFollowers(result.data.userId);
+        const result = VALIDATE_GET_FOLLOWERS.parse(req.body);
+
+        const followerDocuments = await this.followServices.GetFollowers(result.userId);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(followerDocuments,SUCCESS_MESSAGES.FOLLOW.FOLLOWERS_FETCHED,true,STATUS_CODES.OK)
         )
@@ -139,11 +133,9 @@ class FollowControllers {
      * - Returns an array of following documents
      */
     public HandleGetFollowings = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_FOLLOWINGS.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
-        const followingDocuments = await this.followServices.GetFollowings(result.data.userId);
+        const result = VALIDATE_GET_FOLLOWINGS.parse(req.body);
+
+        const followingDocuments = await this.followServices.GetFollowings(result.userId);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(followingDocuments,SUCCESS_MESSAGES.FOLLOW.FOLLOWINGS_FETCHED,true,STATUS_CODES.OK)
         )

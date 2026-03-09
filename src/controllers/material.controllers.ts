@@ -40,12 +40,10 @@ class MaterialControllers {
      * - Throws ApiError if material already exists.
      */
     public HandleCreateMaterial = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_CREATE_MATERIAL.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_CREATE_MATERIAL.parse(req.body);
+
         /** Note: Create material payload. */
-        const createMaterialPayload = result.data;
+        const createMaterialPayload = result;
         await this.materialServices.CreateMaterial(createMaterialPayload);
         return res.status(STATUS_CODES.CREATED).json(
             new ApiResponse([],SUCCESS_MESSAGES.MATERIAL.CREATED,true,STATUS_CODES.CREATED)
@@ -74,12 +72,10 @@ class MaterialControllers {
      * - Throws ApiError if material or category not found.
      */
     public HandleUpdateMaterial = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_UPDATE_MATERIAL.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_UPDATE_MATERIAL.parse(req.body);
+
         /** Note: Update material payload. */
-        const UpdateMaterialPayload = result.data;
+        const UpdateMaterialPayload = result;
         await this.materialServices.UpdateMaterial(UpdateMaterialPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.MATERIAL.UPDATED,true,STATUS_CODES.ACCEPTED)
@@ -107,12 +103,10 @@ class MaterialControllers {
      * - Throws ApiError if material not found.
      */
     public HandleDeleteMaterial = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_DELETE_MATERIAL.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_DELETE_MATERIAL.parse(req.body);
+
         /** Note: Delete material payload. */
-        const DeleteMaterialPayload = result.data;
+        const DeleteMaterialPayload = result;
         await this.materialServices.DeleteMaterial(DeleteMaterialPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.MATERIAL.DELETED,true,STATUS_CODES.ACCEPTED)
@@ -139,12 +133,10 @@ class MaterialControllers {
      * - Converts string IDs to MongoDB ObjectIds.
      */
     public HandleGetMaterialByCategory = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_MATERIAL_BY_CATEGORY.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_GET_MATERIAL_BY_CATEGORY.parse(req.params);
+
         /** Note: Get material payload. */
-        const getMaterialsPayload = result.data;
+        const getMaterialsPayload = result;
         const materialDocuments = await this.materialServices.GetMaterialByCategory(getMaterialsPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(materialDocuments,SUCCESS_MESSAGES.MATERIAL.FETHED,true,STATUS_CODES.OK)
@@ -170,12 +162,10 @@ class MaterialControllers {
      * - Validation is performed using Zod.
      */
     public HandleGetMaterials = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_MATERIALS.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_GET_MATERIALS.parse(req.body);
+
         /** Note: Get material payload. */
-        const getMaterialsPayload = result.data;
+        const getMaterialsPayload = result;
         const materialDocuments = await this.materialServices.GetMaterials(getMaterialsPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(materialDocuments,SUCCESS_MESSAGES.MATERIAL.FETHED,true,STATUS_CODES.OK)

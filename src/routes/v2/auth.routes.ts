@@ -31,6 +31,7 @@ AuthRouter.route("/facebook/callback").get(passport.authenticate("facebook",{ses
 
 AuthRouter.route("/register").post(AsyncHandler(authControllers.HandleRegisterUserAccount));
 AuthRouter.route("/registeration-otp-verifier").patch(AsyncHandler(authControllers.HandleRegisterationOtpVerifier));
+AuthRouter.route("/refresh-token").post(AsyncHandler(authControllers.HandleRefreshAccessToken));
 AuthRouter.route("/login").post(AsyncHandler(authControllers.HandleLoginUserAccount));
 
 /** Secure Routes */

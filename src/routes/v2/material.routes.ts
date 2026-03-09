@@ -16,7 +16,7 @@ const authMiddlewares = new AuthMiddlewares();
 MaterialRouter.route("/create-material").post(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(materialControllers.HandleCreateMaterial));
 MaterialRouter.route("/get-materials").post(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(materialControllers.HandleGetMaterials));
 MaterialRouter.route("/delete-material/:materialId").delete(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(materialControllers.HandleDeleteMaterial));
-MaterialRouter.route("/get-material-by-category/:materialId").get(AsyncHandler(materialControllers.HandleGetMaterialByCategory));
+MaterialRouter.route("/get-materials-by-category/:categoryId").get(AsyncHandler(materialControllers.HandleGetMaterialByCategory));
 MaterialRouter.route("/update-material").patch(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(materialControllers.HandleUpdateMaterial));
 
 export default MaterialRouter;

@@ -26,13 +26,11 @@ class SizeControllers {
      * @returns {Promise<ApiResponse>} Created Size document.
     */
     public HandleCreateSize = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_CREATE_SIZE_DOCUMENT.safeParse(req.body);
+        const result = VALIDATE_CREATE_SIZE_DOCUMENT.parse(req.body);
         /** Note: Check If any error in validation. */
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+
         /** @note Create size document. */
-        const createSizePayload = result.data;
+        const createSizePayload = result;
         const sizeDocument = await this.sizeServices.CreateSize(createSizePayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(sizeDocument,SUCCESS_MESSAGES.SIZE.CREATED,true,STATUS_CODES.OK)
@@ -47,12 +45,10 @@ class SizeControllers {
      * @returns {Promise<ApiResponse>} Matched Sizes.
     */
     public HandleGetSizeByCategory = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_SIZES_BY_CATEGORY.safeParse(req.params);
+        const result = VALIDATE_GET_SIZES_BY_CATEGORY.parse(req.params);
         /** Note: Check If any error in validation. */
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
-        const sizes = await this.sizeServices.GetSizedsByCategory(result.data.categoryId);
+
+        const sizes = await this.sizeServices.GetSizedsByCategory(result.categoryId);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(sizes,SUCCESS_MESSAGES.SIZE.FETCHED,true,STATUS_CODES.OK)
         )
@@ -67,13 +63,11 @@ class SizeControllers {
      * @throws {ApiError} If Size document does not exist.
     */
     public HandleUpdateSize = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_UPDATE_SIZE_DOCUMENT.safeParse(req.body);        
+        const result = VALIDATE_UPDATE_SIZE_DOCUMENT.parse(req.body);        
         /** Note: Check If any error in validation. */
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+
         /** Note Update size payload. */
-        const updateSizePayload = result.data;
+        const updateSizePayload = result;
         const updatedDocument = await this.sizeServices.UpdateSize(updateSizePayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(updatedDocument,SUCCESS_MESSAGES.SIZE.UPDATED,true,STATUS_CODES.OK)
@@ -87,11 +81,9 @@ class SizeControllers {
      * @throws {ApiError} If Size document does not exist.
     */
     public HandleDeleteSize = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_DELETE_SIZE_DOCUMENT.safeParse(req.params);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
-        const deleteSizeResponse = await this.sizeServices.DeleteSize(result.data.sizeId);
+        const result = VALIDATE_DELETE_SIZE_DOCUMENT.parse(req.params);
+
+        const deleteSizeResponse = await this.sizeServices.DeleteSize(result.sizeId);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(null,SUCCESS_MESSAGES.SIZE.DELETED,true,STATUS_CODES.OK)
         )

@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 
 import type { Profile as GoogleProfile, Profile } from "passport-google-oauth20";
 import type { Profile as FacebookProfile } from "passport-facebook";
-import type { ForgotResponseInterface, RefreshAndAccessTokenGeneraterInterface, UserDocument } from "../interfaces/user.interfaces.js";
+import type { ForgotResponseInterface, RefreshAndAccessTokenGeneraterInterface, RefreshAndAccessTokenResponseInterface, UserDocument } from "../interfaces/user.interfaces.js";
 
 /** Interfaces */
 import type {AuthResponseInterface,RegisterUserAccountMenuallyInterface,LoginUserAccountInterface,UserInterface,resetPasswordWithTokenInterface,VerifyForgotAccountOtpInterface,LogoutUserAccountInterface
@@ -18,8 +18,10 @@ import type {SendOtpInterface, VerifyOtpInterface} from "../interfaces/otp.inter
 import TokenServices from "./token.services.js";
 import UserServices from "./user.services.js";
 import OtpServices from "./otp.services.js";
-import type { AuthApiResponse } from "../interfaces/auth.interfaces.js";
+import jwt from "jsonwebtoken";
+import type { AuthApiResponse, JwtPayloadInterface } from "../interfaces/auth.interfaces.js";
 import mongoose from "mongoose";
+import env from "../constants/loadEnv.js";
 
 class AuthServices {
     private userServices = new UserServices();
@@ -67,7 +69,7 @@ class AuthServices {
                 await user.save();
             }
         }else {
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.AUTH.OAUTH_EMAIL_NOT_PROVIDED,ERROR_CODES.AUTH.OAUTH_EMAIL_NOT_PROVIDED);
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_CODES.AUTH.OAUTH_EMAIL_NOT_PROVIDED,[{field:"email",message:ERROR_MESSAGES.AUTH.OAUTH_EMAIL_NOT_PROVIDED}]);
         }
         return user;
     };
@@ -121,7 +123,7 @@ class AuthServices {
         });
         if(checkUserAccountEmailExist?.email === email){
             if(checkUserAccountEmailExist.isVerfied === true){
-                throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.EMAIL_EXISTS,ERROR_CODES.AUTH.EMAIL_EXISTS);
+                throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"email",message:ERROR_MESSAGES.AUTH.EMAIL_EXISTS}]);
             }
             /** Note: if user is not verified send otp. */
             const sendOtpPayload:SendOtpInterface = {
@@ -136,7 +138,7 @@ class AuthServices {
             };
             return apiResponseObj;
         } if(checkUserAccountEmailExist?.username === username){
-            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_MESSAGES.AUTH.USERNAME_EXISTS,ERROR_CODES.AUTH.USERNAME_EXISTS);
+            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_CODES.AUTH.USERNAME_EXISTS,[{field:"username",message:ERROR_MESSAGES.AUTH.USERNAME_EXISTS}]);
         }
         /** Note: end otp hashing section. */
         const UserDocument:UserInterface = {
@@ -214,17 +216,17 @@ class AuthServices {
         const {email, password} = userObject;
         const user = await UserModel.findOne({email:email,isVerfied:true});
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.EMAIL_NOT_FOUND,ERROR_CODES.AUTH.EMAIL_NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"email",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
         }
         /** Match Password. */
         if(!user.password){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,ERROR_CODES.AUTH.INVALID_CREDENTIALS);
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"password",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
         }
         const hashed_password = user.password;
         /** Note: Compare normal password to hashpassword. */
         const compare_password = await bcrypt.compare(password,hashed_password);
         if(!compare_password){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS,ERROR_CODES.AUTH.INVALID_CREDENTIALS);
+            throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"password",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
         }
         /** Note: Generate access and refresh token. */
         const {accessToken} = await this.GenerateRefreshAndAccessToken(user._id.toString());
@@ -257,7 +259,7 @@ class AuthServices {
         const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         /** Note: Check email is exist. */
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND,ERROR_CODES.AUTH.EMAIL_EXISTS);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"email",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
         }
         /** Note: otp verify payload. */
         const OtpVerifyPayload:VerifyOtpInterface = {
@@ -341,7 +343,7 @@ class AuthServices {
         const {email} = forgotAccoutDetails;
         const user = await UserModel.findOne({email:email,isVerfied:true});
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND,ERROR_CODES.AUTH.EMAIL_NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"email",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
         }
         /** Note: if account is exist generate a new otp and with email. */
         /** Note: Send otp on email using with nodemailer */
@@ -367,6 +369,47 @@ class AuthServices {
         const accessToken = await user.GenerateAccessToken();
 
         return {accessToken};
+    }
+
+    /**
+     * Note: Refresh Access Token Service.
+     * 
+     * This service using for if user accessToken exipred to generate a new accesstoken.
+     * and generate new RefreshToken.
+     * 
+     * @param {string} refreshToken - Refreshtoken user identifier to generate accessToken
+     * @returns {Promise<RefreshAndAccessTokenResponseInterface>} - Newly access and refreshToken response.
+    */
+    public async RefreshAccessToken(refreshToken:string):Promise<RefreshAndAccessTokenResponseInterface>{
+        
+        const tokenInfo = await this.tokenServices.GetTokenByToken({token:refreshToken,type:TokenTypes.REFRESH})
+        /** Note: Verify Reset Token Payload */
+        const resetTokenPayload = {
+            userId:tokenInfo.userId.toString(),
+            type:tokenInfo.type,
+            rawToken:refreshToken
+        }
+        await this.tokenServices.VerifyResetToken(resetTokenPayload);
+        /** Note: Check User Document is exist. */
+        const userDocument = await UserModel.findById(new mongoose.Types.ObjectId(tokenInfo.userId));
+        console.log(12,tokenInfo,userDocument)
+        if(!userDocument){
+            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"refreshToken",message:ERROR_MESSAGES.AUTH.TOKEN_INVALID}]);
+        }
+        console.log(userDocument)
+        /** Refresh Token */
+        const {accessToken} = await this.GenerateRefreshAndAccessToken(tokenInfo.userId.toString());        
+        /** Note: Create a token for a refreshToken etc.*/
+        const createTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.REFRESH,
+            userId:tokenInfo._id.toString()
+        }
+        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        /** Note: Assing the token tokenDocument */
+        return {
+            accessToken:accessToken,
+            refreshToken:rawToken
+        }
     }
 };
 

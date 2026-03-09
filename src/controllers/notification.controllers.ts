@@ -46,12 +46,10 @@ class NotificationControllers {
      * - Returns HTTP 202 (Accepted) on success.
      */
     public HandleMarkAsReadNotification = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_MARK_AS_NOTIFICATION.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_MARK_AS_NOTIFICATION.parse(req.body);
+
         /** Note: Mark as read payload. */
-        const markAsReadPayload = {...result.data,userId:(req.user as UserDocument)._id.toString()};
+        const markAsReadPayload = {...result,userId:(req.user as UserDocument)._id.toString()};
         await this.notificationServices.MarkAsRead(markAsReadPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.NOTIFICATION.READED,true,STATUS_CODES.ACCEPTED)
@@ -87,12 +85,10 @@ class NotificationControllers {
      * - Returns HTTP 200 (OK) with notification list on success.
      */
     public HandleGetNotifications = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_NOTIFICATIONS.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_GET_NOTIFICATIONS.parse(req.body);
+
         /** Note: Get notifications payload. */
-        const getNotificationsPayload = {...result.data,userId:(req.user as UserDocument)._id.toString()};
+        const getNotificationsPayload = {...result,userId:(req.user as UserDocument)._id.toString()};
         const notificationDocuments = await this.notificationServices.GetNotifications(getNotificationsPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(notificationDocuments,SUCCESS_MESSAGES.NOTIFICATION.FETCHED,true,STATUS_CODES.OK)

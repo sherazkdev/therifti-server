@@ -40,15 +40,13 @@ class ChatControllers {
      * - Returns the newly created chat document
      */
     public HandleCreateChat = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_CREATE_CHAT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_CREATE_CHAT.parse(req.body);
+
         const userId = (req.user as UserDocument)._id.toString();
         /** Note: Create Chat payload. */
         const createChatPayload = {
-            members:[result.data.member,userId],
-            productRef:result.data.productRef
+            members:[result.member,userId],
+            productRef:result.productRef
         };
         const chatDocument = await this.chatService.CreateChat(createChatPayload);
         return res.status(STATUS_CODES.CREATED).json(
@@ -76,12 +74,10 @@ class ChatControllers {
      * - Returns an array of chat documents
      */
     public HandleGetChat = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_CHATS.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_GET_CHATS.parse(req.body);
+
         /** Note: Get chats */
-        const getChatDocumentsPayload = result.data;
+        const getChatDocumentsPayload = result;
         const chatDocuments = await this.chatService.GetChats(getChatDocumentsPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(chatDocuments,SUCCESS_MESSAGES.CHAT.FETCHED,true,STATUS_CODES.OK)
@@ -108,12 +104,10 @@ class ChatControllers {
      * - Returns a success response without the deleted chat document
      */
     public HandleDeleteChat = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_DELETE_CHAT.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_DELETE_CHAT.parse(req.body);
+
         /** Note: Delete Chat. */
-        await this.chatService.DeleteChat(result.data.chatId);
+        await this.chatService.DeleteChat(result.chatId);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.CHAT.DELETED,true,STATUS_CODES.ACCEPTED)
         )

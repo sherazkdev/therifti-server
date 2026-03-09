@@ -84,3 +84,8 @@ export const VALIDATE_RESET_PASSWORD = z.object({
 export const VALIDATE_GET_USER_REVIEWS = z.object({
     userId: z.string()
 })
+
+/** Note: Validate Refresh AccessToken */
+export const VALIDATE_REFRESH_ACCESSTOKEN = z.object({
+    refreshToken:z.string()
+})

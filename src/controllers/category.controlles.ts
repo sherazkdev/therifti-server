@@ -39,13 +39,11 @@ class CategoryControllers {
      * - Owner is automatically assigned from `req.user`
      */
     public HandleCreateCategory = async (req:Request,res:Response) => {
-        const result = VALIDATE_CREATE_CATEGORY.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_CREATE_CATEGORY.parse(req.body);
+
         /** Note: Create Category payload. */
         const createCategoryPayload = {
-            ...result.data,
+            ...result,
             owner:(req.user as UserDocument)._id.toString()
         };
         await this.categoryServices.CreateCategory(createCategoryPayload);
@@ -72,12 +70,10 @@ class CategoryControllers {
      * - Calls `categoryServices.UpdateCategory` to perform the update
      */
     public HandleUpdateCategory = async (req:Request,res:Response) => {
-        const result = VALIDATE_UPDATE_CATEGORY.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }        
+        const result = VALIDATE_UPDATE_CATEGORY.parse(req.body);
+        
         /** Note: Update Category payload. */
-        const updateCategoryPayload = result.data;
+        const updateCategoryPayload = result;
         await this.categoryServices.UpdateCategory(updateCategoryPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.CATEGORY.UPDATED,true,STATUS_CODES.ACCEPTED)
@@ -102,12 +98,10 @@ class CategoryControllers {
      * - Calls `categoryServices.DeleteCategory` to delete the category
      */
     public HandleDeleteCategory = async (req:Request,res:Response) => {
-        const result = VALIDATE_DELETE_CATEGORY.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_DELETE_CATEGORY.parse(req.body);
+
         /** Note: Delete Category payload. */
-        const deleteCategoryPayload = result.data.categoryId;
+        const deleteCategoryPayload = result.categoryId;
         await this.categoryServices.DeleteCategory(deleteCategoryPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.CATEGORY.DELETED,true,STATUS_CODES.ACCEPTED)

@@ -1,17 +1,31 @@
-import type {Request,Response,NextFunction} from "express";
 import ApiError from "../utils/ApiError.js";
 import env from "../constants/loadEnv.js";
-export default async function ErrorHandler (err:any,req:Request,res:Response,next:NextFunction):Promise<Response> {
+
+import type {Request,Response,NextFunction} from "express";
+import { ZodError } from "zod";
+import { ERROR_CODES, STATUS_CODES } from "../constants/responseConstants.js";
+
+export default async function ErrorHandler (err:unknown,req:Request,res:Response,next:NextFunction):Promise<Response> {
     
+    console.log(err);
+
     if(err instanceof ApiError){
-        console.log(err)
         return res.status(err.statusCode).json({
             message:err.message,
             success:false,
-            errorCode:err.errorcode,
             statusCode:err.statusCode,
             stack:env.NODE_ENV === "PRODUCTION" ? err.stack : null,
             errors:err.errors || []
+        });
+    }
+
+    if(err instanceof ZodError){
+        console.log(err);
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
+            message:ERROR_CODES.VALIDATION.FAILED,
+            statusCode:STATUS_CODES.BAD_REQUEST,
+            stack:env.NODE_ENV === "PRODUCTION" ? err.stack : null,
+            errors:err.issues.map( (e) => ({field:e.path.join(", "),message:e.message}))
         })
     }
 

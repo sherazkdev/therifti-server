@@ -37,6 +37,7 @@ export const PRODUCT_COLOR = [
 
   "MULTICOLOR"
 ] as const;
+
 export type ProductColor = typeof PRODUCT_COLOR[number];
 
 /** Note: Product Parcel size array */
@@ -63,11 +64,12 @@ export interface ProductInterface {
     description:string,
     condition:ProductCondition,
     brand:Types.ObjectId,
+    images:string[],
     coverImage:string,
     colors:ProductColor[],
     materials:Types.ObjectId[],
     parcelSize:ProductParcelSize,
-    size:Types.ObjectId,
+    sizes:Types.ObjectId[],
     price:number,
     status:ProductStatus,
 };
@@ -82,11 +84,12 @@ export interface CreateProductInterface {
   description:string,
   condition:ProductCondition,
   brand:string,
+  images:string[],
   coverImage:string,
   colors:ProductColor[],
   materials:string[],
   parcelSize:ProductParcelSize,
-  size:string,
+  sizes:string[],
   price:number,
   status:ProductStatus
 }
@@ -118,7 +121,7 @@ export interface UpdateProductInterface {
   colors:ProductColor[],
   materials:string[],
   parcelSize:ProductParcelSize,
-  size:string,
+  sizes:string[],
   price:number,
   status:ProductStatus
 }

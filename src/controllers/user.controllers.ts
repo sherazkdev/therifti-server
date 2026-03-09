@@ -25,11 +25,9 @@ class UserControllers {
      * @returns Null. 
     */
     public HandleChangeEmail = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_CHANGE_EMAIL.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        const {email} = result.data;
+        const result = VALIDATE_CHANGE_EMAIL.parse(req.body);
+
+        const {email} = result;
         /** Note: Chnage emai payload. */
         const changeEmailPayload:ChangeAccountEmailInterface = {
             email:email,
@@ -49,11 +47,9 @@ class UserControllers {
      * @returns userDocument.
     */
     public HandleVerifyOtpAndChangeEmail = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
-        const {email,otp,resetToken} = result.data;
+        const result = VALIDATE_VERIFY_OTP_AND_CHANGE_EMAIL.parse(req.body);
+
+        const {email,otp,resetToken} = result;
         /** Note: verify email otp payload. */
         const verifyOtpPayload:VerifyUpdateEmailOtpInterface = {
             email:email,
@@ -75,13 +71,11 @@ class UserControllers {
      * @return Response. 
     */
     public HandleUpdateProfile = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_UPDATE_USER_PROFILE.safeParse(req.body);
+        const result = VALIDATE_UPDATE_USER_PROFILE.parse(req.body);
         /** Note: Check if any error in result. */
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
+
         /** Note: Update user profile payload. */
-        const updateProfilePayload:UpdateUserProfileInterface = result.data;
+        const updateProfilePayload:UpdateUserProfileInterface = result;
         const updatedProfile = await this.userServices.UpdateUserProfileById( (req.user as UserDocument)._id.toString() ,updateProfilePayload);
         
         return res.status(STATUS_CODES.OK).json(
@@ -96,12 +90,10 @@ class UserControllers {
      * @returns Response.
     */
     public HandleGetUserProfile = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_USER_PROFILE.safeParse(req.query);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
+        const result = VALIDATE_GET_USER_PROFILE.parse(req.query);
+
         /** Note: Get user profile payload. */
-        const userProfilePayload:GetUserProfileInterface = result.data;
+        const userProfilePayload:GetUserProfileInterface = result;
         const userProfile = await this.userServices.GetUserAccountProfile(userProfilePayload);
         /** Return Response. */
         return res.status(STATUS_CODES.OK).json(
@@ -116,12 +108,10 @@ class UserControllers {
      * @returns Response.
     */
     public HandleGetUserReviews = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_USER_REVIEWS.safeParse(req.query);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG);
-        }
+        const result = VALIDATE_GET_USER_REVIEWS.parse(req.query);
+
         /** Note: User reviews payload. */
-        const userReviewsPayload = result.data;
+        const userReviewsPayload = result;
         const userReviews = await this.userServices.GetUserReviews(userReviewsPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(userReviews,SUCCESS_MESSAGES.REVIEW.REVIEWS_FETCHED,true,STATUS_CODES.OK)

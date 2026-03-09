@@ -39,12 +39,10 @@ class WishlistControllers {
      * - Returns only success response, does not return the wishlist document
      */
     public HandleAddToWishlist = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_ADD_TO_WISHLIST.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_ADD_TO_WISHLIST.parse(req.body);
+
         /** Note: Wishlist payload. */
-        const addToWishlistPayload = result.data;
+        const addToWishlistPayload = result;
         await this.wishlistServices.AddToWishlist(addToWishlistPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.WISHLIST.ADDED,true,STATUS_CODES.ACCEPTED)
@@ -73,12 +71,10 @@ class WishlistControllers {
      * - Returns only success response, does not return the removed document
      */
     public HandleRemoveToWishlist = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_REMOVE_TO_WISHLIST.safeParse(req.body);
-        if(!result.success){
-            throw new ApiError(STATUS_CODES.BAD_REQUEST,result.error?.issues[0]?.message || ERROR_MESSAGES.COMMON.SOMETHING_WENT_WRONG)
-        }
+        const result = VALIDATE_REMOVE_TO_WISHLIST.parse(req.body);
+
         /** Note: Wishlist payload. */
-        const removeToWishlistPayload = result.data;
+        const removeToWishlistPayload = result;
         await this.wishlistServices.RemoveFromWishlist(removeToWishlistPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.WISHLIST.REMOVED,true,STATUS_CODES.ACCEPTED)
