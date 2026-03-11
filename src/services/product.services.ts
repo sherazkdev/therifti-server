@@ -81,12 +81,13 @@ class ProductServices {
      * Notes:
      * - Supports pagination via page and limit
      * - Filters products using categoryId, conditions, sizes, materials, brands, and price range
-     * - Performs regex search on title (`q`)
+     * - Performs regex search on title (`q`)   
      * - Adds `isLiked` and `totalLikes` fields using aggregation and lookup on wishlists
      * - Returns only selected fields in the final projection
     */
     public async SearchProduct(searchDetails:SearchProductInterface):Promise<ProductDocument[]> {
         const {conditions,materials,page,categoryId,price,q,limit,brands,sizes,userId} = searchDetails;
+        console.log(searchDetails)
         let searchProductQuery:any = {};
         /** Note: Pagination */
         const pageNumber = page;
@@ -109,10 +110,12 @@ class ProductServices {
         }
         if(categoryId) searchProductQuery.categoryId = new mongoose.Types.ObjectId(categoryId);
         if(conditions && conditions.length > 0) searchProductQuery.condition = { $in : conditions};
-        if(sizes && sizes.length > 0) searchProductQuery.size = { $in : sizes};
-        if(materials && materials.length > 0) searchProductQuery.meterial = { $in : materials};
-        if(brands && brands.length > 0) searchProductQuery.brand = { $in : brands};
+        if(sizes && sizes.length > 0) searchProductQuery.sizes = { $in : sizes.map(id => new mongoose.Types.ObjectId(id))};
+        if(materials && materials.length > 0) searchProductQuery.materials = { $in : materials.map(id => new mongoose.Types.ObjectId(id))};
+        if(brands && brands.length > 0) searchProductQuery.brand = { $in : brands.map(id => new mongoose.Types.ObjectId(id))};
         if(q) searchProductQuery.title = {$regex:q,$options: "i"};
+
+        console.log(searchProductQuery)
 
         const searchProducts = await ProductModel.aggregate([
             {
@@ -247,9 +250,7 @@ class ProductServices {
             if(sort === "PRICE_HIGH_TO_LOW") productSort = {price:-1};
         }
         if(categoryId) featuredProductsQuery.categoryId = new mongoose.Types.ObjectId(categoryId);
-        if(categoryId) featuredProductsQuery.size = { $in : sizes };
-        if(categoryId) featuredProductsQuery.categoryId = new mongoose.Types.ObjectId(categoryId);
-
+        if(sizes) featuredProductsQuery.sizes = { $in : sizes.map( (id) => new mongoose.Types.ObjectId(id)) };
         const products = await ProductModel.aggregate([
             {
                 $match: featuredProductsQuery
@@ -263,9 +264,20 @@ class ProductServices {
                 }
             },
             {
+                $lookup : {
+                    from:"brands",
+                    localField:"brand",
+                    foreignField:"_id",
+                    as:"brand"
+                }
+            },
+            {
                 $addFields : {
                     isLiked: {
                         $in: [new mongoose.Types.ObjectId(userId),"$likes.owner"]
+                    },
+                    brand: {
+                        $first: "$brand"
                     },
                     totalLikes: {
                         $size : "$likes"
@@ -279,13 +291,16 @@ class ProductServices {
                 $skip:skipNumber
             },
             {
+                $limit:limitNumber
+            },
+            {
                 $project : {
-                    _id:1,
-                    title:1,
+                    _id:1,  
                     coverImage:1,
                     totalLikes:1,
+                    brand: "$brand.brand",
                     isLiked:1,
-                    price:1,
+                    price:1,    
                     parcelSize:1,
                     condition:1
                 }

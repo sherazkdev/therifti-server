@@ -42,7 +42,7 @@ class ChatControllers {
     public HandleCreateChat = async (req:Request,res:Response):Promise<Response> => {
         const result = VALIDATE_CREATE_CHAT.parse(req.body);
 
-        const userId = (req.user as UserDocument)._id.toString();
+        const userId = (req.user as UserDocument)?._id.toString();
         /** Note: Create Chat payload. */
         const createChatPayload = {
             members:[result.member,userId],
@@ -74,10 +74,10 @@ class ChatControllers {
      * - Returns an array of chat documents
      */
     public HandleGetChat = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_CHATS.parse(req.body);
+        // const result = VALIDATE_GET_CHATS.parse(req.body);
 
         /** Note: Get chats */
-        const getChatDocumentsPayload = result;
+        const getChatDocumentsPayload = {userId:(req.user as UserDocument)._id  };
         const chatDocuments = await this.chatService.GetChats(getChatDocumentsPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(chatDocuments,SUCCESS_MESSAGES.CHAT.FETCHED,true,STATUS_CODES.OK)

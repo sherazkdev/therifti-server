@@ -73,7 +73,7 @@ class ProductControllers {
         const result = VALIDATE_SEARCH_PRODUCT.parse(req.body);
 
         // Note: Search product payload.
-        const searchProductPayload = {...result,userId:(req.user as UserDocument)._id.toString()};
+        const searchProductPayload = {...result,userId:(req.user as UserDocument)?._id.toString()};
         const searchResultDocuments = await this.productServices.SearchProduct(searchProductPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(searchResultDocuments,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)

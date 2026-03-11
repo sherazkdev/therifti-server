@@ -65,7 +65,7 @@ export const VALIDATE_GET_FEATURED_PRODUCTS = z.object({
         max:z.number().nullable().optional()
     }).optional(),
     sizes:z.array(z.string().min(24,"Error: Object id at least 24 character")).nullable().optional(),
-    sort:z.enum(PRODUCT_SORT),
+    sort:z.enum(PRODUCT_SORT).optional(),
     page:z.number().default(1),
     limit:z.number().default(50)
 })
