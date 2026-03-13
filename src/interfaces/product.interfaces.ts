@@ -102,12 +102,14 @@ export interface SearchProductInterface {
     min?:number | null | undefined,
     max?:number | null | undefined
   } | undefined,
+  sort?:ProductSort | null | undefined
   materials?:string[] | null | undefined,
   conditions?:ProductCondition[] | null | undefined,
   brands?:string[] | null | undefined,
   sizes?:string[] | null | undefined,
   page:number,
-  limit:number
+  limit:number,
+  colors?:ProductColor[] | null | undefined
 }
 
 export interface UpdateProductInterface {

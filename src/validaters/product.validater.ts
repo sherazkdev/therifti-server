@@ -51,9 +51,11 @@ export const VALIDATE_SEARCH_PRODUCT = z.object({
     }).optional(),
     materials:z.array(z.string().min(24,"Error: Object id at least 24 character")).optional(),
     conditions:z.array(z.enum(PRODUCT_CONDITION)).optional(),
+    colors:z.array(z.enum(PRODUCT_COLOR)).optional().nullable(),
     brands:z.array(z.string().min(24,"Error: Object id at least 24 character")).nullable().optional(),
     sizes:z.array(z.string().min(24,"Error: Object id at least 24 character")).nullable().optional(),
     page:z.number().default(1),
+    sort:z.enum(PRODUCT_SORT).optional(),
     limit:z.number().default(50)
 });
 

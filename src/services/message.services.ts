@@ -10,11 +10,17 @@ import ApiError from "../utils/ApiError.js";
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 
 class MessageServices {
-	private socketServices: SocketServices;
-	
-	constructor(socketServices:SocketServices){
-		this.socketServices = socketServices;
-	}
+
+	/** 
+	 * Note: Getter Socket Services.
+	 * 
+	 * This getter is used to get the SocketServices instance.
+	 * 
+	 * @returns {SocketServices} - The SocketServices instance.
+	*/
+	private get socketServices(){
+		return SocketServices.getServerInstance();
+	};
 
     /**
      * Note: Send Message Service.

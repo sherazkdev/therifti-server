@@ -42,7 +42,7 @@ class MessageControllers {
      * - Returns HTTP 200 (OK) on success.
      */
     public HandleGetChatMessages = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_CHAT_MESSAGES.parse(req.body);
+        const result = VALIDATE_GET_CHAT_MESSAGES.parse(req.params);
 
         /** Note: Chat Messages payload. */
         const chatMessagesPayload = result;

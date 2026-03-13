@@ -31,7 +31,7 @@ class SocketServices {
     private constructor(httpServer:http.Server){
         this._io = new Server(httpServer,{
             cors:{
-                origin:env.CORS_ORIGIN,
+                origin:"*",
                 credentials:true,
                 methods:["GET", "POST"]
             }
@@ -65,7 +65,9 @@ class SocketServices {
      * @returns {SocketServices} Singleton instance of `SocketServices`.
     */
     static init(httpServer: http.Server):SocketServices{
+
         if(!SocketServices.instance){
+            console.log("SocketServices initialized");
             SocketServices.instance = new SocketServices(httpServer);
             SocketServices.instance.RegisterConnection();
         }
@@ -96,8 +98,9 @@ class SocketServices {
         const io = this._io;
         io.on("connection",(socket) => {
             /** Note: Check user is Guest. */
-            if(!socket.userId && !socket.isGuest) onlineUsers.guests.add(socket.id);
-            if(socket.userId && socket.isGuest) onlineUsers.authenticated.set(socket.userId,socket.id);
+            console.log("Socket id: ",socket.id)
+            if(!socket.userId && socket.isGuest) onlineUsers.guests.add(socket.id);
+            if(socket.userId && !socket.isGuest) onlineUsers.authenticated.set(socket.userId,socket.id);
         })
     };
 
@@ -125,6 +128,7 @@ class SocketServices {
     */
     public async EmitEvents(messageDocument:any): Promise<void> {
         const io = this._io;
+        console.log("messageDocument: ",messageDocument);
         /** Note: First of all check user is Online. */
         const isOnline = onlineUsers.authenticated.get(messageDocument.receiverId);
         if(isOnline){
@@ -135,6 +139,7 @@ class SocketServices {
             }
             /** Note: Emit to user Deliver messageDocument. */
             io.emit("event:deliverd-message",messageDocument);
+            return;
         }
         /** If user is online but not in chat to deliver a messageNotification */
         const NotificationPayload:CreateNotificationInterface = {
@@ -148,6 +153,7 @@ class SocketServices {
             linkUrl:`${env.CLIENT_URL}/inbox/${messageDocument.chatId}`,
             type:NotificationType.NEW_MESSAGE
         }
+        console.log("NotificationPayload: ",NotificationPayload);
         this.notificationServices.CreateNotification(NotificationPayload);
         return;
     }
@@ -192,6 +198,9 @@ class SocketServices {
      * @returns {SocketServices} The initialized SocketServices singleton instance.
      */
     static getServerInstance():SocketServices{
+        if(!SocketServices.instance){
+            throw new Error("SocketServices not initialized");
+        }
         return SocketServices.instance;
     }
 }

@@ -86,22 +86,25 @@ class ProductServices {
      * - Returns only selected fields in the final projection
     */
     public async SearchProduct(searchDetails:SearchProductInterface):Promise<ProductDocument[]> {
-        const {conditions,materials,page,categoryId,price,q,limit,brands,sizes,userId} = searchDetails;
+        const {conditions,materials,page,categoryId,price,q,limit,brands,sizes,userId,sort,colors} = searchDetails;
         console.log(searchDetails)
         let searchProductQuery:any = {};
         /** Note: Pagination */
         const pageNumber = page;
+        let productSort:Record<any, 1 | -1> = {createdAt:-1};
         const limitNumber = limit;
         /** Note: Skip SearchProducts */
         const skipNumber = (pageNumber - 1) * limitNumber;
         
         if(price){
             /** Sort min price */
+            searchProductQuery.price = {};
             if(price.min) searchProductQuery.price.$gte = Number(price.min);
             
             /** Sort min price */
             if(price.max) searchProductQuery.price.$lte = Number(price.max);
         }
+        if(Array.isArray(colors) && colors.length > 0) searchProductQuery.colors = { $in : colors};
         let isLikedField:any;
         if (userId) {
             isLikedField = {
@@ -114,9 +117,13 @@ class ProductServices {
         if(materials && materials.length > 0) searchProductQuery.materials = { $in : materials.map(id => new mongoose.Types.ObjectId(id))};
         if(brands && brands.length > 0) searchProductQuery.brand = { $in : brands.map(id => new mongoose.Types.ObjectId(id))};
         if(q) searchProductQuery.title = {$regex:q,$options: "i"};
-
+        if(sort){
+            if(sort === "PRICE_LOW_TO_HIGH") productSort = {price:1};
+            if(sort === "PRICE_HIGH_TO_LOW") productSort = {price:-1};
+            if(sort === "NEWEST_FIRST") productSort = {createdAt:-1};
+            if(sort === "RELEVANCE") productSort = {createdAt:1};
+        }
         console.log(searchProductQuery)
-
         const searchProducts = await ProductModel.aggregate([
             {
                 $match : searchProductQuery
@@ -138,7 +145,13 @@ class ProductServices {
                 }
             },
             {
+                $sort: productSort
+            },
+            {
                 $skip: skipNumber
+            },
+            {
+                $limit: limitNumber
             },
             {
                 $project : {
