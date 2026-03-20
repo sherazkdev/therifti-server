@@ -12,6 +12,6 @@ const notificationControllers = new NotificationControllers(notificationServices
 const authMiddlewares = new AuthMiddlewares();
 
 NotificationRouter.route("/get-notifications").get(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(notificationControllers.HandleGetNotifications));
-NotificationRouter.route("/mark-read").post(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(notificationControllers.HandleMarkAsReadNotification));
+NotificationRouter.route("/mark-as-read").patch(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(notificationControllers.HandleMarkAsReadNotification));
 
 export default NotificationRouter;

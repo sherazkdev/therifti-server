@@ -16,5 +16,5 @@ export interface AddToWishlistInterface {
 
 /** Note: Remove to wishlist interface */
 export interface RemoveToWishlistInterface {
-    wishlistId:string
+    productId:string
 }

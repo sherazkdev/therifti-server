@@ -111,8 +111,13 @@ class MessageControllers {
     public HandleSendMessage = async (req:Request,res:Response):Promise<Response> => {
         const result = VALIDATE_SEND_MESSAGE.parse(req.body);
 
+        const {_id, avatar, fullname} = req.user as UserDocument;
         /** Note: Send Message Payload. */
-        const sendMessagePayload = {...result,senderId:(req.user as UserDocument)._id.toString()};
+        const sendMessagePayload = {...result,sender:{
+            _id:_id.toString(),
+            avatar,
+            fullname
+        }};
         await this.messageServices.SendMessage(sendMessagePayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.SENDED,true,STATUS_CODES.ACCEPTED)

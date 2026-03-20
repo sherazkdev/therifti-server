@@ -20,7 +20,7 @@ const authMiddlewares = new AuthMiddlewares();
 WishlistRouter.use(authMiddlewares.AuthenticateJwtCookie);
 /* Secure Routes **/
 WishlistRouter.route("/add-to-wishlist").post(AsyncHandler(wishlistControllers.HandleAddToWishlist));
-WishlistRouter.route("/remove-to-wishlist/:wishlistId").delete(AsyncHandler(wishlistControllers.HandleRemoveToWishlist));
-WishlistRouter.route("/get-wishlist").get(AsyncHandler(wishlistControllers.HandleGetWishlists));
+WishlistRouter.route("/remove-to-wishlist/:productId").delete(AsyncHandler(wishlistControllers.HandleRemoveToWishlist));
+WishlistRouter.route("/get-wishlists").get(AsyncHandler(wishlistControllers.HandleGetWishlists));
 
 export default WishlistRouter;

@@ -8,6 +8,7 @@ import SocketServices from "../sockets/sockets.js";
 import { Server } from "socket.io";
 import ApiError from "../utils/ApiError.js";
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
+import ChatModel from "../models/chat.model.js";
 
 class MessageServices {
 
@@ -38,18 +39,28 @@ class MessageServices {
      * @throws Null.
      */
 	public async SendMessage(sendMessageObject: SendMessageInterface):Promise<void> {
-		const { chatId, senderId, receiverId, content } = sendMessageObject;
+		const { chatId, sender, receiverId, content } = sendMessageObject;
         /** Note: Create message Document. */
 		const message = await MessageModel.create({
 			chatId: new mongoose.Types.ObjectId(chatId),
-			senderId: new mongoose.Types.ObjectId(senderId),
+			senderId: new mongoose.Types.ObjectId(sender._id),
 			receiverId: new mongoose.Types.ObjectId(receiverId),
 			content,
 			status: MessageStatus.SENT
 		});
 
+		/** Note: Update Chat Document Last message */
+		const chatDocument = await ChatModel.findByIdAndUpdate(new mongoose.Types.ObjectId(chatId),{
+			$set : {
+				lastMessage: new mongoose.Types.ObjectId(message._id)
+			}
+		})
+
+		const messageObj:any = message.toObject();
+		delete messageObj.senderId;
+		messageObj.sender = sender;
         /** Note: Trigger emit event. */
-        this.socketServices.EmitEvents(message);
+        this.socketServices.EmitEvents(messageObj);
 		return;
 	}
 	/**
@@ -76,14 +87,20 @@ class MessageServices {
 				}
 			},
 			{
-				$lookup: {
-					from: "users",
-					localField: "senderId",
-					foreignField: "_id",
-					as: "sender"
+				$lookup : {
+					from:"users",
+					localField:"senderId",
+					foreignField:"_id",
+					as:"sender"
 				}
 			},
-			{ $unwind: "$sender" },
+			{
+				$addFields : {
+					sender:{
+						$first:"$sender"
+					}
+				}
+			},
 			{
 				$project: {
 					_id: 1,
@@ -97,7 +114,6 @@ class MessageServices {
 				}
 			}
 		]);
-		
 		return chatMessagesDocuments;
 	}
 

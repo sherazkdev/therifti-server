@@ -7,6 +7,7 @@ import ApiError from "../utils/ApiError.js";
 import UserServices from "./user.services.js";
 import type { ChatDocument,CreateChatInterface, GetChatInterface } from "../interfaces/chat.interfaces.js";
 import mongoose from "mongoose";
+import MessageModel from "../models/message.model.js";
 
 class ChatServices {
     private userService = new UserServices();
@@ -70,6 +71,9 @@ class ChatServices {
         /** Note: Check chat room is already exist. */
         const chatDocument = await ChatModel.findById(new mongoose.Types.ObjectId(chatId));
         if(!chatDocument) throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.CHAT.CHAT_NOT_FOUND);
+
+        /** Note: Delete Chat Messages */
+        const deleteMessages = await MessageModel.deleteMany({chatId:new mongoose.Types.ObjectId(chatId)});
         /** Note: Delete Permanently chat room. */
         await chatDocument.deleteOne();
         return; 
@@ -107,6 +111,22 @@ class ChatServices {
                 }
             },
             {
+                $lookup: {
+                    from: "products",
+                    localField: "productRef",
+                    foreignField: "_id",
+                    as: "productRef"
+                }
+            },
+            {
+                $lookup: {
+                    from:"messages",
+                    localField:"lastMessage",
+                    foreignField:"_id",
+                    as:"last_message"
+                }
+            },
+            {
                 $addFields: {
                     member: {
                         $filter: {
@@ -116,6 +136,12 @@ class ChatServices {
                                 $ne: ["$$m._id", new mongoose.Types.ObjectId(userId)]
                             }
                         }
+                    },
+                    lastMessage: {
+                        $first: "$last_message"
+                    },
+                    productRef: {
+                        $first : "$productRef"
                     }
                 }
             },
@@ -123,20 +149,20 @@ class ChatServices {
                 $unwind : "$member"
             },
             {
-                $lookup: {
-                    from: "messages",
-                    localField: "lastMessage",
-                    foreignField: "_id",
-                    as: "lastMessage"
-                }
-            },
-            {
                 $project : {
                     _id:1,
-                    lastMessage:1,
+                    "lastMessage._id":1,
+                    "lastMessage.content":1,
+                    "lastMessage.status":1,
+                    "lastMessage.createdAt":1,
                     "member.avatar":1,
                     "member._id":1,
                     "member.fullname":1,
+                    updatedAt:1,
+                    "productRef._id":1,
+                    "productRef.title":1,
+                    "productRef.coverImage":1
+
                 }
             }
         ]);

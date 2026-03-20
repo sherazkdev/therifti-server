@@ -1,18 +1,21 @@
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 import http from "http";
 import env from "../constants/loadEnv.js";
 
 /** Services */
 import NotificationServices from "../services/notification.services.js";
+import AuthMiddlewares from "../middlewares/auth.middlewares.js";
 import { type CreateNotificationInterface,NotificationType } from "../interfaces/notification.interface.js";
 
 /** Interfaces */
-import { onlineUsers } from "../interfaces/socket.interfaces.js";
+import { type OnlineUsersInterface } from "../interfaces/socket.interfaces.js";
 
 class SocketServices {
     private static instance: SocketServices;
     private notificationServices = new NotificationServices();
+    private authMiddleware = new AuthMiddlewares();
     private _io: Server;
+    private onlineUsers: OnlineUsersInterface;
     
     /**
      * Note: Creates and configures a Socket.IO server instance.
@@ -36,6 +39,12 @@ class SocketServices {
                 methods:["GET", "POST"]
             }
         });
+        
+        /** Note: Online Users Configeration */
+        this.onlineUsers = {
+            authenticated: new Map(),
+            guests: new Set()
+        }
     }
     
     /**
@@ -96,11 +105,16 @@ class SocketServices {
     */
     private RegisterConnection():void {
         const io = this._io;
+        io.use(this.authMiddleware.AuthenticateSocket);
         io.on("connection",(socket) => {
             /** Note: Check user is Guest. */
-            console.log("Socket id: ",socket.id)
-            if(!socket.userId && socket.isGuest) onlineUsers.guests.add(socket.id);
-            if(socket.userId && !socket.isGuest) onlineUsers.authenticated.set(socket.userId,socket.id);
+            console.log("Socket id: ",socket.id, socket.userId)
+            if(!socket.userId && socket.isGuest) this.onlineUsers.guests.add(socket.id);
+            if(socket.userId && !socket.isGuest) this.onlineUsers.authenticated.set(socket.userId,socket.id);
+            socket.on("join-chat-room",(chatId:string) => this.JoinChatRoom(chatId,socket));
+            socket.on("leave-chat-room",(chatId:string) => this.LeaveChatRoom(chatId,socket));
+            socket.on("online-users",() => this.OnlineUsers(socket));
+            socket.on("disconnect",() => this.Disconnect(socket));
         })
     };
 
@@ -128,14 +142,14 @@ class SocketServices {
     */
     public async EmitEvents(messageDocument:any): Promise<void> {
         const io = this._io;
-        console.log("messageDocument: ",messageDocument);
         /** Note: First of all check user is Online. */
-        const isOnline = onlineUsers.authenticated.get(messageDocument.receiverId);
+        const isOnline = this.onlineUsers.authenticated.get(messageDocument.receiverId.toString());
         if(isOnline){
             /** Note: Check user current in this chat room joined. */
             const chatRooms = this._io.sockets.adapter.rooms;
-            if(chatRooms.get(messageDocument.chatId)){
-                io.to(messageDocument.chatId).emit("event:message",messageDocument);
+            if(chatRooms.get(messageDocument.chatId.toString())){
+                console.log("in chat room");    
+                io.to(messageDocument.chatId.toString()).emit("event:message",messageDocument);
             }
             /** Note: Emit to user Deliver messageDocument. */
             io.emit("event:deliverd-message",messageDocument);
@@ -153,10 +167,71 @@ class SocketServices {
             linkUrl:`${env.CLIENT_URL}/inbox/${messageDocument.chatId}`,
             type:NotificationType.NEW_MESSAGE
         }
-        console.log("NotificationPayload: ",NotificationPayload);
         this.notificationServices.CreateNotification(NotificationPayload);
         return;
     }
+
+    /** 
+     * Note: Join Chat Room.
+     * 
+     * This method is used to join a chat room.
+     * to communicate with the user.
+     * 
+     * @param {string} chatId - The chatId to join.
+     * @param {Socket} socket - The Socket server instance.
+     * @returns {void}
+    */
+    public JoinChatRoom(chatId:string,socket:Socket):void {
+        socket.join(chatId);
+        console.log("Joined chat room: ",chatId);
+        return;
+    };
+
+    /**
+     * Note: Disconnect Socket Connection.
+     * 
+     * This service method using for diconccect user to server using socket.io.
+     * 
+     * @param {Socket} socket - The Socket server instance.
+     * @returns {void}
+    */
+    public Disconnect(socket:Socket):void {
+        this.onlineUsers.authenticated.delete(socket.userId);
+        socket.disconnect();
+        return;
+    };
+
+
+    /**
+     * Note: Online Users getter.
+     * 
+     * This service method using for get online users list.
+     * 
+     * @param {Socket} socket - The Socket server instance.
+     *
+     * @returns {OnlineUsersInterface} Online users list.
+    */
+    public OnlineUsers(socket:Socket):void {
+        const authenticatedUsers = Object.fromEntries(this.onlineUsers.authenticated);
+        socket.emit("event:online-users",authenticatedUsers);
+        return;
+    };
+
+    /** 
+     * Note: Leave Chat Room.
+     * 
+     * This method is used to leave a chat room.
+     * to stop communicating with the user.
+     * 
+     * @param {string} chatId - The chatId to leave.
+     * @param {Socket} socket - The Socket server instance.
+     * @returns {void}
+    */
+    public LeaveChatRoom(chatId:string,socket:Socket):void {
+        socket.leave(chatId);
+        console.log("Left chat room: ",chatId);
+        return;
+    };
 
     /**
      * Note: Returns the Socket.IO server instance.

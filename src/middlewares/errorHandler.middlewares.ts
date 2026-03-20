@@ -8,6 +8,7 @@ import { ERROR_CODES, STATUS_CODES } from "../constants/responseConstants.js";
 export default async function ErrorHandler (err:unknown,req:Request,res:Response,next:NextFunction):Promise<Response> {
 
     if(err instanceof ApiError){
+        console.log(err)
         return res.status(err.statusCode).json({
             message:err.message,
             success:false,

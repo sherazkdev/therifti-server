@@ -34,7 +34,8 @@ interface EnvironmentVariables {
     REFRESH_TOKEN_EXPIRY:string,
     MAILER_APP_EMAIL:string,
     MAILER_APP_PASSWORD:string,
-    REFRESH_TOKEN_SECRET:string
+    REFRESH_TOKEN_SECRET:string,
+    TOKEN_HASH_ALGORITHM:string
 }
 const env:EnvironmentVariables = {
     MONGO_URI:requireEnv("MONGO_URI"),
@@ -54,6 +55,7 @@ const env:EnvironmentVariables = {
     REFRESH_TOKEN_EXPIRY:requireEnv("REFRESH_TOKEN_EXPIRY"),
     REFRESH_TOKEN_SECRET:requireEnv("REFRESH_TOKEN_SECRET"),
     MAILER_APP_EMAIL:requireEnv("MAILER_APP_EMAIL"),
-    MAILER_APP_PASSWORD:requireEnv("MAILER_APP_PASSWORD")
+    MAILER_APP_PASSWORD:requireEnv("MAILER_APP_PASSWORD"),
+    TOKEN_HASH_ALGORITHM:requireEnv("TOKEN_HASH_ALGORITHM")
 }
 export default env;

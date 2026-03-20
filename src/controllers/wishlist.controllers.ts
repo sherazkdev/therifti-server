@@ -42,7 +42,7 @@ class WishlistControllers {
         const result = VALIDATE_ADD_TO_WISHLIST.parse(req.body);
 
         /** Note: Wishlist payload. */
-        const addToWishlistPayload = result;
+        const addToWishlistPayload = {...result,owner:(req.user as UserDocument)._id.toString()};
         await this.wishlistServices.AddToWishlist(addToWishlistPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.WISHLIST.ADDED,true,STATUS_CODES.ACCEPTED)
@@ -71,7 +71,7 @@ class WishlistControllers {
      * - Returns only success response, does not return the removed document
      */
     public HandleRemoveToWishlist = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_REMOVE_TO_WISHLIST.parse(req.body);
+        const result = VALIDATE_REMOVE_TO_WISHLIST.parse(req.params);
 
         /** Note: Wishlist payload. */
         const removeToWishlistPayload = result;

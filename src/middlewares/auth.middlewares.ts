@@ -22,7 +22,7 @@ class AuthMiddlewares {
      * @param socket.
      * @param next.
     */
-    public async AuthenticateSocket(socket:Socket,next:NextFunction):Promise<void>{
+    public AuthenticateSocket =  async (socket:Socket,next:(err?:Error) => void ):Promise<void> => {
         try {
             const cookies = socket.handshake.headers.cookie ? cookie.parse(socket.handshake.headers.cookie) : {};
             if(!cookies?.accessToken){
@@ -66,6 +66,30 @@ class AuthMiddlewares {
                 throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
             }
             req.user = user;
+            next();
+        } catch (e) {
+            next(e);
+        }
+    };
+
+    public AuthenticateJwtOptional = async (req:Request,res:Response,next:NextFunction) => {
+        try {
+            const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[0];
+            if(!accessToken){
+                next();
+            };
+            /** Note: If accessToken is exist */
+            /** Note: Jwt dcrypting and verify user. */
+            const decoded = jwt.verify(accessToken,env.ACCESS_TOKEN_SECRET) as JwtPayloadInterface;
+            if(!decoded){
+                return next();
+            }
+            /** Note: Get user by userId. */
+            const userDocument = await UserModel.findById(new mongoose.Types.ObjectId(decoded._id)).select("-password -refreshToken") as UserDocument | null;
+            if(userDocument){
+                req.user = userDocument;
+                return next();
+            }
             next();
         } catch (e) {
             next(e);

@@ -123,7 +123,7 @@ class AuthServices {
         });
         if(checkUserAccountEmailExist?.email === email){
             if(checkUserAccountEmailExist.isVerfied === true){
-                throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"email",message:ERROR_MESSAGES.AUTH.EMAIL_EXISTS}]);
+                throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_CODES.AUTH.EMAIL_EXISTS,[{field:"email",message:ERROR_MESSAGES.AUTH.EMAIL_EXISTS}]);
             }
             /** Note: if user is not verified send otp. */
             const sendOtpPayload:SendOtpInterface = {
@@ -180,15 +180,7 @@ class AuthServices {
         const user = await this.userServices.GetUserById(userId);
     
         /** Note: Generate access and refresh token. */
-        const {accessToken} = await this.GenerateRefreshAndAccessToken(userId);
-        
-        /** Note: Update user document and asign the refreshToken etc.*/
-        /** Note: Create a token for a refreshToken etc.*/
-        const createTokenPayload:CreateTokenInterface = {
-            type:TokenTypes.REFRESH,
-            userId:user._id.toString()
-        }
-        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        const { accessToken, refreshToken } = await this.GenerateRefreshAndAccessToken(userId);
 
         /** Note: Update User isVerified status. */
         user.isVerfied = true;
@@ -200,7 +192,7 @@ class AuthServices {
             user:returnedUser,
             tokens:{
                 accessToken:accessToken,
-                refreshToken:rawToken
+                refreshToken:refreshToken
             }
         };
     }
@@ -216,7 +208,7 @@ class AuthServices {
         const {email, password} = userObject;
         const user = await UserModel.findOne({email:email,isVerfied:true});
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"email",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_CODES.AUTH.EMAIL_NOT_FOUND,[{field:"email",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
         }
         /** Match Password. */
         if(!user.password){
@@ -229,20 +221,15 @@ class AuthServices {
             throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"password",message:ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS}]);
         }
         /** Note: Generate access and refresh token. */
-        const {accessToken} = await this.GenerateRefreshAndAccessToken(user._id.toString());
-        /** Note: Create a token for a refreshToken etc.*/
-        const createTokenPayload:CreateTokenInterface = {
-            type:TokenTypes.REFRESH,
-            userId:user._id.toString()
-        }
-        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        const { accessToken, refreshToken} = await this.GenerateRefreshAndAccessToken(user._id.toString());
+
         const returnedUser = user.toObject();
         delete returnedUser.password;
 
         return {
             user:returnedUser,
             tokens:{
-                refreshToken:rawToken,
+                refreshToken,
                 accessToken
             }
         };
@@ -272,10 +259,11 @@ class AuthServices {
         const resetTokenPayload:CreateTokenInterface = {
             type:TokenTypes.RESET_PASSWORD,
             userId:user._id.toString(),
+            platform:null
         };
-        const { rawToken } = await this.tokenServices.CreateToken(resetTokenPayload);
+        const { token } = await this.tokenServices.CreateToken(resetTokenPayload);
 
-        return { resetToken:rawToken };
+        return { resetToken:token };
     }
     
     /**
@@ -294,11 +282,11 @@ class AuthServices {
         }
         /** Note: verify reset token now. */
         const verifyResetTokenPayload:VerifyResetTokenInterface = {
-            rawToken:resetToken,
+            token:resetToken,
             type:TokenTypes.RESET_PASSWORD,
             userId:user._id.toString()
         };
-        const tokenVerification = await this.tokenServices.VerifyResetToken(verifyResetTokenPayload);
+        const tokenVerification = await this.tokenServices.VerifyToken(verifyResetTokenPayload);
         /** Note: after reset token verification assign the user document password to password and automatecly saved in db hashed password. */
         user.password = password;
         await user.save();
@@ -321,7 +309,7 @@ class AuthServices {
         /** Note: Delete RefreshToken */
         const findRefreshTokenPayload:FindValidTokenInterface = {
             token:refreshToken,
-            type:TokenTypes.REFRESH,
+            type:TokenTypes.REFRESH_TOKEN,
             userId:userId
         } 
         const token = await this.tokenServices.FindValidToken(findRefreshTokenPayload);
@@ -365,10 +353,20 @@ class AuthServices {
      * @throws {ApiError} If the user is not found.
     */
     public async GenerateRefreshAndAccessToken(userId:string):Promise<RefreshAndAccessTokenGeneraterInterface> {
+        /** Note: Step 01 Genereate AccessToken. */
         const user = await this.userServices.GetUserById(userId);
         const accessToken = await user.GenerateAccessToken();
 
-        return {accessToken};
+        /** Note: Create a token for a refreshToken etc.*/
+        const createTokenPayload:CreateTokenInterface = {
+            type:TokenTypes.REFRESH_TOKEN,
+            userId:user._id.toString(),
+            platform:null
+        };
+        /** Note: Step 02 Generate RefreshToken. */
+        const {token} = await this.tokenServices.CreateToken(createTokenPayload);
+
+        return { accessToken, refreshToken:token };
     }
 
     /**
@@ -377,38 +375,29 @@ class AuthServices {
      * This service using for if user accessToken exipred to generate a new accesstoken.
      * and generate new RefreshToken.
      * 
-     * @param {string} refreshToken - Refreshtoken user identifier to generate accessToken
+     * @param {string} rawRefreshToken - Refreshtoken user identifier to generate accessToken
      * @returns {Promise<RefreshAndAccessTokenResponseInterface>} - Newly access and refreshToken response.
     */
-    public async RefreshAccessToken(refreshToken:string):Promise<RefreshAndAccessTokenResponseInterface>{
+    public async RefreshAccessToken(rawRefreshToken:string):Promise<RefreshAndAccessTokenResponseInterface>{
         
-        const tokenInfo = await this.tokenServices.GetTokenByToken({token:refreshToken,type:TokenTypes.REFRESH})
+        const tokenInfo = await this.tokenServices.GetTokenByToken({token:rawRefreshToken,type:TokenTypes.REFRESH_TOKEN})
         /** Note: Verify Reset Token Payload */
         const resetTokenPayload = {
             userId:tokenInfo.userId.toString(),
             type:tokenInfo.type,
-            rawToken:refreshToken
+            token:rawRefreshToken
         }
-        await this.tokenServices.VerifyResetToken(resetTokenPayload);
+        await this.tokenServices.VerifyToken(resetTokenPayload);
         /** Note: Check User Document is exist. */
         const userDocument = await UserModel.findById(new mongoose.Types.ObjectId(tokenInfo.userId));
-        console.log(12,tokenInfo,userDocument)
         if(!userDocument){
             throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_CODES.AUTH.INVALID_CREDENTIALS,[{field:"refreshToken",message:ERROR_MESSAGES.AUTH.TOKEN_INVALID}]);
         }
-        console.log(userDocument)
-        /** Refresh Token */
-        const {accessToken} = await this.GenerateRefreshAndAccessToken(tokenInfo.userId.toString());        
-        /** Note: Create a token for a refreshToken etc.*/
-        const createTokenPayload:CreateTokenInterface = {
-            type:TokenTypes.REFRESH,
-            userId:tokenInfo._id.toString()
-        }
-        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
-        /** Note: Assing the token tokenDocument */
+        /** Note: Generating access and refresh Token */
+        const { accessToken, refreshToken } = await this.GenerateRefreshAndAccessToken(tokenInfo.userId.toString());        
         return {
-            accessToken:accessToken,
-            refreshToken:rawToken
+            accessToken,
+            refreshToken
         }
     }
 };

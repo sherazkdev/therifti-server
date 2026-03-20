@@ -135,15 +135,27 @@ class ProductServices {
                     foreignField: "productId",
                     as: "likes"
                 }
+            },            
+            {
+                $lookup : {
+                    from: "brands",
+                    localField:"brand",
+                    foreignField:"_id",
+                    as:"brand"
+                }
             },
             {
                 $addFields : {
                     isLiked: isLikedField,
                     totalLikes: {
                         $size : "$likes"
+                    },
+                    brand:{
+                        $first:"$brand"
                     }
                 }
             },
+
             {
                 $sort: productSort
             },
@@ -157,6 +169,7 @@ class ProductServices {
                 $project : {
                     _id:1,
                     title:1,
+                    brand:"$brand.brand",
                     coverImage:1,
                     totalLikes:1,
                     isLiked:1,
@@ -166,6 +179,8 @@ class ProductServices {
                 }
             }
         ]);
+
+        console.log(searchProducts)
         
         return searchProducts;
     }
@@ -312,6 +327,7 @@ class ProductServices {
                     coverImage:1,
                     totalLikes:1,
                     brand: "$brand.brand",
+                    title:1,
                     isLiked:1,
                     price:1,    
                     parcelSize:1,
@@ -343,7 +359,6 @@ class ProductServices {
      */
     public async GetSingleProductById(singleDataObject:GetSingleProductInterface):Promise<ProductDocument> {
         const {productId,userId} = singleDataObject;
-
         const product = await ProductModel.aggregate([
             {
                 $match : {
@@ -369,9 +384,45 @@ class ProductServices {
                         },
                         {
                             $limit : 8
+                        },
+                        {
+                            $lookup : {
+                                from:"brands",
+                                localField:"brand",
+                                foreignField:"_id",
+                                as:"brand"
+                            }
+                        },
+                        {
+                            $unwind : "$brand"
+                        },
+                        {
+                            $lookup : {
+                                from:"wishlists",
+                                localField:"_id",
+                                foreignField:"productId",
+                                as:"likes"
+                            }
                         }
                     ],
                     as:"ownerProducts"
+                }
+            },
+            {
+                $lookup: {
+                  from: "categories",
+                  localField: "categoryId",
+                  foreignField: "_id",
+                  as: "category",
+                },
+            },
+            {
+                $graphLookup: {
+                  from: "categories",
+                  startWith: "$category.parent",
+                  connectFromField: "parent",
+                  connectToField: "_id",
+                  as: "parents",
                 }
             },
             {
@@ -391,6 +442,25 @@ class ProductServices {
                         },
                         {
                             $limit : 20
+                        },
+                        {
+                            $lookup : {
+                                from:"brands",
+                                localField:"brand",
+                                foreignField:"_id",
+                                as:"brand"
+                            }
+                        },
+                        {
+                            $unwind : "$brand"
+                        },
+                        {
+                            $lookup : {
+                                from:"wishlists",
+                                localField:"_id",
+                                foreignField:"productId",
+                                as:"likes"
+                            }
                         }
                     ],
                     as:"similarProducts"
@@ -433,27 +503,26 @@ class ProductServices {
             },
             {
                 $lookup : {
-                    from:"wishlists",
-                    localField:"_id",            
-                    foreignField: "productId",
-                    as: "likes"
-                }
-            },
-            {
-                $graphLookup : {
-                    from:"categories",
-                    startWith: "$categoryId",
-                    connectFromField: "parentId",
-                    connectToField: "_id",
-                    as:"categoryHierarchy"
+                    from: "sizes",
+                    let:{sizeIds:"$sizes"},
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr : {
+                                    $in: ["$_id","$$sizeIds"]
+                                }
+                            }
+                        }
+                    ],
+                    as:"sizes",
                 }
             },
             {
                 $lookup : {
-                    from:"sizes",
-                    localField:"size",
-                    foreignField:"_id",
-                    as:"size"
+                    from:"wishlists",
+                    localField:"_id",            
+                    foreignField: "productId",
+                    as: "likes"
                 }
             },
             {
@@ -486,6 +555,52 @@ class ProductServices {
                     },
                     address:{
                         $first : "$address"
+                    },
+                    categoryTree:{
+                        $map:{
+                            input:{
+                                $concatArrays:["$parents","$category"]
+                            },
+                            as:"ctree",
+                            in:{
+                                _id:"$$ctree._id",
+                                title:"$$ctree.title",
+                            }
+                        }
+                    },
+                    similarProducts:{
+                        $map : {
+                            input:"$similarProducts",
+                            as:"s",
+                            in:{
+                                _id:"$$s._id",
+                                coverImage:"$$s.coverImage",
+                                title:"$$s.title",
+                                brand:"$$s.brand.brand",
+                                condition:"$$s.condition",
+                                parcelSize:"$$s.parcelSize",
+                                price:"$$s.price",
+                                totalLikes:{$size:"$$s.likes"},
+                                isLiked:{$in:[new mongoose.Types.ObjectId(userId),"$$s.likes.owner"]}
+                            }
+                        }
+                    },
+                    ownerProducts:{
+                        $map : {
+                            input:"$ownerProducts",
+                            as:"o",
+                            in:{
+                                _id:"$$o._id",
+                                coverImage:"$$o.coverImage",
+                                title:"$$o.title",
+                                brand:"$$o.brand.brand",
+                                condition:"$$o.condition",
+                                parcelSize:"$$o.parcelSize",
+                                price:"$$o.price",
+                                totalLikes:{$size:"$$o.likes"},
+                                isLiked:{$in:[new mongoose.Types.ObjectId(userId),"$$o.likes.owner"]}
+                            }
+                        }
                     }
                 }
             },
@@ -495,28 +610,32 @@ class ProductServices {
                     title:1,
                     description:1,
                     coverImage:1,
-                    size:1,
-                    brand:1,
+                    sizes:1,
+                    brand:"$brand.brand",
                     condition:1,
                     material:1,
                     colors:1,
                     price:1,
+                    images:1,
                     parcelSize:1,
                     status:1,
                     "owner._id":1,
                     "owner.avatar":1,
                     "owner.fullname":1,
                     "owner.lastSeen":1,
+                    "owner.username":1,
                     "address.city":1,
                     "address.country":1,
+                    similarProducts:1,
+                    ownerProducts:1,
+                    categoryTree:1,
+                    createdAt:1,
                     isLiked:1,
                     totalLikes:1,
                     isFollowed:1,
-                    categoryHierarchy:1,
                 }
             }
         ]);
-
         return product[0];
     };
 }

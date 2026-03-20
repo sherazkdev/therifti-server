@@ -69,7 +69,8 @@ export interface RegisterUserAccountMenuallyInterface {
 }
 /** Refresh and accessToken Generate */
 export interface RefreshAndAccessTokenGeneraterInterface {
-    accessToken:string
+    accessToken:string,
+    refreshToken:string
 }
 
 /** Refresh and AccessTokenResponse Interface */

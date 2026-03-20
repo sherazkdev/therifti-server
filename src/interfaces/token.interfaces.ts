@@ -2,18 +2,25 @@ import type { Types,Document } from "mongoose";
 
 /** Note: Token types enum.*/
 export enum TokenTypes {
-    REFRESH = "REFRESH",
+    REFRESH_TOKEN = "REFRESH_TOKEN",
     RESET_PASSWORD = "RESET_PASSWORD",
     EMAIL_VERIFY = "EMAIL_VERIFY",
     INVITE = "INVITE"
 };
 
+/** Note: Enum Token Platfroms */
+export enum TokenPlatform {
+    MOBILE = "MOBILE",
+    WEB = "WEB"
+}
+
+/* Note: Token Interface */
 export interface TokenInterface {
     userId:Types.ObjectId,
-    token:string,
-    expiresAt:Date;
-    isUsed:boolean;
-    type:TokenTypes
+    hashedToken:string,
+    type:TokenTypes,
+    expiresAt:Date,
+    platform:TokenPlatform | null
 };
 
 export interface TokenDocument extends TokenInterface, Document {}
@@ -24,18 +31,20 @@ export interface GenerateTokenResultInterface {
 }
 
 export interface VerifyResetTokenInterface {
-    rawToken:string,
+    token:string,
     type:TokenTypes,
-    userId:string
+    userId:string,
+
 }
 
 export interface CreateTokenInterface {
     userId: string,
-    type:TokenTypes
+    type:TokenTypes,
+    platform:string | null
 }
 
 export interface CreateTokenResponseInterface {
-    rawToken:string
+    token:string
 }
 
 export interface FindValidTokenInterface {

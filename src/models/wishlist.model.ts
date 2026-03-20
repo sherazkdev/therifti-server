@@ -11,7 +11,7 @@ const WishlistSchema = new mongoose.Schema<WishlistDocument>({
     },
     owner:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Product",
+        ref:"User",
         required:true
     }
 }, {timestamps:true});

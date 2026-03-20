@@ -85,7 +85,7 @@ class NotificationControllers {
      * - Returns HTTP 200 (OK) with notification list on success.
      */
     public HandleGetNotifications = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_NOTIFICATIONS.parse(req.body);
+        const result = VALIDATE_GET_NOTIFICATIONS.parse(req.query);
 
         /** Note: Get notifications payload. */
         const getNotificationsPayload = {...result,userId:(req.user as UserDocument)._id.toString()};

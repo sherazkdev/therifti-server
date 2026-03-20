@@ -133,7 +133,7 @@ class ProductControllers {
         const result = VALIDATE_GET_FEATURED_PRODUCTS.parse(req.body);
 
         // Note: Featured product payload.
-        const featuredProductPayload = result;
+        const featuredProductPayload = {...result,userId:(req.user as UserDocument)._id.toString()};
         const featuredProductsDocuments = await this.productServices.GetFeaturedProducts(featuredProductPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(featuredProductsDocuments,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)
@@ -160,10 +160,10 @@ class ProductControllers {
      * - Returns product in standardized `ApiResponse` format
     */
     public HandleGetSingleProductById = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_GET_SINGLE_PRODUCT.parse(req.body);
+        const result = VALIDATE_GET_SINGLE_PRODUCT.parse(req.query);
 
         // Note: Single Product payload.
-        const singleProductPayload = result;
+        const singleProductPayload = {...result,userId:(req.user as UserDocument)._id.toString()};
         const singleProductDocument = await this.productServices.GetSingleProductById(singleProductPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse(singleProductDocument,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)

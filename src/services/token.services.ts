@@ -7,6 +7,7 @@ import ApiError from "../utils/ApiError.js";
 import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import crypto from "crypto";
 import { TokenTypes, type CreateTokenInterface, type CreateTokenResponseInterface, type FindValidTokenInterface, type GenerateTokenResultInterface, type GetTokenByTokenInterface, type TokenDocument, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
+import env from "../constants/loadEnv.js";
 
 class TokenServices {
 
@@ -15,7 +16,7 @@ class TokenServices {
      * @param null.
      * @returns ResetTokenResultInterface.
     */
-    private async GenerateResetToken():Promise<GenerateTokenResultInterface> {
+    private async GenerateToken():Promise<GenerateTokenResultInterface> {
         const rawToken = crypto.randomBytes(48).toString("hex");
         const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
         return {rawToken,hashedToken};
@@ -27,42 +28,33 @@ class TokenServices {
      * @param resetTokenObject - rawToken. 
      * @returns Boolean. 
     */
-    public async VerifyResetToken(resetTokenObject:VerifyResetTokenInterface): Promise<boolean> {
-        const {rawToken,type,userId} = resetTokenObject;
+    public async VerifyToken(resetTokenObject:VerifyResetTokenInterface): Promise<boolean> {
+        const {token,type,userId} = resetTokenObject;
         
-        // Hash input token
-        const hashedInput = crypto.createHash("sha256").update(rawToken).digest("hex");
-        // Find token by userId and type (ignore isUsed and expiresAt for now)
-        const token = await TokenModel.findOne({
+        // Note:  Hash input token
+        const hashedInput = crypto.createHash(env.TOKEN_HASH_ALGORITHM).update(token).digest("hex");
+
+        // Note: Check Token document is Exist.
+        const tokenDocument = await TokenModel.findOne({
             userId: new mongoose.Types.ObjectId(userId),
             type,
-            token: hashedInput,
+            hashedToken: hashedInput,
         });
-        if (!token) {
-            // Token does not exist → invalid
-            throw new ApiError(
-                STATUS_CODES.UNAUTHORIZED,
-                ERROR_CODES.AUTH.TOKEN_INVALID
-            );
+        
+        /** Note: If tokenDocument not found. */
+        if(!tokenDocument){
+            throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_CODES.AUTH.TOKEN_INVALID);
         }
 
-        // Check if token already used
-        if (token.isUsed) {
-            throw new ApiError(
-                STATUS_CODES.NOT_FOUND,
-                ERROR_CODES.AUTH.TOKEN_IS_USED
-            );
-        }
-
-        // Check if token expired
-        if (token.expiresAt.getTime() < Date.now()) {
+        // Note: If tokenDocument is exipred throw new error.
+        if (tokenDocument.expiresAt.getTime() < Date.now()) {
             throw new ApiError(
                 STATUS_CODES.UNAUTHORIZED,
                 ERROR_CODES.AUTH.TOKEN_EXPIRED
             );
         }
-
-        await token.deleteOne();
+        /** Note: If Token Is used -> delete hard tokenDocument. */
+        await tokenDocument.deleteOne();
 
         return true;
     }
@@ -74,20 +66,20 @@ class TokenServices {
      * @returns CreatedToken.
     */
     public async CreateToken(userObject:CreateTokenInterface):Promise<CreateTokenResponseInterface> {
-        const {userId,type} = userObject;
-        /** Create Token */
-        const {rawToken,hashedToken} = await this.GenerateResetToken();
+        const { userId, type, platform} = userObject;
+        /** Note: Create Encrypted Token */
+        const { rawToken , hashedToken } = await this.GenerateToken();
         const now = Date.now();
-        const expiresAt = type === "REFRESH" ? new Date( now + ( 7 * 24 * 60 * 60  *  1000 )) : new Date( now + ( 10 * 60 * 1000 ));
+        const expiresAt = type === "REFRESH_TOKEN" ? new Date( now + ( 7 * 24 * 60 * 60  *  1000 )) : new Date( now + ( 10 * 60 * 1000 ));
         /** Note: Save token in model. */
         const token = await TokenModel.create({
             userId: new mongoose.Types.ObjectId(userId),
-            token: hashedToken,
+            hashedToken: hashedToken,
             type: type,
-            isUsed: false,
+            platform:platform || null,
             expiresAt
         });
-        return {rawToken:rawToken};
+        return {token:rawToken};
     }
 
     /**
@@ -101,16 +93,16 @@ class TokenServices {
         /** Note: Sha256 Algorithem*/
         const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-        const checkToken = await TokenModel.findOne({
+        const tokenDocument = await TokenModel.findOne({
             userId: new mongoose.Types.ObjectId(userId),
             type: type,
-            token: hashedToken
+            hashedToken: hashedToken
         });
         /** if not token exist throw error */
-        if(!checkToken){
+        if(!tokenDocument){
             throw new ApiError(STATUS_CODES.OK,ERROR_MESSAGES.AUTH.TOKEN_INVALID);
         }
-        return checkToken;
+        return tokenDocument;
     }
 
     /**
@@ -128,19 +120,19 @@ class TokenServices {
     */
     public async GetTokenByToken(tokenObject:GetTokenByTokenInterface):Promise<TokenDocument> {
         const {type,token} = tokenObject;
-        /** Note: Sha256 Algorithem*/
-        const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+        /** Note: Create Encrypted Hashed token. */
+        const hashedToken = crypto.createHash(env.TOKEN_HASH_ALGORITHM).update(token).digest("hex");
 
-        const checkToken = await TokenModel.findOne({
-            type: type,
-            token: hashedToken
+        const tokenDocument = await TokenModel.findOne({
+            type:type,
+            hashedToken:hashedToken
         });
-        console.log(checkToken);
-        /** if not token exist throw error */
-        if(!checkToken){
+
+        /** Note: if not token exist throw error */
+        if(!tokenDocument){
             throw new ApiError(STATUS_CODES.OK,ERROR_MESSAGES.AUTH.TOKEN_INVALID);
         }
-        return checkToken;
+        return tokenDocument;
     }
 }
 

@@ -18,10 +18,15 @@ export interface MessageInterface {
 
 export interface SendMessageInterface {
 	chatId: string;
-	senderId: string;
+	sender: {
+        fullname:string | null | undefined,
+        _id:string,
+        avatar:string | null | undefined
+    };
 	receiverId: string;
 	content: string;
-}
+};
+
 
 export interface GetChatMessagesInterface {
     chatId:string,

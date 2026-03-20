@@ -104,7 +104,7 @@ class ChatControllers {
      * - Returns a success response without the deleted chat document
      */
     public HandleDeleteChat = async (req:Request,res:Response):Promise<Response> => {
-        const result = VALIDATE_DELETE_CHAT.parse(req.body);
+        const result = VALIDATE_DELETE_CHAT.parse(req.params);
 
         /** Note: Delete Chat. */
         await this.chatService.DeleteChat(result.chatId);

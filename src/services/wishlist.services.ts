@@ -54,9 +54,9 @@ class WishlistServices {
      * or if a database error occurs.
     */
     public async RemoveFromWishlist(wishlistObject:RemoveToWishlistInterface):Promise<boolean> {
-        const {wishlistId} = wishlistObject;
+        const {productId} = wishlistObject;
         /** Note: Check Product is exist into wishlist. */
-        const check_wishlist = await WishlistModel.findById(new mongoose.Types.ObjectId(wishlistId));
+        const check_wishlist = await WishlistModel.findOne({productId:new mongoose.Types.ObjectId(productId)});
         if(!check_wishlist) throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.WISHLIST.NOT_FOUND);
         await check_wishlist.deleteOne();
         return true;
@@ -84,7 +84,7 @@ class WishlistServices {
             },
             {
                 $lookup : {
-                    from:"likes",
+                    from:"wishlists",
                     localField:"productId",
                     foreignField:"productId",
                     as:"likes"
@@ -107,7 +107,7 @@ class WishlistServices {
                         $size:"$likes"
                     },
                     isLiked:{
-                        $in : ["$likes.owner",new mongoose.Types.ObjectId(userId)]
+                        $in  : [new mongoose.Types.ObjectId(userId),"$likes.owner"]
                     }
                 }
             },

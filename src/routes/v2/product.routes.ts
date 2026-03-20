@@ -17,8 +17,8 @@ const productControllers = new ProductControllers(productServices);
 const authMiddlewares = new AuthMiddlewares();
 
 ProductRouter.route("/search").post(AsyncHandler(productControllers.HandleSearchProduct));
-ProductRouter.route("/featured-products").post(AsyncHandler(productControllers.HandleGetFeaturedProducts));
-ProductRouter.route("/single-product").post(AsyncHandler(productControllers.HandleGetSingleProductById));
+ProductRouter.route("/featured-products").post(authMiddlewares.AuthenticateJwtOptional,AsyncHandler(productControllers.HandleGetFeaturedProducts));
+ProductRouter.route("/single-product").get(authMiddlewares.AuthenticateJwtOptional,AsyncHandler(productControllers.HandleGetSingleProductById));
 /** Secure Routes */
 ProductRouter.route("/create-product").post(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(productControllers.HandleCreateProduct));
 ProductRouter.route("/update-product").patch(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(productControllers.HandleUpdateProduct));

@@ -8,5 +8,5 @@ export const VALIDATE_ADD_TO_WISHLIST = z.object({
 
 /** Note: Validate Remove to wishlist */
 export const VALIDATE_REMOVE_TO_WISHLIST = z.object({
-    wishlistId:z.string().min(24,"Error: Object id at least 24 character")
+    productId:z.string().min(24,"Error: Object id at least 24 character")
 })

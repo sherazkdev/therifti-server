@@ -2,7 +2,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 /** Note: Response Constants. */
-import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
+import {STATUS_CODES, SUCCESS_MESSAGES} from "../constants/responseConstants.js";
 
 /** Note: imports types */
 import type {CookieOptions, NextFunction, Request,Response} from "express";
@@ -37,7 +37,7 @@ class AuthControllers {
     */
     public HandleRegisterUserAccount = async (req:Request,res:Response):Promise<Response> => {
         /** Note: Validate User Details. */
-        const result = await VALIDATE_REGISTER_USER_ACCOUNT.parse(req.body);
+        const result = VALIDATE_REGISTER_USER_ACCOUNT.parse(req.body);
 
         /** Note: Register User Payload. */
         const {email,fullname,password,username,zipCode} = result;
@@ -210,10 +210,11 @@ class AuthControllers {
         const {accessToken} = await this.authServices.GenerateRefreshAndAccessToken(user._id.toString());
         /** Create Token Payload */
         const createTokenPayload:CreateTokenInterface = {
-            type:TokenTypes.REFRESH,
-            userId:user._id.toString()
+            type:TokenTypes.REFRESH_TOKEN,
+            userId:user._id.toString(),
+            platform:null
         };
-        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        const {token} = await this.tokenServices.CreateToken(createTokenPayload);
         /** Note: Cookies Options. */
         const cookieOptions:CookieOptions = {
             httpOnly:true,
@@ -227,8 +228,8 @@ class AuthControllers {
         
         return res.status(STATUS_CODES.OK)
         .cookie("accessToken",accessToken,cookieOptions)
-        .cookie("refreshToken",rawToken,cookieOptions)
-        .redirect(`${env.CLIENT_URL}/login?accessToken=${accessToken}&refreshToken=${rawToken}&provider=GOOGLE`);
+        .cookie("refreshToken",token,cookieOptions)
+        .redirect(`${env.CLIENT_URL}/login?accessToken=${accessToken}&refreshToken=${token}&provider=GOOGLE`);
     };
     
     /**
@@ -244,25 +245,22 @@ class AuthControllers {
         const {accessToken} = await this.authServices.GenerateRefreshAndAccessToken(user._id.toString());
         /** Create Token Payload */
         const createTokenPayload:CreateTokenInterface = {
-            type:TokenTypes.REFRESH,
-            userId:user._id.toString()
+            type:TokenTypes.REFRESH_TOKEN,
+            userId:user._id.toString(),
+            platform:null
         };
-        const {rawToken} = await this.tokenServices.CreateToken(createTokenPayload);
+        const {token} = await this.tokenServices.CreateToken(createTokenPayload);
         /** Note: Cookies Options. */
         const cookieOptions:CookieOptions = {
             httpOnly:true,
             sameSite:"lax",
             secure:true
         };
-        /** Remove Password field for the UserDocument. */
-        // const userObject = user.toObject();
-        // delete userObject.password;
-
         
         return res.status(STATUS_CODES.OK)
         .cookie("accessToken",accessToken,cookieOptions)
-        .cookie("refreshToken",rawToken,cookieOptions)
-        .redirect(`${env.CLIENT_URL}/login?accessToken=${accessToken}&refreshToken=${rawToken}&provider=FACEBOOK`);
+        .cookie("refreshToken",token,cookieOptions)
+        .redirect(`${env.CLIENT_URL}/login?accessToken=${accessToken}&refreshToken=${token}&provider=FACEBOOK`);
     };
     
     /**
@@ -283,8 +281,7 @@ class AuthControllers {
 
     public HandleRefreshAccessToken = async (req:Request,res:Response):Promise<Response> => {
         console.log(req.body,req.headers.referer)
-        const result = VALIDATE_REFRESH_ACCESSTOKEN.parse(req.body);
-        console.log(result,"12")
+        const result = VALIDATE_REFRESH_ACCESSTOKEN.parse(req.body)
         /** Note: Refresh Token Payload */
         const refreshTokenPayload = result.refreshToken;
         const {accessToken,refreshToken} = await this.authServices.RefreshAccessToken(refreshTokenPayload);

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 /** Note: Token Interfaces */
-import { type TokenDocument,TokenTypes} from "../interfaces/token.interfaces.js";
+import { type TokenDocument,TokenPlatform,TokenTypes} from "../interfaces/token.interfaces.js";
 
 /** Note: Token Schema */
 const TokenSchema = new mongoose.Schema<TokenDocument>({
@@ -10,7 +10,7 @@ const TokenSchema = new mongoose.Schema<TokenDocument>({
         ref: "User",
         required: true
     },
-    token:{
+    hashedToken:{
         type: String,
         required: true
     },
@@ -18,14 +18,15 @@ const TokenSchema = new mongoose.Schema<TokenDocument>({
         type: Date,
         required: true
     },
-    isUsed:{
-        type: Boolean,
-        required: true
-    },
     type:{
         type: String,
         enum: Object.values(TokenTypes),
         required: true
+    },
+    platform:{
+        type: String,
+        enum: Object.values(TokenPlatform),
+        default: null
     }
 }, {timestamps:true});
 /** Note: Token Model */

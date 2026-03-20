@@ -102,22 +102,28 @@ class FollowServices {
                     from:"users",
                     localField:"followerId",
                     foreignField:"_id",
-                    as:'follower'
+                    as:'followers'
                 }
             },
             {
                 $addFields : {
                     follower:{
-                        $first : "$follower"
+                        $map : {
+                            input:"$followers",
+                            as:"f",
+                            in:{
+                                _id:"f._id",
+                                avatar:"f.avatar",
+                                fullname:"f.fullname",
+                            }
+                        }
                     }
                 }
             },
             {
                 $project : {
                     _id:1,
-                    "follower._id":1,
-                    "follower.avatar":1,
-                    "follower.fullname":1,
+                    follower:1,
                     followingId:1,
                     createdAt:1,
                 }
@@ -153,24 +159,30 @@ class FollowServices {
             {
                 $lookup : {
                     from:"users",
-                    localField:"followerId",
+                    localField:"followingId",
                     foreignField:"_id",
-                    as:'follower'
+                    as:'followings'
                 }
             },
             {
                 $addFields : {
-                    follower:{
-                        $first : "$follower"
+                    followings:{
+                        $map : {
+                            input:"$followings",
+                            as:"f",
+                            in:{
+                                _id:"f._id",
+                                avatar:"f.avatar",
+                                fullname:"f.fullname",
+                            }
+                        }
                     }
                 }
             },
             {
                 $project : {
                     _id:1,
-                    "follower._id":1,
-                    "follower.avatar":1,
-                    "follower.fullname":1,
+                    followings:1,
                     followingId:1,
                     createdAt:1,
                 }
