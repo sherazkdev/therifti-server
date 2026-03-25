@@ -93,15 +93,53 @@ class WishlistServices {
             {
                 $lookup : {
                     from:"products",
-                    localField:"productId",
-                    foreignField:"_id",
-                    as:"product"
+                    let:{productId:"$productId"},
+                    pipeline:[
+                        {
+                            $match: {
+                                $expr : {
+                                    $eq: ["$_id","$$productId"]
+                                }
+                            }
+                        },
+                        {
+                            $lookup : {
+                                from:"brands",
+                                localField:"brand",
+                                foreignField:"_id",
+                                as:"brand"
+                            }
+                        },
+                        {
+                            $unwind: "$brand"
+                        }
+                    ],
+                    as:"products"
+                }
+            },
+            {
+                $addFields: {
+                    mappedProducts : {
+                        $map : {
+                            input: "$products",
+                            as:"p",
+                            in:{
+                                _id:"$$p._id",
+                                coverImage:"$$p.coverImage",
+                                brand: "$$p.brand.brand",
+                                title:"$$p.title",
+                                condition:"$$p.condition",
+                                price:"$$p.price",
+                                parcelSize:"$$p.parcelSize"
+                            }
+                        }
+                    },
                 }
             },
             {
                 $addFields : {
-                    product : {
-                        $first : "$product"
+                    product:{
+                        $first: "$mappedProducts"
                     },
                     totalLikes:{
                         $size:"$likes"
@@ -114,11 +152,7 @@ class WishlistServices {
             {
                 $project : {
                     _id:1,
-                    "product._id":1,
-                    "product.coverImage":1,
-                    "product.title":1,
-                    "product.condition":1,
-                    "product.price":1,
+                    product:1,
                     totalLikes:1,
                     isLiked:1,
                 }
