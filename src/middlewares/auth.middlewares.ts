@@ -90,7 +90,7 @@ class AuthMiddlewares {
                 req.user = userDocument;
                 return next();
             }
-            next();
+            return next();
         } catch (e) {
             next(e);
         }

@@ -148,23 +148,23 @@ class SocketServices {
             /** Note: Check user current in this chat room joined. */
             const chatRooms = this._io.sockets.adapter.rooms;
             if(chatRooms.get(messageDocument.chatId.toString())){
-                console.log("in chat room");    
                 io.to(messageDocument.chatId.toString()).emit("event:message",messageDocument);
             }
             /** Note: Emit to user Deliver messageDocument. */
             io.emit("event:deliverd-message",messageDocument);
             return;
         }
+        const senderName = messageDocument.senderId?.fullname || messageDocument.senderName || "Someone";
         /** If user is online but not in chat to deliver a messageNotification */
         const NotificationPayload:CreateNotificationInterface = {
             recipient_id:messageDocument.receiverId,
             metaData:{
-                senderId:messageDocument.senderId,
-                senderName:messageDocument.fullname,
+                senderId:messageDocument.senderId._id || messageDocument.senderId,
+                senderName,
                 chatId:messageDocument.chatId,
                 lastMessage:messageDocument.content
             },
-            linkUrl:`${env.CLIENT_URL}/inbox/${messageDocument.chatId}`,
+            linkUrl:`/inbox/${messageDocument.chatId}`,
             type:NotificationType.NEW_MESSAGE
         }
         this.notificationServices.CreateNotification(NotificationPayload);

@@ -1,6 +1,6 @@
 import ChatModel from "../models/chat.model.js";
 /** Response Constants */
-import {ERROR_MESSAGES,STATUS_CODES} from "../constants/responseConstants.js"
+import {ERROR_CODES, ERROR_MESSAGES,STATUS_CODES} from "../constants/responseConstants.js"
 import ApiError from "../utils/ApiError.js";
 
 /** Services */
@@ -25,13 +25,14 @@ class ChatServices {
      *
      * @returns {Promise<ChatDocument>} The newly created chat room document.
      *
-     * @throws {ApiError} If a chat room already exists for the given product and members.
      */
     public async CreateChat(chatObject: CreateChatInterface): Promise<ChatDocument> {
         const {members,productRef} = chatObject;
         /** Note: Check chat allready exist. */
         const oldChatDocument = await this.CheckChatByMembers(members);
-        if(oldChatDocument) throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.CHAT.ALREADY_EXIST);
+        if(oldChatDocument) {
+            return oldChatDocument;
+        }
         /** If not exist chat document create new chat document for messaging room. */
         const chatDocument = await ChatModel.create({
             productRef:new mongoose.Types.ObjectId(productRef),

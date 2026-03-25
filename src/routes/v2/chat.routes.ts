@@ -19,7 +19,7 @@ const authMiddlewares = new AuthMiddlewares();
 
 ChatRouter.use(authMiddlewares.AuthenticateJwtCookie);
 /** Secure Routes */
-ChatRouter.route("/create-chat").post(AsyncHandler(chatControllers.HandleCreateChat));
+ChatRouter.route("/get-or-create").post(AsyncHandler(chatControllers.HandleCreateChat));
 ChatRouter.route("/delete-chat/:chatId").delete(AsyncHandler(chatControllers.HandleDeleteChat));
 ChatRouter.route("/get-chats").get(AsyncHandler(chatControllers.HandleGetChat));
 

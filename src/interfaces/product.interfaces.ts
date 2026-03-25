@@ -92,7 +92,8 @@ export interface CreateProductInterface {
   sizes:string[],
   price:number,
   status:ProductStatus
-}
+};
+
 
 export interface SearchProductInterface {
   userId?:string | null | undefined,

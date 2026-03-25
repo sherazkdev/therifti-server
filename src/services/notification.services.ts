@@ -40,7 +40,8 @@ class NotificationServices {
             recipient_id: new mongoose.Types.ObjectId(recipient_id as string),
             type,
             metaData,
-            linkUrl
+            linkUrl,
+            status:"UNREAD"
         });
         return notification;
     }

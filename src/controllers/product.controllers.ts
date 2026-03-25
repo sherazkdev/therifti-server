@@ -4,7 +4,7 @@ import ApiError from "../utils/ApiError.js";
 
 /** Note: imports types */
 import type {Request,Response} from "express";
-import {VALIDATE_CREATE_PRODUCT,VALIDATE_GET_FEATURED_PRODUCTS,VALIDATE_GET_SINGLE_PRODUCT,VALIDATE_SEARCH_PRODUCT,VALIDATE_UPDATE_PRODUCT} from "../validaters/product.validater.js";
+import {VALIDATE_CREATE_PRODUCT,VALIDATE_GET_FEATURED_PRODUCTS,VALIDATE_GET_SINGLE_PRODUCT,VALIDATE_GET_SUGESSTIONS,VALIDATE_SEARCH_PRODUCT,VALIDATE_UPDATE_PRODUCT} from "../validaters/product.validater.js";
 
 /** Services*/
 import type ProductServices from "../services/product.services.js";
@@ -17,6 +17,36 @@ class ProductControllers {
     constructor(productServices:ProductServices){
         this.productServices = productServices;
     }
+
+    /**
+     * Note: Handle Get Product Suggestions
+     *
+     * Purpose:
+     * This controller handles fetching product suggestions based on
+     * the provided request parameters. It validates the incoming params
+     * using Zod, then retrieves matching suggestions from the database
+     * via the product service.
+     *
+     * @param {Request} req - Express request object containing params used for suggestions query.
+     * @param {Response} res - Express response object used to return the result.
+     *
+     * @returns {Promise<Response>} API response containing the list of suggested products.
+     *
+     * Notes:
+     * - Uses `VALIDATE_GET_SUGESSTIONS` Zod schema for params validation
+     * - Throws `ApiError` with BAD_REQUEST if validation fails
+     * - Calls `productServices.GetSuggestions` to fetch suggestions
+     * - Returns suggestions wrapped in a standardized `ApiResponse`
+    */   
+    public HandleGetSuggestions = async (req:Request,res:Response):Promise<Response> =>  {
+        const result = VALIDATE_GET_SUGESSTIONS.parse(req.params);
+        /** Note: Suggestions Payload */
+        const suggestionPayload = result;
+        const suggestions = await this.productServices.GetSuggestions(suggestionPayload);
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse(suggestions,SUCCESS_MESSAGES.PRODUCT.FETCH,true,STATUS_CODES.OK)
+        )
+    };
 
     /**
      * Note: Handle Create New Product

@@ -6,9 +6,31 @@ import ApiError from "../utils/ApiError.js";
 import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import type { CreateProductInterface, FeaturedProductsInterface, GetSingleProductInterface, ProductDocument, SearchProductInterface, UpdateProductInterface } from "../interfaces/product.interfaces.js";
 import mongoose from "mongoose";
-import type { SizeDocument } from "../interfaces/size.interfaces.js";
-
 class ProductServices {
+        
+    /**
+     * Note: Get Product Suggestions Service
+     *
+     * Purpose:
+     * This service is responsible for fetching product suggestions based on
+     * a search query. It performs a case-insensitive search on product titles
+     * and returns a limited list of matching products.
+     *
+     * @param {Object} suggestionPayload - Payload containing search query.
+     * @param {string} suggestionPayload.q - Search query string to match product titles.
+     *
+     * @returns {Promise<{ title: string }[]>} Array of product objects containing only the title.
+     *
+     * Notes:
+     * - Performs a regex search for partial and case-insensitive matching
+     * - Limits the number of returned suggestions to 10 for performance
+     * - Returns an empty array if the query is empty or invalid
+    */
+    public async GetSuggestions(suggestionPayload:any):Promise<ProductDocument[]> {
+        const {q} = suggestionPayload;
+        const suggestedProducts = await ProductModel.find({ title: { $regex: q, $options: "i" }}).select("title").limit(10);
+        return suggestedProducts;
+    };
     
     /**
      * Note: Create Product Service
@@ -87,7 +109,6 @@ class ProductServices {
     */
     public async SearchProduct(searchDetails:SearchProductInterface):Promise<ProductDocument[]> {
         const {conditions,materials,page,categoryId,price,q,limit,brands,sizes,userId,sort,colors} = searchDetails;
-        console.log(searchDetails)
         let searchProductQuery:any = {};
         /** Note: Pagination */
         const pageNumber = page;
@@ -123,7 +144,6 @@ class ProductServices {
             if(sort === "NEWEST_FIRST") productSort = {createdAt:-1};
             if(sort === "RELEVANCE") productSort = {createdAt:1};
         }
-        console.log(searchProductQuery)
         const searchProducts = await ProductModel.aggregate([
             {
                 $match : searchProductQuery
@@ -179,9 +199,6 @@ class ProductServices {
                 }
             }
         ]);
-
-        console.log(searchProducts)
-        
         return searchProducts;
     }
 
@@ -483,8 +500,8 @@ class ProductServices {
                             $match : {
                                 $expr : {
                                     $and : [
-                                        {$eq : ["$followerId","$$userId"]},
-                                        {$eq : ["$followingId","$$owner"]}
+                                        {$eq : ["$followerId","$$owner"]},
+                                        {$eq : ["$followingId","$$userId"]}
                                     ]
                                 }
                             }

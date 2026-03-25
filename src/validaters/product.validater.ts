@@ -18,6 +18,11 @@ export const VALIDATE_CREATE_PRODUCT = z.object({
     materials:z.array(z.string().min(24,"Error: Object id at least 24 character")),
 });
 
+/** Note: Validate Get Suggestions */
+export const VALIDATE_GET_SUGESSTIONS = z.object({
+    q:z.string()
+});
+
 /** Note: Validate Update Product */
 export const VALIDATE_UPDATE_PRODUCT = z.object({
     productId:z.string().min(24,"Error: Object id at least 24 character"),

@@ -148,11 +148,12 @@ class UserServices {
         /** Note: Create Reset token. */
         const resetTokenPayload:CreateTokenInterface = {
             type:TokenTypes.EMAIL_VERIFY,
-            userId:userId
+            userId:userId,
+            platform:null
         };
-        const { rawToken } = await this.tokenServices.CreateToken(resetTokenPayload);
+        const { token } = await this.tokenServices.CreateToken(resetTokenPayload);
         return { 
-            resetToken: rawToken
+            resetToken: token
         };
     }
 

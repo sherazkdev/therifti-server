@@ -28,6 +28,7 @@ class FollowServices {
     */
     public async FollowSeller(followObject:FollowSellerInterface):Promise<void> {
         const {followerId,followingId} = followObject;
+        console.log(followObject)
         /** Note: if the user is already following. */
         const follower_exist = await FollowModel.findOne({
             followerId:new mongoose.Types.ObjectId(followerId),
@@ -35,10 +36,8 @@ class FollowServices {
         });
         if(follower_exist) throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.FOLLOW.ALREADY_EXIST);
         const followDocument = await FollowModel.create({
-            $set : {    
-                followerId:new mongoose.Types.ObjectId(followerId),
-                followingId:new mongoose.Types.ObjectId(followingId)
-            }
+            followerId:new mongoose.Types.ObjectId(followerId),
+            followingId:new mongoose.Types.ObjectId(followingId),
         });
         /** Note: Trigger Notification seller is followed. */
         return;

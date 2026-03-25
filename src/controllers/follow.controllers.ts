@@ -72,6 +72,7 @@ class FollowControllers {
      * - Returns only success response, does not return the unfollow document
      */
     public HandleUnfollow = async (req:Request,res:Response):Promise<Response> => {
+        console.log(req.params)
         const result = VALIDATE_UNFOLLOW_SELLER.parse(req.params);
 
         /** Note: unFollow seller payload. */

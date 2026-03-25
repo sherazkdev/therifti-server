@@ -56,7 +56,9 @@ class MessageServices {
 			}
 		})
 
-		const messageObj:any = message.toObject();
+		const messageDocument = await MessageModel.findById(new mongoose.Types.ObjectId(message._id)).populate("senderId","fullname") as MessageDocument;
+
+		const messageObj:any = messageDocument.toObject();
 		delete messageObj.senderId;
 		messageObj.sender = sender;
         /** Note: Trigger emit event. */
