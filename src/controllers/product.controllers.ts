@@ -69,6 +69,7 @@ class ProductControllers {
      * - Returns the newly created product wrapped in a standardized `ApiResponse`
     */
     public HandleCreateProduct = async (req:Request,res:Response):Promise<Response> => {
+        console.log(req.body    )
         const result = VALIDATE_CREATE_PRODUCT.parse(req.body);
         // Note: Create Product payload.
         const createProductPayload = {...result,owner:(req.user as UserDocument)._id.toString()};

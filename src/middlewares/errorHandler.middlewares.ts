@@ -19,6 +19,8 @@ export default async function ErrorHandler (err:unknown,req:Request,res:Response
     }
 
     if(err instanceof ZodError){
+        console.log(err);
+
         return res.status(STATUS_CODES.BAD_REQUEST).json({
             message:ERROR_CODES.VALIDATION.FAILED,
             statusCode:STATUS_CODES.BAD_REQUEST,

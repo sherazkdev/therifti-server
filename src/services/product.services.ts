@@ -126,13 +126,16 @@ class ProductServices {
             if(price.max) searchProductQuery.price.$lte = Number(price.max);
         }
         if(Array.isArray(colors) && colors.length > 0) searchProductQuery.colors = { $in : colors};
-        let isLikedField:any;
+        let isLikedField:any;   
         if (userId) {
             isLikedField = {
                 $in: [new mongoose.Types.ObjectId(userId), "$likes.owner"]
             };
         }
-        if(categoryId) searchProductQuery.categoryId = new mongoose.Types.ObjectId(categoryId);
+        if(categoryId) {
+            const ids = await this.getAllSubCategoryId(categoryId);
+            searchProductQuery.categoryId = { $in : ids.map( (id) => new mongoose.Types.ObjectId(id))};
+        };
         if(conditions && conditions.length > 0) searchProductQuery.condition = { $in : conditions};
         if(sizes && sizes.length > 0) searchProductQuery.sizes = { $in : sizes.map(id => new mongoose.Types.ObjectId(id))};
         if(materials && materials.length > 0) searchProductQuery.materials = { $in : materials.map(id => new mongoose.Types.ObjectId(id))};
@@ -201,6 +204,26 @@ class ProductServices {
         ]);
         return searchProducts;
     }
+
+    public async getAllSubCategoryId(categoryId:string):Promise<string[]> {
+        let result:any = [];
+
+        const subCategories = await CategoryModel.find({ parent: new mongoose.Types.ObjectId(categoryId) }).select("_id");
+
+        if(subCategories.length > 0 ) {
+            
+            for (const sub of subCategories) {
+                result.push(sub._id.toString());
+
+                const children = await this.getAllSubCategoryId(sub._id.toString());
+                result = result.concat(children);
+            }
+        }else {
+            result.push(categoryId);
+        }
+
+        return result;
+    };
 
     /**
      * Note: Get Product By Id

@@ -10,7 +10,7 @@ export const VALIDATE_CREATE_PRODUCT = z.object({
     description:z.string(),
     condition:z.enum(PRODUCT_CONDITION),
     coverImage:z.string(),
-    images:z.array(z.url()).min(2),
+    images:z.array(z.url()).min(1),
     colors:z.array(z.enum(PRODUCT_COLOR)),
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
     price:z.number(),
