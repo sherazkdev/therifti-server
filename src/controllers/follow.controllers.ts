@@ -43,7 +43,7 @@ class FollowControllers {
         const result = VALIDATE_FOLLOW_SELLER.parse(req.body);
 
         /** Note: FolLow seller payload. */
-        const followSellerPayload = {...result,followingId:(req.user as UserDocument)._id.toString()};
+        const followSellerPayload = {...result,followerId:(req.user as UserDocument)._id.toString()};
         await this.followServices.FollowSeller(followSellerPayload);
         return res.status(STATUS_CODES.OK).json(
             new ApiResponse([],SUCCESS_MESSAGES.FOLLOW.FOLLOWED,true,STATUS_CODES.OK)
@@ -72,11 +72,10 @@ class FollowControllers {
      * - Returns only success response, does not return the unfollow document
      */
     public HandleUnfollow = async (req:Request,res:Response):Promise<Response> => {
-        console.log(req.params)
         const result = VALIDATE_UNFOLLOW_SELLER.parse(req.params);
 
         /** Note: unFollow seller payload. */
-        const unFollowSellerPayload = {...result,followingId:(req.user as UserDocument)._id.toString()};
+        const unFollowSellerPayload = {...result,followerId:(req.user as UserDocument)._id.toString()};
         await this.followServices.UnFollowSeller(unFollowSellerPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.FOLLOW.UNFOLLOWED,true,STATUS_CODES.ACCEPTED)

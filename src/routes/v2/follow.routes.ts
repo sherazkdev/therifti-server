@@ -21,6 +21,6 @@ FollowRouter.route("/get-followings/:userId").get(AsyncHandler(followControllers
 FollowRouter.route("/get-followers/:userId").get(AsyncHandler(followControllers.HandleGetFollowings));
 /** Secure routes */
 FollowRouter.route("/follow-seller").post(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(followControllers.HandleFollowSeller));
-FollowRouter.route("/unfollow-seller/:followerId").delete(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(followControllers.HandleUnfollow));
+FollowRouter.route("/unfollow-seller/:followingId").delete(authMiddlewares.AuthenticateJwtCookie,AsyncHandler(followControllers.HandleUnfollow));
 
 export default FollowRouter;

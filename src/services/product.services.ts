@@ -483,7 +483,7 @@ class ProductServices {
                     as:"similarProducts"
                 }
             },
-                        {
+            {
                 $lookup : {
                     from:"addresses",
                     localField:"owner",
@@ -494,14 +494,14 @@ class ProductServices {
             {
                 $lookup : {
                     from:"follows",
-                    let:{userId:new mongoose.Types.ObjectId(userId),owner:"$owner"},
+                    let:{userId:new mongoose.Types.ObjectId(userId as string),owner:"$owner"},
                     pipeline:[
                         {
                             $match : {
                                 $expr : {
                                     $and : [
-                                        {$eq : ["$followerId","$$owner"]},
-                                        {$eq : ["$followingId","$$userId"]}
+                                        {$eq : ["$followerId","$$userId"]},
+                                        {$eq : ["$followingId","$$owner"]}
                                     ]
                                 }
                             }
@@ -553,7 +553,7 @@ class ProductServices {
             {
                 $addFields : {
                     isLiked: {
-                        $in: [new mongoose.Types.ObjectId(userId),"$likes.owner"]
+                        $in: [new mongoose.Types.ObjectId(userId as string),"$likes.owner"]
                     },
                     totalLikes: {
                         $size : "$likes"
@@ -598,7 +598,7 @@ class ProductServices {
                                 parcelSize:"$$s.parcelSize",
                                 price:"$$s.price",
                                 totalLikes:{$size:"$$s.likes"},
-                                isLiked:{$in:[new mongoose.Types.ObjectId(userId),"$$s.likes.owner"]}
+                                isLiked:{$in:[new mongoose.Types.ObjectId(userId as string),"$$s.likes.owner"]}
                             }
                         }
                     },
@@ -615,7 +615,7 @@ class ProductServices {
                                 parcelSize:"$$o.parcelSize",
                                 price:"$$o.price",
                                 totalLikes:{$size:"$$o.likes"},
-                                isLiked:{$in:[new mongoose.Types.ObjectId(userId),"$$o.likes.owner"]}
+                                isLiked:{$in:[new mongoose.Types.ObjectId(userId as string),"$$o.likes.owner"]}
                             }
                         }
                     }

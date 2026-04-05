@@ -144,5 +144,5 @@ export interface FeaturedProductsInterface {
 
 export interface GetSingleProductInterface {
   productId:string,
-  userId?:string
+  userId?:string | null
 }

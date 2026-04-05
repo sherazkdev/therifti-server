@@ -21,9 +21,13 @@ const CategorySchema = new mongoose.Schema<CategoryDocument>({
         minLength:3,
         required:true
     },
+    icon:{
+        type:String,
+        default:null
+    },
     image:{
         type:String,
-        required:true    
+        default:null
     },
     status:{
         type:String,

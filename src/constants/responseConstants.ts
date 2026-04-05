@@ -69,7 +69,10 @@ export const SUCCESS_MESSAGES = {
   MESSAGE:{
     FETCHED:"Message Documents successfully fetched",
     DELETED:"Message successfully deleted",
-    SENDED:"Message successfully sended"
+    MESSAGE_SENDED:"Message successfully sended",
+    OFFER_SENDED:"Offer successfully sended",
+    OFFER_CANCELLED:"Offer cancelled successfully",
+    OFFER_ACCEPTED:"Offer successfully accepted"
   },
   FOLLOW : {
     FOLLOWED: "Followed successfully",

@@ -9,6 +9,7 @@ export interface CategoryInterface {
     owner:Types.ObjectId,
     parent?:Types.ObjectId | null,
     title:string,
+    icon:string | null,
     image?:string | null,
     status?:CategoryStatus,
 };

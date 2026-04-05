@@ -42,6 +42,7 @@ import AuthRouter from "./routes/v2/auth.routes.js";
 import BrandRouter from "./routes/v2/brand.routes.js";
 import SizeRouter from "./routes/v2/size.routes.js";
 
+
 app.use("/api/v1/users",UserRouter);
 app.use("/api/v1/auth",AuthRouter);
 app.use("/api/v1/products",ProductRouter);

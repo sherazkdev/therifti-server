@@ -28,7 +28,6 @@ class FollowServices {
     */
     public async FollowSeller(followObject:FollowSellerInterface):Promise<void> {
         const {followerId,followingId} = followObject;
-        console.log(followObject)
         /** Note: if the user is already following. */
         const follower_exist = await FollowModel.findOne({
             followerId:new mongoose.Types.ObjectId(followerId),

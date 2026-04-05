@@ -3,14 +3,22 @@ import mongoose from "mongoose";
 import { MessageStatus } from "../interfaces/message.interfaces.js";
 
 /** Services */
-import type { SendMessageInterface,MessageDocument, GetChatMessagesInterface, MarkMessagesAsSeenInterface, DeleteMessageInterface } from "../interfaces/message.interfaces.js";
+import type { SendMessageInterface,MessageDocument, GetChatMessagesInterface, CancelOfferInterface, MarkMessagesAsSeenInterface, DeleteMessageInterface, AcceptOfferInterface, SendOffferInterface } from "../interfaces/message.interfaces.js";
 import SocketServices from "../sockets/sockets.js";
 import { Server } from "socket.io";
 import ApiError from "../utils/ApiError.js";
 import { ERROR_MESSAGES, STATUS_CODES } from "../constants/responseConstants.js";
 import ChatModel from "../models/chat.model.js";
+import type ChatServices from "./chat.services.js";
+import type { CreateChatInterface } from "../interfaces/chat.interfaces.js";
 
 class MessageServices {
+
+	private chatServices: ChatServices;
+
+	constructor(chatServices: ChatServices){
+		this.chatServices = chatServices;
+	};
 
 	/** 
 	 * Note: Getter Socket Services.
@@ -20,7 +28,7 @@ class MessageServices {
 	 * @returns {SocketServices} - The SocketServices instance.
 	*/
 	private get socketServices(){
-		return SocketServices.getServerInstance();
+		return  SocketServices.getServerInstance();
 	};
 
     /**
@@ -46,7 +54,9 @@ class MessageServices {
 			senderId: new mongoose.Types.ObjectId(sender._id),
 			receiverId: new mongoose.Types.ObjectId(receiverId),
 			content,
-			status: MessageStatus.SENT
+			type:"TEXT",
+			seen:"SENT",
+			status: MessageStatus.ENABLED
 		});
 
 		/** Note: Update Chat Document Last message */
@@ -145,9 +155,9 @@ class MessageServices {
 			{
 				chatId: new mongoose.Types.ObjectId(chatId),
 				receiverId: new mongoose.Types.ObjectId(receiverId),
-				status: { $ne: MessageStatus.SEEN }
+				seen: { $ne: "SEEN" }
 			},
-			{ $set: { status: MessageStatus.SEEN } }
+			{ $set: { status: "SEEN" } }
 		);
 	}
 
@@ -206,6 +216,92 @@ class MessageServices {
 		const messageDocument = await MessageModel.findById(new mongoose.Types.ObjectId(messageId));
 		return messageDocument;
 	}
+
+	/**
+	 * Note: Send Offer To Seller.
+	 *  
+	*/
+	public async SendOffer(offerObj:SendOffferInterface):Promise<any> {
+		const {offeredPrice,senderId, receiverId, productId} = offerObj;
+		/** Note: Chat Document is exist. */
+		let chatDocument = null;
+		chatDocument = await ChatModel.findOne({
+			members:{$all:[new mongoose.Types.ObjectId(senderId),new mongoose.Types.ObjectId(receiverId)]},
+			productRef:new mongoose.Types.ObjectId(productId)
+		});
+		if(!chatDocument) {
+			const chatObject:CreateChatInterface = {
+				members:[senderId,receiverId],
+				productRef:productId
+			};
+			chatDocument = await this.chatServices.CreateChat(chatObject);
+		};
+
+		/** Note: Check Old Offer is exist */
+		const oldOfferMessage = await MessageModel.findOne({
+			chatId:new mongoose.Types.ObjectId(chatDocument._id),
+			type:"OFFER"
+		});
+		if(!oldOfferMessage){
+			const messageDoc = await MessageModel.create({
+				chatId: new mongoose.Types.ObjectId(chatDocument._id),
+				senderId: new mongoose.Types.ObjectId(senderId),
+				receiverId: new mongoose.Types.ObjectId(receiverId),
+				offer:{
+					previousOfferId: null,
+					offeredPrice: offeredPrice,
+					status:"PENDING"
+				},
+				type:"OFFER",
+				status:"ENABLED"
+			});
+		}else {
+			const messageDoc = await MessageModel.create({
+				chatId: new mongoose.Types.ObjectId(chatDocument._id),
+				senderId: new mongoose.Types.ObjectId(senderId),
+				receiverId: new mongoose.Types.ObjectId(receiverId),
+				offer:{
+					previousOfferId: new mongoose.Types.ObjectId(oldOfferMessage._id),
+					offeredPrice: offeredPrice,
+					status:"PENDING"
+				},
+				type:"OFFER",
+				status:"ENABLED"
+			});			
+		}
+
+		return {chatId:chatDocument._id};
+	};
+
+	
+	public async AcceptOffer(acceptOfferObj:AcceptOfferInterface):Promise<void> {
+		const { offerId } = acceptOfferObj;
+		/** Note: Message Document is exist. */
+		const messageDocument = await MessageModel.findById(new mongoose.Types.ObjectId(offerId));
+		if(!messageDocument) throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.MESSAGE.NOT_FOUND);
+		/** Note: Update Message Document Offer Status. */
+		await messageDocument.updateOne({
+			$set:{
+				"offer.status":"ACCEPTED"
+			}
+		});
+		return;
+	};
+
+
+	public async CancelOffer(cancelOfferObj:CancelOfferInterface):Promise<void> {
+		const { offerId } = cancelOfferObj;		
+		/** Note: Message Document is exist. */
+		const messageDocument = await MessageModel.findById(new mongoose.Types.ObjectId(offerId));
+		if(!messageDocument) throw new ApiError(STATUS_CODES.BAD_REQUEST,ERROR_MESSAGES.MESSAGE.NOT_FOUND);
+		/** Note: Update Message Document Offer Status. */
+		await messageDocument.updateOne({
+			$set:{
+				"offer.status":"CANCELLED"
+			}
+		});
+		return;
+	};
 }
 
 export default MessageServices;

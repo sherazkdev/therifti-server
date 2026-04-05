@@ -170,11 +170,11 @@ class UserServices {
         const user = await this.GetUserById(userId);
         /** Note: Before otp verify check resetToken is valid */
         const resetTokenPayload:VerifyResetTokenInterface = {
-            rawToken:resetToken,
+            token:resetToken,
             type:TokenTypes.EMAIL_VERIFY,
             userId:userId
         }
-        const proccessingResetToken = await this.tokenServices.VerifyResetToken(resetTokenPayload);
+        const proccessingResetToken = await this.tokenServices.VerifyToken(resetTokenPayload);
         /** Note: Verify Otp Payload. */
         const verifyOtpPayload:VerifyOtpInterface = {
             otp:otp,
@@ -225,7 +225,7 @@ class UserServices {
                     {$eq : ["$categoryId",new mongoose.Types.ObjectId(categoryId)]}
                 ]
             }
-        }
+        };
 
         /** Note: Getting user profile using aggregate piplines */
         const userDetails = await UserModel.aggregate([
@@ -242,6 +242,25 @@ class UserServices {
                     localField: "_id",
                     foreignField: "targetUserId",
                     as: "reviews"
+                }
+            },
+            {
+                $lookup : {
+                    from:"follows",
+                    let:{userId:new mongoose.Types.ObjectId(userId),owner:"$owner"},
+                    pipeline:[
+                        {
+                            $match : {
+                                $expr : {
+                                    $and : [
+                                        {$eq : ["$followerId","$$owner"]},
+                                        {$eq : ["$followingId","$$userId"]}
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as:"isFollowed"
                 }
             },
             {
@@ -276,9 +295,54 @@ class UserServices {
                         },
                         {
                             $skip : skip
+                        },
+                        {
+                            $lookup : {
+                                from:"wishlists",
+                                localField:"_id",            
+                                foreignField: "productId",
+                                as: "likes"
+                            }
+                        },
+                        {
+                            $lookup : {
+                                from:"brands",
+                                localField:"brand",
+                                foreignField:"_id",
+                                as:"brand"
+                            }
+                        },
+                        {
+                            $unwind: "$brand"
                         }
                     ],
                     as:"products"
+                }
+            },
+            {
+                $addFields: {
+                    mappedProducts : {
+                        $map : {
+                            input: "$products",
+                            as:"p",
+                            in:{
+                                _id:"$$p._id",
+                                coverImage:"$$p.coverImage",
+                                brand: "$$p.brand.brand",
+                                title:"$$p.title",
+                                condition:"$$p.condition",
+                                price:"$$p.price",
+                                parcelSize:"$$p.parcelSize",
+                                totalLikes: { $size: "$$p.likes" },
+                                isLiked: {
+                                    $in: [
+                                        new mongoose.Types.ObjectId(userId),
+                                        { $ifNull: ["$$p.likes.owner", []] }
+                                    ]
+                                }
+                            }
+                        }
+                    },
                 }
             },
             {
@@ -294,7 +358,10 @@ class UserServices {
                     },
                     totalFollowingsCount : {
                         $size : "$followings"
-                    }
+                    },
+                    products:{
+                        $first: "$mappedProducts"
+                    },
                 }
             },
             {

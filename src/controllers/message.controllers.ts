@@ -4,7 +4,7 @@ import ApiError from "../utils/ApiError.js";
 
 /** Note: imports types */
 import type {Request,Response} from "express";
-import {VALIDATE_DELETE_MESSAGE,VALIDATE_GET_CHAT_MESSAGES,VALIDATE_SEND_MESSAGE} from "../validaters/message.validater.js";
+import {VALIDATE_ACCEPT_OFFER, VALIDATE_CANCEL_OFFER, VALIDATE_DELETE_MESSAGE,VALIDATE_GET_CHAT_MESSAGES,VALIDATE_SEND_MESSAGE, VALIDATE_SEND_OFFER} from "../validaters/message.validater.js";
 import ApiResponse from "../utils/ApiResponse.js";
 
 /** Services*/
@@ -120,12 +120,42 @@ class MessageControllers {
         }};
         await this.messageServices.SendMessage(sendMessagePayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
-            new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.SENDED,true,STATUS_CODES.ACCEPTED)
+            new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.MESSAGE_SENDED,true,STATUS_CODES.ACCEPTED)
         )
     };
 
     /** -------- In Progress ----------- */
     // public HandleMessageAsSeen = async (req:Request,res:Response):Promise<Response> => {};
+
+    public HandleSendOffer = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_SEND_OFFER.parse(req.body);
+        /** Note: Send Offer Payload */
+        const sendOfferPayload = {...result,senderId:(req.user as UserDocument)._id.toString()};
+        await this.messageServices.SendOffer(sendOfferPayload);
+        return res.status(STATUS_CODES.OK).json(
+            new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.OFFER_SENDED,true,STATUS_CODES.OK)
+        )
+    };
+
+    public HandleAcceptOffer = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_ACCEPT_OFFER.parse(req.params);
+        /** Note: Accept Offer Payload */
+        const acceptOfferPayload = {...result};
+        await this.messageServices.AcceptOffer(acceptOfferPayload);
+        return res.status(STATUS_CODES.ACCEPTED).json(
+            new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.OFFER_ACCEPTED,true,STATUS_CODES.ACCEPTED)
+        );
+    };
+    
+    public HandleCancelOffer = async (req:Request,res:Response):Promise<Response> => {
+        const result = VALIDATE_CANCEL_OFFER.parse(req.params);
+        /** Note: Cancel Offer Payload */
+        const cancleOfferPayload = {...result};
+        await this.messageServices.CancelOffer(cancleOfferPayload);
+        return res.status(STATUS_CODES.ACCEPTED).json(
+            new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.OFFER_CANCELLED,true,STATUS_CODES.ACCEPTED)
+        );
+    };
 }
 
 export default MessageControllers;

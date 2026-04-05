@@ -51,7 +51,7 @@ class AuthMiddlewares {
 
     public AuthenticateJwtCookie = async (req:Request,res:Response,next:NextFunction) => {
         try {
-            const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[0]
+            const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[1]
             if(!accessToken){
                 throw new ApiError(STATUS_CODES.UNAUTHORIZED,ERROR_CODES.COMMON.UNAUTHORIZED);
             }
@@ -74,9 +74,9 @@ class AuthMiddlewares {
 
     public AuthenticateJwtOptional = async (req:Request,res:Response,next:NextFunction) => {
         try {
-            const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[0];
+            const accessToken = req.cookies?.accessToken || req.headers.authorization?.split("Bearer ")[1];
             if(!accessToken){
-                next();
+                return next();
             };
             /** Note: If accessToken is exist */
             /** Note: Jwt dcrypting and verify user. */
@@ -92,7 +92,8 @@ class AuthMiddlewares {
             }
             return next();
         } catch (e) {
-            next(e);
+            /** Ignore Error */
+            return next();
         }
     };
 }
