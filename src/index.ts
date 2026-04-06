@@ -15,6 +15,6 @@ MongooseConnection.Connect()
     socketsServices.init(server);
 
     /** Listen the server */
-    server.listen(env.PORT, "0.0.0.0", () => console.log(`\x1b[32m%s\x1b[0m`, `Ready on http://localhost:${env.PORT}`));
+    server.listen(env.PORT, () => console.log(`\x1b[32m%s\x1b[0m`, `Ready on http://localhost:${env.PORT}`));
 })
 .catch( (e:any) => app);
