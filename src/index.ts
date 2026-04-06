@@ -6,9 +6,6 @@ import http from "http";
 import MongooseConnection from "./configs/mongooseConnection/Connection.js";
 /** Socket services */
 import Sockets from "./sockets/sockets.js";
-import dns from "dns";
-
-dns.setServers(["1.1.1.1","8.8.8.8"]);
 
 MongooseConnection.Connect()
 .then( () => {
@@ -18,8 +15,6 @@ MongooseConnection.Connect()
     socketsServices.init(server);
 
     /** Listen the server */
-    server.listen(env.PORT, () => console.log(`\x1b[32m%s\x1b[0m`, `Ready on http://localhost:${env.PORT}`));
+    server.listen(env.PORT, "0.0.0.0", () => console.log(`\x1b[32m%s\x1b[0m`, `Ready on http://localhost:${env.PORT}`));
 })
-.catch( (e:any) => app)
-
-export default app;
+.catch( (e:any) => app);
