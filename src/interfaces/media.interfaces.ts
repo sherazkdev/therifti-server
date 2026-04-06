@@ -1,19 +1,19 @@
 import type {Types,Document} from "mongoose";
 
-/** Media FileTypes */
-export enum MediaFileTypes {
-    PDF = ".pdf",
-    JPG = ".jpg",
-    JPEG = ".jpeg",
-    WEBP = ".webp",
-    PNG = ".png"
-}
 /** Media Interface */
 export interface MediaInterface {
-    productId:Types.ObjectId,
+    productId:Types.ObjectId | null,
+    messageId:Types.ObjectId | null,
+    publicId:string,
     mediaUrl:string,
-    fileType:MediaFileTypes,
 };
+
+
+/** Note: Delete Media Interface */
+export interface DeleteMediaInterface {
+    messageId?:string,
+    productId?:string
+}
 
 /** Media Document with types */
 export interface MediaDocument extends MediaInterface, Document {};

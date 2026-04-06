@@ -26,7 +26,8 @@ interface EnvironmentVariables {
     CORS_ORIGIN:string,
     PORT:string | number,
     NODE_ENV:string,
-    CLOUDINARY_APP_PASSWORD:string,
+    CLOUDINARY_API_KEY:string,
+    CLOUDINARY_API_SECRET:string,
     ACCESS_TOKEN_EXPIRY:string,
     GOOGLE_CALLBACK_URL:string,
     FACEBOOK_CALLBACK_URL:string,
@@ -35,6 +36,7 @@ interface EnvironmentVariables {
     MAILER_APP_EMAIL:string,
     MAILER_APP_PASSWORD:string,
     REFRESH_TOKEN_SECRET:string,
+    CLOUDINARY_CLOUD_NAME:string,
     TOKEN_HASH_ALGORITHM:string
 }
 const env:EnvironmentVariables = {
@@ -49,7 +51,9 @@ const env:EnvironmentVariables = {
     PORT:requireEnv("PORT"),
     CLIENT_URL:requireEnv("CLIENT_URL"),
     NODE_ENV:requireEnv("NODE_ENV"),
-    CLOUDINARY_APP_PASSWORD:requireEnv("CLOUDINARY_APP_PASSWORD"),
+    CLOUDINARY_API_KEY:requireEnv("CLOUDINARY_API_KEY"),
+    CLOUDINARY_CLOUD_NAME:requireEnv("CLOUDINARY_CLOUD_NAME"),
+    CLOUDINARY_API_SECRET:requireEnv("CLOUDINARY_API_SECRET"),
     ACCESS_TOKEN_EXPIRY:requireEnv("ACCESS_TOKEN_EXPIRY"),
     ACCESS_TOKEN_SECRET:requireEnv("ACCESS_TOKEN_SECRET"),
     REFRESH_TOKEN_EXPIRY:requireEnv("REFRESH_TOKEN_EXPIRY"),
