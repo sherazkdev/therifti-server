@@ -65,7 +65,7 @@ export interface RegisterUserAccountMenuallyInterface {
     password:string,
     username:string,
     fullname:string,
-    zipCode?:number | undefined
+    postalCode:number
 }
 /** Refresh and accessToken Generate */
 export interface RefreshAndAccessTokenGeneraterInterface {

@@ -20,9 +20,9 @@ const authMiddlewares = new AuthMiddlewares();
 
 MessageRouter.route("/send").post(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleSendMessage));
 MessageRouter.route("/chatMessages/:chatId").get(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleGetChatMessages));
-MessageRouter.route("/delete-message").delete(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleDeleteMessage));
-MessageRouter.route("/:offerId/accept").delete(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleAcceptOffer));
-MessageRouter.route("/:offerId/cancel").delete(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleCancelOffer));
-MessageRouter.route("/send-offer").delete(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleSendOffer));
+MessageRouter.route("/delete-message").patch(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleDeleteMessage));
+MessageRouter.route("/:offerId/accept").patch(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleAcceptOffer));
+MessageRouter.route("/:offerId/cancel").patch(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleCancelOffer));
+MessageRouter.route("/send-offer").post(authMiddlewares.AuthenticateJwtCookie, AsyncHandler(messageControllers.HandleSendOffer));
 
 export default MessageRouter;

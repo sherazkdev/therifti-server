@@ -9,8 +9,10 @@ export const VALIDATE_CREATE_PRODUCT = z.object({
     title:z.string(),
     description:z.string(),
     condition:z.enum(PRODUCT_CONDITION),
-    coverImage:z.string(),
-    images:z.array(z.url()).min(1),
+    images:z.array(z.object({
+        publicId:z.string(),
+        secureUrl:z.string()
+    })).min(1),
     colors:z.array(z.enum(PRODUCT_COLOR)),
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
     price:z.number(),
@@ -30,10 +32,13 @@ export const VALIDATE_UPDATE_PRODUCT = z.object({
     owner:z.string().min(24,"Error: Object id at least 24 character"),
     sizes:z.array(z.string().min(24,"Error: Object id at least 24 character")),
     brand:z.string().min(24,"Error: Object id at least 24 character"),
-    title:z.string(),
+    title:z.string(),    
+    images:z.array(z.object({
+        publicId:z.string(),
+        secureUrl:z.string()
+    })).min(1),
     description:z.string(),
     condition:z.enum(PRODUCT_CONDITION),
-    coverImage:z.string(),
     colors:z.array(z.enum(PRODUCT_COLOR)),
     parcelSize:z.enum(PRODUCT_PARCEL_SIZE),
     price:z.number(),

@@ -5,9 +5,16 @@ import ApiError from "../utils/ApiError.js";
 /** Response Constants */
 import {ERROR_CODES, ERROR_MESSAGES, STATUS_CODES} from "../constants/responseConstants.js";
 import type { CreateProductInterface, FeaturedProductsInterface, GetSingleProductInterface, ProductDocument, SearchProductInterface, UpdateProductInterface } from "../interfaces/product.interfaces.js";
-import mongoose from "mongoose";
+import mongoose, { type ObjectId } from "mongoose";
+import type MediaServices from "./media.services.js";
+
 class ProductServices {
-        
+    private mediaServices: MediaServices;
+
+    constructor(mediaServices:MediaServices){
+        this.mediaServices = mediaServices;
+    };
+    
     /**
      * Note: Get Product Suggestions Service
      *
@@ -61,31 +68,40 @@ class ProductServices {
      * - Automatically converts string IDs to MongoDB ObjectIds
      * - Business logic is handled at the service layer
     */
-    public async CreateProduct(productDetails:CreateProductInterface):Promise<ProductDocument> {
-        const {brand,categoryId,colors,condition,coverImage,description,materials,owner,price,sizes,title,status,images,parcelSize} = productDetails;
+    public async CreateProduct(productDetails:CreateProductInterface):Promise<void> {
+        const {brand,categoryId,colors,condition,description,materials,owner,price,sizes,title,status,images,parcelSize} = productDetails;
         /** Note: Check Selected category is exist. */
         const category = await CategoryModel.findById(new mongoose.Types.ObjectId(categoryId));
         if(!category){
             throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_CODES.CATEGORY.NOT_FOUND,[{field:"categoryId",message:ERROR_MESSAGES.CATEGORY.NOT_FOUND}]);
         }
-        /** Note: Create Product Document */
-        const ProductDocument = await ProductModel.create({
-            categoryId:new mongoose.Types.ObjectId(categoryId),
-            owner:new mongoose.Types.ObjectId(owner),
-            sizes:sizes.map( (s) => new mongoose.Types.ObjectId(s)),
-            title:title,
-            description:description,
-            brand:new mongoose.Types.ObjectId(brand),
-            colors:colors,
-            parcelSize:parcelSize,
-            images:images,
-            condition:condition,
-            coverImage:coverImage,
-            materials:materials.map(id => new mongoose.Types.ObjectId(id)),
-            price:price,
-            status:status
-        });
-        return ProductDocument;
+        /** Note: Save document in media */
+        const mediaPayload = images;
+        const mediaResults = await this.mediaServices.CreateMedia(mediaPayload);
+        // console.log(mediaResults)
+        if(mediaResults !== null){
+            let mediaIds = Object.values(mediaResults.insertedIds);
+
+            /** Note: Create Product Document */
+            const ProductDocument = await ProductModel.create({ 
+                categoryId:new mongoose.Types.ObjectId(categoryId),
+                owner:new mongoose.Types.ObjectId(owner),
+                sizes:sizes.map( (s) => new mongoose.Types.ObjectId(s)),
+                title:title,
+                description:description,
+                brand:new mongoose.Types.ObjectId(brand),
+                colors:colors,
+                parcelSize:parcelSize,
+                condition:condition,
+                coverImage:mediaIds.splice(0,1),
+                images:mediaIds.length ? mediaIds : null,
+                materials:materials.map(id => new mongoose.Types.ObjectId(id)),
+                price:price,
+                status:status
+            });
+        }
+        return;
+
     };
 
     /**
@@ -168,6 +184,14 @@ class ProductServices {
                 }
             },
             {
+                $lookup : {
+                    from:"media",
+                    localField:"coverImage",
+                    foreignField:"_id",
+                    as:"coverImage"
+                }
+            },
+            {
                 $addFields : {
                     isLiked: isLikedField,
                     totalLikes: {
@@ -175,6 +199,9 @@ class ProductServices {
                     },
                     brand:{
                         $first:"$brand"
+                    },
+                    coverImage:{
+                        $arrayElemAt: ["$coverImage.secureUrl", 0]
                     }
                 }
             },
@@ -264,7 +291,6 @@ class ProductServices {
         /** Note: Assign the product updateProductObject value to Product document. */
         product.categoryId = new mongoose.Types.ObjectId(categoryId);
         product.title = title;
-        product.coverImage = coverImage;
         product.colors = colors;
         product.materials = materials.map(id => new mongoose.Types.ObjectId(id));
         product.parcelSize = parcelSize;
@@ -340,6 +366,14 @@ class ProductServices {
                 }
             },
             {
+                $lookup : {
+                    from:"media",
+                    localField:"coverImage",
+                    foreignField:"_id",
+                    as:"coverImage"
+                }
+            },
+            {
                 $addFields : {
                     isLiked: {
                         $in: [new mongoose.Types.ObjectId(userId),"$likes.owner"]
@@ -349,6 +383,9 @@ class ProductServices {
                     },
                     totalLikes: {
                         $size : "$likes"
+                    },
+                    coverImage:{
+                        $arrayElemAt: ["$coverImage.secureUrl", 0]
                     }
                 }
             },
@@ -366,6 +403,7 @@ class ProductServices {
                     _id:1,  
                     coverImage:1,
                     totalLikes:1,
+                    mappedCoverImage:1,
                     brand: "$brand.brand",
                     title:1,
                     isLiked:1,
@@ -375,7 +413,7 @@ class ProductServices {
                 }
             }
         ]);
-
+        console.log(products)   
         return products;
     };
 
@@ -405,6 +443,14 @@ class ProductServices {
                     $expr : {
                         $eq : ["$_id",new mongoose.Types.ObjectId(productId)]
                     }
+                }
+            },
+            {
+                $lookup : {
+                    from:"media",
+                    localField:"_id",            
+                    foreignField: "productId",
+                    as: "media"
                 }
             },
             {
@@ -574,9 +620,35 @@ class ProductServices {
                 }
             },
             {
+                $lookup : {
+                    from:"media",
+                    localField:"coverImage",
+                    foreignField:"_id",
+                    as:"coverImage"
+                }
+            },
+            {
+                $lookup : {
+                    from:"media",
+                    localField:"images",
+                    foreignField:"_id",
+                    as:"images"
+                }
+            },
+            {
                 $addFields : {
                     isLiked: {
                         $in: [new mongoose.Types.ObjectId(userId as string),"$likes.owner"]
+                    },
+                    coverImage: {
+                        $arrayElemAt: ["$coverImage.secureUrl", 0]
+                    },
+                    images: {
+                        $map : {
+                            input: "$images",
+                            as: "i",
+                            in: "$$i.secureUrl"
+                        }
                     },
                     totalLikes: {
                         $size : "$likes"

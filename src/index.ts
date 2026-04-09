@@ -6,6 +6,8 @@ import http from "http";
 import MongooseConnection from "./configs/mongooseConnection/Connection.js";
 /** Socket services */
 import Sockets from "./sockets/sockets.js";
+import dns from "dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 MongooseConnection.Connect()
 .then( () => {

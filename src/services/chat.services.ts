@@ -113,18 +113,64 @@ class ChatServices {
             },
             {
                 $lookup: {
-                    from: "products",
-                    localField: "productRef",
-                    foreignField: "_id",
-                    as: "productRef"
-                }
-            },
-            {
-                $lookup: {
                     from:"messages",
                     localField:"lastMessage",
                     foreignField:"_id",
                     as:"last_message"
+                }
+            },
+			{
+				$lookup: {
+					from: "products",
+					// localField:"productRef",
+					// foreignField:"_id",
+					let:{productRef:"$productRef"},
+					pipeline:[
+						{
+							$match : {
+								$expr : {
+									$eq: ["$_id","$$productRef"]
+								}
+							}
+						},
+						{
+							$lookup : {
+								from: "media",
+								localField: "coverImage",
+								foreignField: "_id",
+								as:"coverImage"
+							}
+						},
+						{
+							$lookup : {
+								from: "users",
+								localField: "owner",
+								foreignField: "_id",
+								as:"owner"
+							}
+						}
+					],
+					as:"productRef"
+				}
+			},
+            {
+                $addFields: {
+
+					mappedProduct:{
+						$map:{
+							input: "$productRef",
+							as: "p",
+							in : {
+								_id: "$$p._id",
+								title: "$$p.title",
+								price: "$$p.price",
+								owner: {
+									_id:{ $arrayElemAt: ["$$p.owner._id", 0] }
+								},
+								coverImage: { $arrayElemAt: ["$$p.coverImage.secureUrl", 0] }
+							}
+						}
+					}
                 }
             },
             {
@@ -141,8 +187,8 @@ class ChatServices {
                     lastMessage: {
                         $first: "$last_message"
                     },
-                    productRef: {
-                        $first : "$productRef"
+                    product: {
+                        $first : "$mappedProduct"
                     }
                 }
             },
@@ -160,9 +206,7 @@ class ChatServices {
                     "member._id":1,
                     "member.fullname":1,
                     updatedAt:1,
-                    "productRef._id":1,
-                    "productRef.title":1,
-                    "productRef.coverImage":1
+                    product:1,
 
                 }
             }

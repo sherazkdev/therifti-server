@@ -1,4 +1,5 @@
 import type {Types,Document} from "mongoose";
+import type { CreateProductImageInterface } from "./media.interfaces.js";
 export const PRODUCT_SORT = [
   "PRICE_HIGH_TO_LOW",
   "PRICE_LOW_TO_HIGH",
@@ -64,10 +65,10 @@ export interface ProductInterface {
     description:string,
     condition:ProductCondition,
     brand:Types.ObjectId,
-    images:string[],
-    coverImage:string,
+    coverImage:Types.ObjectId,
     colors:ProductColor[],
     materials:Types.ObjectId[],
+    images:Types.ObjectId[] | null,
     parcelSize:ProductParcelSize,
     sizes:Types.ObjectId[],
     price:number,
@@ -84,8 +85,7 @@ export interface CreateProductInterface {
   description:string,
   condition:ProductCondition,
   brand:string,
-  images:string[],
-  coverImage:string,
+  images:CreateProductImageInterface[]
   colors:ProductColor[],
   materials:string[],
   parcelSize:ProductParcelSize,

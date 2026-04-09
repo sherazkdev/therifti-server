@@ -15,19 +15,26 @@ import type {AuthResponseInterface,RegisterUserAccountMenuallyInterface,LoginUse
 import { TokenTypes, type CreateTokenInterface, type FindValidTokenInterface, type VerifyResetTokenInterface } from "../interfaces/token.interfaces.js";
 import type {SendOtpInterface, VerifyOtpInterface} from "../interfaces/otp.interfaces.js";
 
-import TokenServices from "./token.services.js";
-import UserServices from "./user.services.js";
-import OtpServices from "./otp.services.js";
-import jwt from "jsonwebtoken";
+import type TokenServices from "./token.services.js";
+import type UserServices from "./user.services.js";
+import type OtpServices from "./otp.services.js";
+import type AddressServices from "./address.services.js";
 import type { AuthApiResponse, JwtPayloadInterface } from "../interfaces/auth.interfaces.js";
 import mongoose from "mongoose";
-import env from "../constants/loadEnv.js";
 
 class AuthServices {
-    private userServices = new UserServices();
-    private otpServices = new OtpServices();
-    private tokenServices = new TokenServices(); 
+    private userServices: UserServices;
+    private otpServices: OtpServices;
+    private addressServices: AddressServices;
+    private tokenServices: TokenServices; 
 
+    constructor(userServices:UserServices, otpServices:OtpServices, addressServices:AddressServices, tokenServices:TokenServices){
+        this.userServices = userServices;
+        this.otpServices = otpServices;
+        this.addressServices = addressServices;
+        this.tokenServices = tokenServices;
+    };
+    
     /**
      * Note: Auth Login with google.
      * @param {GoogleProfile} profile - Logged in user profile.
@@ -114,7 +121,7 @@ class AuthServices {
      * @throw if emails exist.
     */
     public async RegisterUserAccount(userObject:RegisterUserAccountMenuallyInterface):Promise<AuthApiResponse> {
-        const {email, fullname, password, username, zipCode} = userObject;
+        const {email, fullname, password, username, postalCode} = userObject;
         const checkUserAccountEmailExist = await UserModel.findOne({
             $or : [
                 {email:email},
@@ -150,6 +157,14 @@ class AuthServices {
         };
 
         const created_user = await UserModel.create(UserDocument);
+        /** Note: Create A addressDocument */
+        const addressPayload = {
+            userId:created_user._id.toString(),
+            postalCode
+        };
+        
+        await this.addressServices.CreateAddress(addressPayload)
+
         /** Note: Generate new otp for email verification. */
         const sendOtpPayload:SendOtpInterface = {
             purpose:"REGISTER_ACCOUNT",

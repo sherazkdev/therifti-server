@@ -131,9 +131,9 @@ class MessageControllers {
         const result = VALIDATE_SEND_OFFER.parse(req.body);
         /** Note: Send Offer Payload */
         const sendOfferPayload = {...result,senderId:(req.user as UserDocument)._id.toString()};
-        await this.messageServices.SendOffer(sendOfferPayload);
+        const responseData = await this.messageServices.SendOffer(sendOfferPayload);
         return res.status(STATUS_CODES.OK).json(
-            new ApiResponse([],SUCCESS_MESSAGES.MESSAGE.OFFER_SENDED,true,STATUS_CODES.OK)
+            new ApiResponse(responseData,SUCCESS_MESSAGES.MESSAGE.OFFER_SENDED,true,STATUS_CODES.OK)
         )
     };
 

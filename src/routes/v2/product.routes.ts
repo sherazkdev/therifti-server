@@ -3,6 +3,7 @@ import type { Router } from "express";
 
 /** Note: Services */
 import ProductServices from "../../services/product.services.js";
+import MediaServices from "../../services/media.services.js";
 
 /* Note: UserControllers imports **/
 import ProductControllers from "../../controllers/product.controllers.js";
@@ -11,7 +12,8 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const ProductRouter:Router = express.Router();
-const productServices = new ProductServices();
+const mediaServices = new MediaServices();
+const productServices = new ProductServices(mediaServices);
 
 const productControllers = new ProductControllers(productServices);
 const authMiddlewares = new AuthMiddlewares();

@@ -122,7 +122,11 @@ class MessageServices {
 						_id: "$sender._id",
 						fullname: "$sender.fullname",
 						avatar: "$sender.avatar"
-					}
+					},
+					offer:1,
+					type:1,
+					status:1,
+					seen:1
 				}
 			}
 		]);

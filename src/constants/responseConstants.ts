@@ -296,9 +296,14 @@ export const ERROR_CODES = {
     TOKEN_INVALID: "TOKEN_INVALID"
   },
 
+  MEDIA:{
+    ID_REQUIRED: "messageId or productId is required"
+  },
+
   ADDRESS: {
     NOT_FOUND:"ADDRESS_NOT_FOUND",
   },
+  
   USER: {
     NOT_FOUND: "USER_NOT_FOUND",
     UPDATE_FAILED: "USER_UPDATE_FAILED",

@@ -3,8 +3,10 @@ import passport from "passport";
 import type { Router } from "express";
 
 /** Note: Services */
+import OtpServices from "../../services/otp.services.js";
 import AuthServices from "../../services/auth.services.js";
 import UserServices from "../../services/user.services.js";
+import AddressServices from "../../services/address.services.js";
 import TokenServices from "../../services/token.services.js";
 
 /* Note: Controller imports **/
@@ -15,9 +17,11 @@ import AsyncHandler from "../../utils/AsyncHandler.js";
 import AuthMiddlewares from "../../middlewares/auth.middlewares.js";
 
 const AuthRouter:Router = express.Router();
-const authServices = new AuthServices();
+const otpServices = new OtpServices();
+const addressServices = new AddressServices();
 const userServices = new UserServices();
 const tokenServices = new TokenServices();
+const authServices = new AuthServices(userServices, otpServices, addressServices, tokenServices);
 
 const authControllers = new AuthControllers(tokenServices,userServices,authServices);
 const authMiddlewares = new AuthMiddlewares();

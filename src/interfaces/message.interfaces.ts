@@ -23,7 +23,7 @@ export interface MessageInterface {
         offeredPrice:number,
         status:offerStatus,
     },
-    content:string,
+    content?:string | null,
     type:TypeStatus,
     seen:SeenStatus,
     status:MessageStatus,
@@ -38,7 +38,6 @@ export interface SendMessageInterface {
     };
 	receiverId: string;
 	content: string;
-    type:TypeStatus
 };
 
 export interface SendOffferInterface {

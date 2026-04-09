@@ -159,7 +159,7 @@ class SocketServices {
         const NotificationPayload:CreateNotificationInterface = {
             recipient_id:messageDocument.receiverId,
             metaData:{
-                senderId:messageDocument.senderId._id || messageDocument.senderId,
+                senderId:messageDocument.sender._id || messageDocument.senderId,
                 senderName,
                 chatId:messageDocument.chatId,
                 lastMessage:messageDocument.content

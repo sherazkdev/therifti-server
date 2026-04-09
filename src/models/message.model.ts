@@ -40,7 +40,7 @@ const MessageSchema = new mongoose.Schema<MessageDocument>({
     },
     content:{
         type:String,
-        required:true
+        default:null
     },
     seen:{
         type:String,

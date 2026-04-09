@@ -7,7 +7,7 @@ export const VALIDATE_REGISTER_USER_ACCOUNT = z.object({
     fullname: z.string().min(3,"Error: fullname at least 3 character"),
     username: z.string().min(3,"Error: username at least 3 character"),
     password: z.string().min(8,"Error: password at least 9 character"),
-    zipCode: z.number().optional()
+    postalCode: z.number()
 });
 
 /** Note: Validate Login User Account. */

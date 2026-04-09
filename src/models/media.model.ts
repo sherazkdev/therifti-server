@@ -3,19 +3,11 @@ import mongoose from "mongoose";
 import type { MediaDocument } from "../interfaces/media.interfaces.js";
 
 const MediaSchema = new mongoose.Schema<MediaDocument>({
-    productId:{
-        type: mongoose.Schema.Types.ObjectId,
-        default:null
-    },
-    messageId:{
-        type: mongoose.Schema.Types.ObjectId,
-        default:null
-    },
     publicId:{
         type:String,
         required:true
     },
-    mediaUrl:{
+    secureUrl:{
         type:String,
         required:true
     }

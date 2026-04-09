@@ -29,8 +29,19 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
         required:true
     },
     coverImage:{
-        type:String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Media",
         required:true
+    },
+    images:{
+        type:[
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Media",
+                required:true
+            },
+        ],
+        default:null
     },
     description:{
         type:String,
@@ -65,11 +76,6 @@ const ProductSchema = new mongoose.Schema<ProductDocument>({
         },
         index: true,
     },
-    images:[{
-        type:String,
-        min:1,
-        required:true,
-    }],
     price:{
         type:Number,
         index:true,

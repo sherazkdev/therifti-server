@@ -7,8 +7,7 @@ import { TYPE_STATUS } from "../interfaces/message.interfaces.js";
 export const VALIDATE_SEND_MESSAGE = z.object({
     receiverId:z.string().min(24,"Error: Object id at least 24 character"),
     chatId:z.string().min(24,"Error: Object id at least 24 character"),
-    content:z.string(),
-    type:z.enum(TYPE_STATUS)
+    content:z.string()
 });
 
 /** Note: Validate Delete Message */
