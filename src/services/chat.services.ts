@@ -29,7 +29,10 @@ class ChatServices {
     public async CreateChat(chatObject: CreateChatInterface): Promise<ChatDocument> {
         const {members,productRef} = chatObject;
         /** Note: Check chat allready exist. */
-        const oldChatDocument = await this.CheckChatByMembers(members);
+        const oldChatDocument = await ChatModel.findOne({
+            members: { $all : members},
+            productRef: new mongoose.Types.ObjectId(productRef)
+        });
         if(oldChatDocument) {
             return oldChatDocument;
         }

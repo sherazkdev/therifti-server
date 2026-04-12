@@ -78,10 +78,10 @@ class UserServices {
      * @param object
      * @return object 
     */
-    public RemoveNullAndUndefinedValues<T extends Record<string, any>>(object:T):Partial<T> {
+    public RemoveNullAndUndefinedValues<T extends Record<string, any>>(object: T): Partial<T> {
         return Object.fromEntries(
-            Object.entries(object).filter( (_y,item) => item !== undefined && item !== null )
-        ) as Partial<T>
+            Object.entries(object).filter(([_, value]) => value !== undefined && value !== null)
+        ) as Partial<T>;
     }
 
     /**
@@ -313,6 +313,14 @@ class UserServices {
                             }
                         },
                         {
+                            $lookup : {
+                                from:"media",
+                                localField:"coverImage",
+                                foreignField:"_id",
+                                as:"coverImage"
+                            }
+                        },
+                        {
                             $unwind: "$brand"
                         }
                     ],
@@ -327,7 +335,7 @@ class UserServices {
                             as:"p",
                             in:{
                                 _id:"$$p._id",
-                                coverImage:"$$p.coverImage",
+                                // coverImage: {$ArrayElmFirs},
                                 brand: "$$p.brand.brand",
                                 title:"$$p.title",
                                 condition:"$$p.condition",

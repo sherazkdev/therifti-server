@@ -484,6 +484,14 @@ class ProductServices {
                         },
                         {
                             $lookup : {
+                                from:"media",
+                                localField:"coverImage",
+                                foreignField:"_id",
+                                as:"coverImage"
+                            }
+                        },
+                        {
+                            $lookup : {
                                 from:"wishlists",
                                 localField:"_id",
                                 foreignField:"productId",
@@ -539,6 +547,14 @@ class ProductServices {
                         },
                         {
                             $unwind : "$brand"
+                        },
+                        {
+                            $lookup : {
+                                from:"media",
+                                localField:"coverImage",
+                                foreignField:"_id",
+                                as:"coverImage"
+                            }
                         },
                         {
                             $lookup : {
@@ -635,29 +651,27 @@ class ProductServices {
                     as:"images"
                 }
             },
+            {   
+                $lookup : {
+                    from:"materials",
+                    localField:"materials",
+                    foreignField:"_id",
+                    as:"materials"
+                }
+            },
             {
                 $addFields : {
                     isLiked: {
                         $in: [new mongoose.Types.ObjectId(userId as string),"$likes.owner"]
                     },
                     coverImage: {
-                        $arrayElemAt: ["$coverImage.secureUrl", 0]
-                    },
-                    images: {
-                        $map : {
-                            input: "$images",
-                            as: "i",
-                            in: "$$i.secureUrl"
-                        }
+                        $first : "$coverImage"
                     },
                     totalLikes: {
                         $size : "$likes"
                     },
                     owner: {
                         $first : "$owner"
-                    },
-                    size: {
-                        $first : "$size"
                     },
                     brand: {
                         $first : "$brand"
@@ -686,7 +700,7 @@ class ProductServices {
                             as:"s",
                             in:{
                                 _id:"$$s._id",
-                                coverImage:"$$s.coverImage",
+                                coverImage:{$arrayElemAt: ["$coverImage.secureUrl", 0]},
                                 title:"$$s.title",
                                 brand:"$$s.brand.brand",
                                 condition:"$$s.condition",
@@ -703,7 +717,7 @@ class ProductServices {
                             as:"o",
                             in:{
                                 _id:"$$o._id",
-                                coverImage:"$$o.coverImage",
+                                coverImage:{$arrayElemAt: ["$coverImage.secureUrl", 0]},
                                 title:"$$o.title",
                                 brand:"$$o.brand.brand",
                                 condition:"$$o.condition",
@@ -723,9 +737,9 @@ class ProductServices {
                     description:1,
                     coverImage:1,
                     sizes:1,
-                    brand:"$brand.brand",
+                    brand:"$brand",
                     condition:1,
-                    material:1,
+                    materials:1,
                     colors:1,
                     price:1,
                     images:1,

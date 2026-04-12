@@ -6,7 +6,7 @@ export enum MessageStatus {
     ENABLED = "ENABLED",
 };
 
-export const OFFER_STATUS = ["PENDING","ACCEPTED"] as const;
+export const OFFER_STATUS = ["PENDING","ACCEPTED","CANCELLED"] as const;
 export const SEEN_STATUS = ["SENT","SEEN"] as const;
 export const TYPE_STATUS = ["TEXT","OFFER","FILE"] as const;
 export type offerStatus = typeof OFFER_STATUS[number];

@@ -40,7 +40,7 @@ class AuthControllers {
         const result = VALIDATE_REGISTER_USER_ACCOUNT.parse(req.body);
 
         /** Note: Register User Payload. */
-        const {email,fullname,password,username,zipCode} = result;
+        const {email,fullname,password,username,postalCode} = result;
         const registerUserPayload:RegisterUserAccountMenuallyInterface = result;
         const registerdUser = await this.authServices.RegisterUserAccount(registerUserPayload);
         return res.status(200).json(
@@ -275,7 +275,7 @@ class AuthControllers {
      * @returns {Promise<Response>} - LoggedIn userdocument.
     */
     public HandleGetCurrentLoggedInUser = async (req:Request,res:Response):Promise<Response> => {
-        const userDocument = req.user as UserDocument;
+        const userDocument = await this.authServices.GetLoggedInUser((req.user as UserDocument)._id.toString());
         return res.status(STATUS_CODES.OK).json(new ApiResponse(userDocument,SUCCESS_MESSAGES.USER.FETCH,true,STATUS_CODES.OK));
     }
 

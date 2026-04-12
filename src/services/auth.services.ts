@@ -67,7 +67,7 @@ class AuthServices {
                     isVerfied:true
                 };
                 /** Note: Filter User */
-                const filterdUser = await this.userServices.RemoveNullAndUndefinedValues(removeNullFileds);
+                const filterdUser = this.userServices.RemoveNullAndUndefinedValues(removeNullFileds);
                 /** Note: Create new account */
                 user = await UserModel.create(filterdUser);
             }else if(!user.googleId){   
@@ -108,7 +108,7 @@ class AuthServices {
                 isVerfied:true
             };
             /** Note: Removinf nulleble fields. */
-            const filterdUser = await this.userServices.RemoveNullAndUndefinedValues(removeNullFields);
+            const filterdUser = this.userServices.RemoveNullAndUndefinedValues(removeNullFields);
             /** Note: Create Document in Mongodb */
             user = await UserModel.create(filterdUser);
         }
@@ -414,7 +414,99 @@ class AuthServices {
             accessToken,
             refreshToken
         }
-    }
+    };
+
+    public async GetLoggedInUser(userId:string):Promise<UserDocument> {
+        const userDocument = await UserModel.aggregate([
+            {
+                $match: {
+                    $expr : {
+                        $eq: ["$_id",new mongoose.Types.ObjectId(userId)]
+                    }
+                }
+            },
+            {
+                $lookup: {
+                    from: "addresses",
+                    localField: "_id",
+                    foreignField: "userId",
+                    as: "address"
+                }
+            },
+            {
+                $lookup: {
+                    from: "messages",
+                    let: {userId:"$_id"},
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$receiverId","$$userId"]},
+                                        { $eq: ["$seen","SENT"]}
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: "messages"
+                }
+            },
+            {
+                $lookup: {
+                    from: "notifications",
+                    let: {userId:"$userId"},
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$recipient_id","$$userId"]},
+                                        { $eq: ["$status", "UNREAD"]}
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: "notifications"
+                }
+            },
+            {
+                $addFields: {
+                    unredMessagesCount: {
+                        $size: "$messages"
+                    },
+                    unredNotificationsCount:{
+                        $size: "$notifications"
+                    },
+                    address: {
+                        $first: "$address"
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id:1,
+                    fullname:1,
+                    avatar:1,
+                    about:1,
+                    username:1,
+                    email:1,
+                    dob:1,
+                    gender:1,
+                    phoneNumber:1,
+                    lastSeen:1,
+                    type:1,
+                    status:1,
+                    address:1,
+                    unredMessagesCount:1,
+                    unredNotificationsCount:1
+                }
+            }
+        ]);
+        
+        return userDocument[0];
+    };
 };
 
 export default AuthServices;

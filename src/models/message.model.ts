@@ -11,19 +11,19 @@ const MessageSchema = new mongoose.Schema<MessageDocument>({
     },
     senderId:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Chat",
+        ref:"User",
         required:true
     },
     receiverId:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"Chat",
+        ref:"User",
         required:true
     },
     offer:{
         type:{    
             previousOfferId:{
                 type:mongoose.Schema.Types.ObjectId,
-                ref:"Chat",
+                ref:"Message",
                 default:null
             },
             offeredPrice:{
