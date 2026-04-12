@@ -134,7 +134,7 @@ class ProductControllers {
 
         // Note: Update product payload.
         const UpdateProductPayload = result;
-        await this.productServices.UpdateProduct(UpdateProductPayload);
+        // await this.productServices.UpdateProduct(UpdateProductPayload);
         return res.status(STATUS_CODES.ACCEPTED).json(
             new ApiResponse([],SUCCESS_MESSAGES.PRODUCT.UPDATE,true,STATUS_CODES.ACCEPTED)
         )

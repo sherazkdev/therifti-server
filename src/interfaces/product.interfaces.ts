@@ -120,7 +120,7 @@ export interface UpdateProductInterface {
   description:string,
   condition:ProductCondition,
   brand:string,
-  coverImage:string,
+  coverImage:Object[],
   colors:ProductColor[],
   materials:string[],
   parcelSize:ProductParcelSize,

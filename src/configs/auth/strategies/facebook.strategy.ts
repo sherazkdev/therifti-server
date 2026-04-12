@@ -6,6 +6,10 @@ import env from "../../../constants/loadEnv.js";
 /** Auth Services. */
 import AuthServices from "../../../services/auth.services.js";
 
+import UserServices from "../../../services/user.services.js";
+import OtpServices from "../../../services/otp.services.js";
+import TokenServices from "../../../services/token.services.js";
+import AddressServices from "../../../services/address.services.js";
 const FacebookStrategy = passport.use(
     new Strategy(
         {
@@ -15,8 +19,12 @@ const FacebookStrategy = passport.use(
         },
         async function(accessToken:string,refreshToken:string,profile:Profile,cb:(error: any, user?: any, info?: any) => void):Promise<void> {
             try {
-                /** Authenticate User Details. */
-                const authServices = new AuthServices();
+                const otpServices = new OtpServices();
+                const addressServices = new AddressServices();
+                const userServices = new UserServices();
+                const tokenServices = new TokenServices();
+                /** Note: User Authenticater. */
+                const authServices = new AuthServices(userServices, otpServices, addressServices, tokenServices); 
                 /** Note: Check user exist by service. */
                 const user = await authServices.LoginWithFacebook(profile);
                 cb(null,user);

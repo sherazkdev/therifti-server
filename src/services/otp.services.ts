@@ -75,7 +75,7 @@ class OtpServices {
         );
         /** Note: Check file is exist in directory. */
         if(!templatePath || !fs.existsSync(templatePath)){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.EMAIL.EMAIL_TEMPLATE_NOT_FOUND,ERROR_CODES.VALIDATION.FAILED);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.EMAIL.EMAIL_TEMPLATE_NOT_FOUND);
         }
         return templatePath;
     }
@@ -89,7 +89,7 @@ class OtpServices {
         const {purpose,userId,email} = otpObject;
         const user = await UserModel.findById(new mongoose.Types.ObjectId(userId));
         if(!user){
-            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND,ERROR_CODES.AUTH.EMAIL_NOT_FOUND);
+            throw new ApiError(STATUS_CODES.NOT_FOUND,ERROR_MESSAGES.USER.NOT_FOUND);
         }
         /** Note: Check old otp is exist */
         const oldOtpDocument = await OtpModel.findOne({
